@@ -1,196 +1,380 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>คำร้องขอความช่วยเหลือภัยพิบัติ</title>
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-    form {
-      max-width: 400px;
-      margin: auto;
-    }
-    label {
-      display: block;
-      margin-top: 10px;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-    }
-    button {
-      margin-top: 20px;
-      padding: 10px;
-      background-color: #00c300;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #00a800;
-    }
-    .user-info {
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    .user-info img {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ลงทะเบียนสมาชิก</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
+        }
+        .container {
+            max-width: 400px;
+            background: white;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .container:hover {
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            transform: scale(1.02);
+        }
+        .header-gradient {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+        }
+        .profile-section {
+            background: linear-gradient(to right, #f0f4ff, #e6e9f0);
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        #profileImage {
+            border: 3px solid white;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+        .time-display {
+            background-color: #2c3e50;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none; /* ซ่อน overlay เริ่มต้น */
+        }
+        .loading-spinner {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
-<body>
-  <div class="user-info" id="userInfo">
-    <!-- แสดงข้อมูลผู้ใช้ -->
-  </div>
+<body class="flex items-center justify-center min-h-screen">
+    <div class="container mx-auto">
+        <!-- Header -->
+        <div class="header-gradient text-white text-center py-5">
+            <h1 class="text-2xl font-semibold tracking-wider">ลงทะเบียนสมาชิก</h1>
+        </div>
 
-  <h1>คำร้องขอความช่วยเหลือภัยพิบัติ</h1>
-  <form id="disasterForm">
-    <label for="name">ชื่อ:</label>
-    <input type="text" id="name" name="name" required>
+        <!-- Profile Section -->
+        <div class="profile-section">
+            <div class="flex items-center">
+                <img id="profileImage" src="https://cdn.pixabay.com/animation/2022/11/04/09/42/09-42-03-510_512.gif" alt="Profile" class="w-16 h-16 rounded-full mr-4">
+                <div>
+                    <h4 id="displayName" class="text-lg font-semibold text-gray-800">Loading...</h4>
+                    <p id="statusMessage" class="text-gray-500 text-sm">Loading status...</p>
+                    <span id="userStatus" class="status-badge inline-block px-2 py-1 text-sm font-semibold text-white bg-green-500 rounded-full">Online</span>
+                </div>
+            </div>
+            <div id="timeDisplay" class="time-display">
+                00:00:00
+            </div>
+        </div>
 
-    <label for="phone">เบอร์โทรศัพท์:</label>
-    <input type="tel" id="phone" name="phone" required>
+        <!-- Registration Form -->
+        <div class="p-4">
+            <form id="registrationForm">
+                <div class="mb-4">
+                    <label for="firstName" class="block text-gray-700 text-sm font-bold mb-2">ชื่อ</label>
+                    <input type="text" id="firstName" name="firstName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div class="mb-4">
+                    <label for="lastName" class="block text-gray-700 text-sm font-bold mb-2">นามสกุล</label>
+                    <input type="text" id="lastName" name="lastName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div class="mb-4">
+                    <label for="position" class="block text-gray-700 text-sm font-bold mb-2">ปฏิบัติหน้าที่เป็น</label>
+                      <select name="position" id="position" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                        <option value="FCG" selected>ผู้ดูแลในครอบครัว</option>
+                        <option value="CG">CG</option>
+                        <option value="CM">CM</option>
+                        <option value="CCO">C-Co</option>
+                      </select>
+                </div>
+                <div class="mb-4">
+                    <label for="department" class="block text-gray-700 text-sm font-bold mb-2">ขึ้นตรงหน่วยงาน(ชื่อ) </label>
+                    <input type="text" id="department" name="department" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div class="flex items-center justify-center">
+                    <button type="submit" class="bg-gray-800 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">ลงทะเบียน</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-    <label for="address">ที่อยู่:</label>
-    <textarea id="address" name="address" rows="4" required></textarea>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
 
-    <label for="complaint">ข้อมูลคำร้องเรียน:</label>
-    <textarea id="complaint" name="complaint" rows="4" required></textarea>
+    <!-- LIFF SDK -->
+    <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
+    <script>
 
-    <button type="submit">ส่งคำร้อง</button>
-  </form>
+document.getElementById('position').addEventListener('change', change2);
 
-  <script>
-    let liff;
-
-    async function initializeLiff() {
-      try {
-        await liff.init({ liffId: "2006915175-ZOxEXyeA" });
-        console.log("LIFF initialized successfully");
-
-        // ตรวจสอบว่าผู้ใช้ล็อกอินแล้วหรือยัง
-        if (!liff.isLoggedIn()) {
-          liff.login();
-        } else {
-          const profile = await liff.getProfile();
-          localStorage.setItem('userId', profile.userId);
-          localStorage.setItem('displayName', profile.displayName);
-          localStorage.setItem('pictureUrl', profile.pictureUrl);
-
-          // แสดงข้อมูลผู้ใช้
-          const userInfoDiv = document.getElementById('userInfo');
-          userInfoDiv.innerHTML = `
-            <img src="${profile.pictureUrl}" alt="Profile Picture">
-            <p>${profile.displayName}</p>
-          `;
+        function change2() {
+            if (this.value == "user") {
+                    document.getElementById('department').value = "บุคคลทั่วไป";
+                    document.getElementById('department').disabled = true;
+                } else {
+                document.getElementById('department').value = "";
+                    document.getElementById('department').disabled = false;
+                }
         }
-      } catch (error) {
-        console.error("Error initializing LIFF:", error);
-      }
-    }
+      
+    const liffId = '2006915175-ZOxEXyeA'; // เปลี่ยนจุดที่ 1 liff register
 
-    initializeLiff();
+        
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('timeDisplay').textContent = `${hours}:${minutes}:${seconds}`;
+        }
 
-    document.getElementById('disasterForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
+        setInterval(updateTime, 1000);
+        updateTime(); 
 
-      const formData = {
-        userId: localStorage.getItem('userId'),
-        name: document.getElementById('name').value,
-        phone: document.getElementById('phone').value,
-        address: document.getElementById('address').value,
-        complaint: document.getElementById('complaint').value
-      };
+       
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
 
-      try {
-        // ส่งข้อมูลไปยัง Google Apps Script
-        const response = await fetch('https://script.google.com/macros/s/AKfycbzQ7_o4doKNhP5_4bfOHulegZ6cCfbauxQWukCsI1WRnJSxPFQpyWMp-Ytvz0HAnb7M/exec', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
-        });
+      
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
 
-        if (response.ok) {
-          // สร้าง Flex Message
-          const flexMessage = {
-            type: "flex",
-            altText: "รายละเอียดคำร้องของคุณ",
-            contents: {
-              type: "bubble",
-              header: {
-                type: "box",
-                layout: "vertical",
-                contents: [
-                  {
-                    type: "text",
-                    text: "รายละเอียดคำร้อง",
-                    weight: "bold",
-                    size: "xl"
-                  }
-                ]
-              },
-              body: {
-                type: "box",
-                layout: "vertical",
-                contents: [
-                  {
-                    type: "text",
-                    text: `ชื่อ: ${formData.name}`,
-                    wrap: true
-                  },
-                  {
-                    type: "text",
-                    text: `เบอร์โทร: ${formData.phone}`,
-                    wrap: true
-                  },
-                  {
-                    type: "text",
-                    text: `ที่อยู่: ${formData.address}`,
-                    wrap: true
-                  },
-                  {
-                    type: "text",
-                    text: `คำร้องเรียน: ${formData.complaint}`,
-                    wrap: true
-                  }
-                ]
-              }
+        
+        async function initializeLiff() {
+            try {
+                await liff.init({ liffId: liffId });
+                if (liff.isLoggedIn()) {
+                    const profile = await liff.getProfile();
+                    document.getElementById('displayName').textContent = profile.displayName;
+                    document.getElementById('statusMessage').textContent = profile.statusMessage;
+                    document.getElementById('profileImage').src = profile.pictureUrl;
+                    document.getElementById('userStatus').textContent = liff.isLoggedIn() ? 'Online' : 'Offline';
+                } else {
+                    liff.login();
+                }
+            } catch (error) {
+                console.error('LIFF initialization error:', error);
             }
-          };
-
-          // ส่ง Flex Message ไปยังแชทของผู้ใช้
-          await liff.sendMessages([flexMessage]);
-          Swal.fire({
-            icon: 'success',
-            title: 'บันทึกข้อมูลสำเร็จ!',
-            text: 'ขอบคุณที่ส่งคำร้อง เราจะติดต่อกลับโดยเร็วที่สุด'
-          });
-
-          // ปิดหน้าต่าง LIFF
-          liff.closeWindow();
-        } else {
-          Swal.fire({
-            icon: 'error',
-            title: 'เกิดข้อผิดพลาด!',
-            text: 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง'
-          });
         }
-      } catch (error) {
-        Swal.fire({
-          icon: 'error',
-          title: 'เกิดข้อผิดพลาด!',
-          text: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้'
+
+        initializeLiff();
+
+        
+        async function sendToGoogleSheet(userId, firstName, lastName, position, department) {
+            try {
+                const response = await fetch('https://script.google.com/macros/s/AKfycbzEra2WSYdWw3NSxgItCcl5BWEIs41ZajR6lPYLx5GqVu0e6l-GGV-z6Eu6fdTseMVt/exec', {  // เปลี่ยนจุดที่ 2 (3.Register)
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        userId: userId,
+                        firstName: firstName,
+                        lastName: lastName,
+                        position: position,
+                        department: department,
+                    })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    await sendFlexMessage('Register');
+                } else {
+                    console.error('Error sending data to Google Sheets:', result);
+                }
+            } catch (error) {
+                console.error('Error sending data to Google Sheets:', error);
+            }
+        }
+
+      
+        document.getElementById('registrationForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const position = document.getElementById('position').value;
+            const department = document.getElementById('department').value;
+            const profileImage = document.getElementById('profileImage').src;
+            const userId = liff.getDecodedIDToken().sub; 
+
+            showLoading(); 
+
+            await sendToGoogleSheet(userId, firstName, lastName, position, department);
+
+            hideLoading(); 
+            document.getElementById('registrationForm').reset();
         });
-      }
-    });
-  </script>
+
+        async function sendFlexMessage(type) {
+            const now = new Date();
+            const time = now.toLocaleTimeString('en-GB', { hour12: false });
+
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const position = document.getElementById('position').value;
+            const department = document.getElementById('department').value;            
+            const profile = await liff.getProfile();
+            const message = {
+                type: 'flex',
+                altText: `You have ${type === 'Register' ? 'Register' : 'Register'} at ${time}`,
+                contents: {
+                    "type": "bubble",
+                    "body": {
+                        "type": "box",
+                        "layout": "vertical",
+                        "contents": [
+                            {
+                                "type": "box",
+                                "layout": "horizontal",
+                                "contents": [
+                                    {
+                                        "type": "box",
+                                        "layout": "vertical",
+                                        "contents": [
+                                            {
+                                                "type": "image",
+                                                "url": profile.pictureUrl || "https://i.pinimg.com/originals/be/04/0f/be040f35f073adc3a48c1fba489d2bc4.gif",
+                                                "aspectMode": "cover",
+                                                "size": "full"
+                                            }
+                                        ],
+                                        "cornerRadius": "100px",
+                                        "width": "72px",
+                                        "height": "72px"
+                                    },
+                                    {
+                                        "type": "box",
+                                        "layout": "vertical",
+                                        "contents": [
+                                            {
+                                                "type": "text",
+                                                "contents": [
+                                                    {
+                                                        "type": "span",
+                                                        "text": `คุณ : `,
+                                                    },
+                                                    {
+                                                        "type": "span",
+                                                        "text": `${firstName} ${lastName}`,
+                                                        "weight": "bold",
+                                                        "color": "#0000aa"
+                                                    }
+                                                ],
+                                                "size": "sm",
+                                                "wrap": false
+                                            },
+                                            {
+                                                "type": "text",
+                                                "contents": [
+                                                    {
+                                                        "type": "span",
+                                                        "text": `ลงทะเบียนเป็น : `,
+                                                    },
+                                                    {
+                                                        "type": "span",
+                                                        "text": `${position}`,
+                                                        "weight": "bold",
+                                                        "color": "#0000aa"
+                                                    }
+                                                ],
+                                                "size": "sm",
+                                                "wrap": false
+                                            },
+                                            {
+                                                "type": "text",
+                                                "contents": [
+                                                    {
+                                                        "type": "span",
+                                                        "text": `ขึ้นตรงกับ : `,
+                                                    },
+                                                    {
+                                                        "type": "span",
+                                                        "text": `${department}`,
+                                                        "weight": "bold",
+                                                        "color": "#0000aa"
+                                                    }
+                                                ],
+                                                "size": "sm",
+                                                "wrap": false
+                                            },
+                                            {
+                                                "type": "text",
+                                                "contents": [
+                                                    {
+                                                        "type": "span",
+                                                        "text": "ทำการลงทะเบียนสำเร็จ\n",
+                                                        "weight": "bold",
+                                                        "color": "#000000"
+                                                    },
+                                                    {
+                                                        "type": "span",
+                                                        "text": `เวลา : ${time}`
+                                                    }
+                                                ],
+                                                "size": "sm",
+                                                "wrap": true
+                                            },
+                                            
+                                            
+                                        ],
+                                        "justifyContent": "space-between"
+                                    }
+                                ],
+                                "spacing": "xl",
+                                "paddingAll": "20px"
+                            }
+                                   
+                        ],
+                        "paddingAll": "0px"
+                    }
+                }
+            };
+
+            try {
+                await liff.sendMessages([message]);
+                liff.closeWindow(); 
+            } catch (error) {
+                console.error('Error sending message:', error);
+            }
+        }
+  
+  
+    </script>
+   
 </body>
 </html>
