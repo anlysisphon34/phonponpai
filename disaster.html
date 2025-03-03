@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>คำร้องขอความช่วยเหลือภัยพิบัติ</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    form {
+      max-width: 400px;
+      margin: auto;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #00c300;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #00a800;
+    }
+    .user-info {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .user-info img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+  <div class="user-info" id="userInfo">
+    <!-- แสดงข้อมูลผู้ใช้ -->
+  </div>
+
+  <h1>คำร้องขอความช่วยเหลือภัยพิบัติ</h1>
+  <form id="disasterForm">
+    <label for="name">ชื่อ:</label>
+    <input type="text" id="name" name="name" required>
+
+    <label for="phone">เบอร์โทรศัพท์:</label>
+    <input type="tel" id="phone" name="phone" required>
+
+    <label for="address">ที่อยู่:</label>
+    <textarea id="address" name="address" rows="4" required></textarea>
+
+    <label for="complaint">ข้อมูลคำร้องเรียน:</label>
+    <textarea id="complaint" name="complaint" rows="4" required></textarea>
+
+    <button type="submit">ส่งคำร้อง</button>
+  </form>
+
+  <script>
+    let liff;
+
+    async function initializeLiff() {
+      try {
+        await liff.init({ liffId: "YOUR_LIFF_ID" });
+        console.log("LIFF initialized successfully");
+
+        // ตรวจสอบว่าผู้ใช้ล็อกอินแล้วหรือยัง
+        if (!liff.isLoggedIn()) {
+          liff.login();
+        } else {
+          const profile = await liff.getProfile();
+          localStorage.setItem('userId', profile.userId);
+          localStorage.setItem('displayName', profile.displayName);
+          localStorage.setItem('pictureUrl', profile.pictureUrl);
+
+          // แสดงข้อมูลผู้ใช้
+          const userInfoDiv = document.getElementById('userInfo');
+          userInfoDiv.innerHTML = `
+            <img src="${profile.pictureUrl}" alt="Profile Picture">
+            <p>${profile.displayName}</p>
+          `;
+        }
+      } catch (error) {
+        console.error("Error initializing LIFF:", error);
+      }
+    }
+
+    initializeLiff();
+
+    document.getElementById('disasterForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = {
+        userId: localStorage.getItem('userId'),
+        name: document.getElementById('name').value,
+        phone: document.getElementById('phone').value,
+        address: document.getElementById('address').value,
+        complaint: document.getElementById('complaint').value
+      };
+
+      try {
+        // ส่งข้อมูลไปยัง Google Apps Script
+        const response = await fetch('YOUR_GOOGLE_APPSCRIPT_URL', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+
+        if (response.ok) {
+          // สร้าง Flex Message
+          const flexMessage = {
+            type: "flex",
+            altText: "รายละเอียดคำร้องของคุณ",
+            contents: {
+              type: "bubble",
+              header: {
+                type: "box",
+                layout: "vertical",
+                contents: [
+                  {
+                    type: "text",
+                    text: "รายละเอียดคำร้อง",
+                    weight: "bold",
+                    size: "xl"
+                  }
+                ]
+              },
+              body: {
+                type: "box",
+                layout: "vertical",
+                contents: [
+                  {
+                    type: "text",
+                    text: `ชื่อ: ${formData.name}`,
+                    wrap: true
+                  },
+                  {
+                    type: "text",
+                    text: `เบอร์โทร: ${formData.phone}`,
+                    wrap: true
+                  },
+                  {
+                    type: "text",
+                    text: `ที่อยู่: ${formData.address}`,
+                    wrap: true
+                  },
+                  {
+                    type: "text",
+                    text: `คำร้องเรียน: ${formData.complaint}`,
+                    wrap: true
+                  }
+                ]
+              }
+            }
+          };
+
+          // ส่ง Flex Message ไปยังแชทของผู้ใช้
+          await liff.sendMessages([flexMessage]);
+          Swal.fire({
+            icon: 'success',
+            title: 'บันทึกข้อมูลสำเร็จ!',
+            text: 'ขอบคุณที่ส่งคำร้อง เราจะติดต่อกลับโดยเร็วที่สุด'
+          });
+
+          // ปิดหน้าต่าง LIFF
+          liff.closeWindow();
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด!',
+            text: 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง'
+          });
+        }
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'เกิดข้อผิดพลาด!',
+          text: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้'
+        });
+      }
+    });
+  </script>
+</body>
+</html>
