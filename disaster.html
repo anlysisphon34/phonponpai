@@ -234,7 +234,7 @@ document.getElementById('position').addEventListener('change', change2);
 
             showLoading(); 
 
-            //await sendToGoogleSheet(userId, firstName, lastName, position, department);
+            await sendToGoogleSheet(userId, firstName, lastName, position, department);
 
             hideLoading(); 
             document.getElementById('registrationForm').reset();
