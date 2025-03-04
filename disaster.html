@@ -49,7 +49,7 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         .loading-overlay {
-            address: fixed;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
@@ -105,12 +105,12 @@
                     <input type="text" id="firstName" name="firstName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                 </div>
                 <div class="mb-4">
-                    <label for="Phone" class="block text-gray-700 text-sm font-bold mb-2">นามสกุล</label>
-                    <input type="text" id="Phone" name="Phone" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <label for="lastName" class="block text-gray-700 text-sm font-bold mb-2">นามสกุล</label>
+                    <input type="text" id="lastName" name="lastName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                 </div>
                 <div class="mb-4">
-                    <label for="address" class="block text-gray-700 text-sm font-bold mb-2">ปฏิบัติหน้าที่เป็น</label>
-                      <select name="address" id="address" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <label for="position" class="block text-gray-700 text-sm font-bold mb-2">ปฏิบัติหน้าที่เป็น</label>
+                      <select name="position" id="position" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                         <option value="FCG" selected>ผู้ดูแลในครอบครัว</option>
                         <option value="CG">CG</option>
                         <option value="CM">CM</option>
@@ -137,7 +137,7 @@
     <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
     <script>
 
-document.getElementById('address').addEventListener('change', change2);
+document.getElementById('position').addEventListener('change', change2);
 
         function change2() {
             if (this.value == "user") {
@@ -194,7 +194,7 @@ document.getElementById('address').addEventListener('change', change2);
         initializeLiff();
 
         
-        async function sendToGoogleSheet(userId, firstName, Phone, address, complaint) {
+        async function sendToGoogleSheet(userId, firstName, lastName, position, complaint) {
             try {
                 const response = await fetch('https://script.google.com/macros/s/AKfycbxTVlOPHjkM65QHgIHemp1-L_0jRVHoUCoPIY9E5DuQ7zrBxXkZygldxl3jMm-qP9e8/exec', {  // เปลี่ยนจุดที่ 2 (3.Register)
                     method: 'POST',
@@ -203,9 +203,9 @@ document.getElementById('address').addEventListener('change', change2);
                     },
                     body: new URLSearchParams({
                         userId: userId,
-                        name: firstName,
-                        phone: Phone,
-                        address: address,
+                        firstName: firstName,
+                        lastName: lastName,
+                        position: position,
                         complaint: complaint,
                     })
                 });
@@ -226,15 +226,15 @@ document.getElementById('address').addEventListener('change', change2);
             event.preventDefault();
 
             const firstName = document.getElementById('firstName').value;
-            const Phone = document.getElementById('Phone').value;
-            const address = document.getElementById('address').value;
+            const lastName = document.getElementById('lastName').value;
+            const position = document.getElementById('position').value;
             const complaint = document.getElementById('complaint').value;
             const profileImage = document.getElementById('profileImage').src;
             const userId = liff.getDecodedIDToken().sub; 
 
             showLoading(); 
 
-            await sendToGoogleSheet(userId, firstName, Phone, address, complaint);
+            await sendToGoogleSheet(userId, firstName, lastName, position, complaint);
 
             hideLoading(); 
             document.getElementById('registrationForm').reset();
@@ -245,8 +245,8 @@ document.getElementById('address').addEventListener('change', change2);
             const time = now.toLocaleTimeString('en-GB', { hour12: false });
 
             const firstName = document.getElementById('firstName').value;
-            const Phone = document.getElementById('Phone').value;
-            const address = document.getElementById('address').value;
+            const lastName = document.getElementById('lastName').value;
+            const position = document.getElementById('position').value;
             const complaint = document.getElementById('complaint').value;            
             const profile = await liff.getProfile();
             const message = {
@@ -290,7 +290,7 @@ document.getElementById('address').addEventListener('change', change2);
                                                     },
                                                     {
                                                         "type": "span",
-                                                        "text": `${firstName} ${Phone}`,
+                                                        "text": `${firstName} ${lastName}`,
                                                         "weight": "bold",
                                                         "color": "#0000aa"
                                                     }
@@ -307,7 +307,7 @@ document.getElementById('address').addEventListener('change', change2);
                                                     },
                                                     {
                                                         "type": "span",
-                                                        "text": `${address}`,
+                                                        "text": `${position}`,
                                                         "weight": "bold",
                                                         "color": "#0000aa"
                                                     }
