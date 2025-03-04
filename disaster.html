@@ -55,18 +55,18 @@
     <p><strong>สถานะการออนไลน์:</strong> <span id="userStatus">กำลังตรวจสอบ...</span></p>
   </div>
 
-  <h1>แจ้งปัญหาหรือคำร้อง</h1>
+  <h1>แจ้งปัญหาหรือคำร้องทุกข์</h1>
   <form id="complaintForm">
-    <label for="firstName">ชื่อ:</label>
-    <input type="text" id="firstName" name="firstName" required>
+    <label for="fullName">ชื่อ-สกุล:</label>
+    <input type="text" id="fullName" name="fullName" required>
 
-    <label for="lastName">นามสกุล:</label>
-    <input type="text" id="lastName" name="lastName" required>
+    <label for="phone">หมายเลขโทรศัพท์:</label>
+    <input type="tel" id="phone" name="phone" required>
 
-    <label for="position">ตำแหน่ง:</label>
-    <input type="text" id="position" name="position" required>
+    <label for="address">ที่อยู่:</label>
+    <textarea id="address" name="address" rows="4" required></textarea>
 
-    <label for="complaint">รายละเอียดปัญหา:</label>
+    <label for="complaint">คำร้องทุกข์:</label>
     <textarea id="complaint" name="complaint" rows="4" required></textarea>
 
     <button type="submit">ส่งคำร้อง</button>
@@ -95,16 +95,16 @@
 
     initializeLiff();
 
-    async function sendToGoogleSheet(userId, firstName, lastName, position, complaint) {
+    async function sendToGoogleSheet(userId, fullName, phone, address, complaint) {
       try {
         const response = await fetch('https://script.google.com/macros/s/AKfycbxTVlOPHjkM65QHgIHemp1-L_0jRVHoUCoPIY9E5DuQ7zrBxXkZygldxl3jMm-qP9e8/exec', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             userId: userId,
-            firstName: firstName,
-            lastName: lastName,
-            position: position,
+            fullName: fullName,
+            phone: phone,
+            address: address,
             complaint: complaint,
           }),
         });
@@ -112,7 +112,7 @@
         const result = await response.json();
         if (response.ok) {
           console.log("ส่งข้อมูลสำเร็จ:", result);
-          await sendFlexMessage('Register'); // ส่ง Flex Message
+          await sendFlexMessage(fullName, phone, address, complaint); // ส่ง Flex Message
         } else {
           console.error("เกิดข้อผิดพลาดในการส่งข้อมูล:", result);
           Swal.fire({
@@ -131,11 +131,11 @@
       }
     }
 
-    async function sendFlexMessage(actionType) {
+    async function sendFlexMessage(fullName, phone, address, complaint) {
       try {
         const flexMessage = {
           type: "flex",
-          altText: "ข้อความจากระบบ",
+          altText: "รายละเอียดคำร้องทุกข์",
           contents: {
             type: "bubble",
             header: {
@@ -144,7 +144,7 @@
               contents: [
                 {
                   type: "text",
-                  text: actionType === "Register" ? "ลงทะเบียนสำเร็จ" : "แจ้งปัญหาสำเร็จ",
+                  text: "คำร้องทุกข์ของคุณ",
                   weight: "bold",
                   size: "xl",
                 },
@@ -156,7 +156,22 @@
               contents: [
                 {
                   type: "text",
-                  text: "ขอบคุณที่ใช้บริการของเรา",
+                  text: `ชื่อ-สกุล: ${fullName}`,
+                  wrap: true,
+                },
+                {
+                  type: "text",
+                  text: `หมายเลขโทรศัพท์: ${phone}`,
+                  wrap: true,
+                },
+                {
+                  type: "text",
+                  text: `ที่อยู่: ${address}`,
+                  wrap: true,
+                },
+                {
+                  type: "text",
+                  text: `คำร้องทุกข์: ${complaint}`,
                   wrap: true,
                 },
               ],
@@ -181,12 +196,12 @@
 
       const profile = await liff.getProfile();
       const userId = profile.userId;
-      const firstName = document.getElementById('firstName').value;
-      const lastName = document.getElementById('lastName').value;
-      const position = document.getElementById('position').value;
+      const fullName = document.getElementById('fullName').value;
+      const phone = document.getElementById('phone').value;
+      const address = document.getElementById('address').value;
       const complaint = document.getElementById('complaint').value;
 
-      await sendToGoogleSheet(userId, firstName, lastName, position, complaint);
+      await sendToGoogleSheet(userId, fullName, phone, address, complaint);
 
       Swal.fire({
         icon: 'success',
