@@ -6,6 +6,8 @@
     <title>ระบบกรอกข้อมูลคำร้องภัยพิบัติ</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         /* Custom Styles */
         .form-container {
@@ -42,6 +44,9 @@
                     <p id="statusMessage" class="text-sm text-gray-500">Loading status...</p>
                     <span id="userStatus" class="status-badge inline-block mt-2">Online</span>
                 </div>
+            </div>
+            <div id="timeDisplay" class="text-gray-600 text-sm">
+                00:00:00
             </div>
         </div>
 
@@ -217,11 +222,25 @@
 
                 await liff.sendMessages([flexMessage]);
 
-                // ปิดหน้าต่าง LIFF
-                liff.closeWindow();
+                // แสดง SweetAlert สำเร็จ
+                Swal.fire({
+                    icon: 'success',
+                    title: 'ส่งข้อมูลสำเร็จ!',
+                    text: 'ข้อมูลของคุณได้ถูกบันทึกเรียบร้อยแล้ว',
+                    confirmButtonText: 'ปิด'
+                }).then(() => {
+                    liff.closeWindow(); // ปิดหน้าต่าง LIFF
+                });
             } catch (error) {
                 console.error('Error:', error);
-                document.getElementById('response').innerHTML = 'เกิดข้อผิดพลาดในการส่งข้อมูล';
+
+                // แสดง SweetAlert ข้อผิดพลาด
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด!',
+                    text: 'ไม่สามารถส่งข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
+                    confirmButtonText: 'ปิด'
+                });
             }
         });
 
