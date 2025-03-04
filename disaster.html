@@ -179,17 +179,18 @@
           },
         };
 
-        await liff.sendMessages([flexMessage]);
-        liff.closeWindow(); // ปิดหน้าต่าง LIFF
-      } catch (error) {
-        console.error("เกิดข้อผิดพลาดในการส่ง Flex Message:", error);
-        Swal.fire({
-          icon: 'error',
-          title: 'เกิดข้อผิดพลาด!',
-          text: 'ไม่สามารถส่งข้อความกลับไปยังแชทได้'
-        });
-      }
-    }
+    await liff.sendMessages([flexMessage]);
+    console.log("Flex Message ส่งสำเร็จ");
+    liff.closeWindow(); // ปิดหน้าต่าง LIFF
+  } catch (error) {
+    console.error("เกิดข้อผิดพลาดในการส่ง Flex Message:", error);
+    Swal.fire({
+      icon: 'error',
+      title: 'เกิดข้อผิดพลาด!',
+      text: 'ไม่สามารถส่งข้อความกลับไปยังแชทได้'
+    });
+  }
+}
 
     document.getElementById('complaintForm').addEventListener('submit', async (e) => {
       e.preventDefault();
