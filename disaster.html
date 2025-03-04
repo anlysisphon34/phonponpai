@@ -121,6 +121,9 @@
         document.getElementById('timeDisplay').textContent = `${hours}:${minutes}:${seconds}`;
     }
 
+        setInterval(updateTime, 1000);
+        updateTime(); 
+
         document.getElementById('dataForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
