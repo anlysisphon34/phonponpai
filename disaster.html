@@ -1,193 +1,91 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบแจ้งปัญหาผ่าน LINE</title>
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-    form {
-      max-width: 400px;
-      margin: auto;
-    }
-    label {
-      display: block;
-      margin-top: 10px;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-    }
-    button {
-      margin-top: 20px;
-      padding: 10px;
-      background-color: #00c300;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #00a800;
-    }
-    .user-info {
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    .user-info img {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-    }
-  </style>
+    <title>ส่งข้อมูลไป Google Sheets</title>
+    <style>
+        .form-container {
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+        }
+    </style>
 </head>
 <body>
-  <div class="user-info" id="userInfo">
-    <!-- แสดงข้อมูลผู้ใช้ -->
-    <img id="profileImage" src="default-image-url.jpg" alt="Profile Picture">
-    <p><strong>ชื่อ:</strong> <span id="displayName">กำลังโหลด...</span></p>
-    <p><strong>สถานะ:</strong> <span id="statusMessage">กำลังโหลด...</span></p>
-    <p><strong>สถานะการออนไลน์:</strong> <span id="userStatus">กำลังตรวจสอบ...</span></p>
-  </div>
+    <div class="form-container">
+        <h2>แบบฟอร์มข้อมูล</h2>
+        <form id="dataForm">
+            <div class="form-group">
+                <label for="userId">รหัสผู้ใช้:</label>
+                <input type="text" id="userId" name="userId" required>
+            </div>
+            <div class="form-group">
+                <label for="firstName">ชื่อ:</label>
+                <input type="text" id="firstName" name="firstName" required>
+            </div>
+            <div class="form-group">
+                <label for="lastName">นามสกุล:</label>
+                <input type="text" id="lastName" name="lastName" required>
+            </div>
+            <div class="form-group">
+                <label for="position">ตำแหน่ง:</label>
+                <input type="text" id="position" name="position" required>
+            </div>
+            <div class="form-group">
+                <label for="complaint">ข้อร้องเรียน:</label>
+                <textarea id="complaint" name="complaint" required></textarea>
+            </div>
+            <button type="submit">ส่งข้อมูล</button>
+        </form>
+        <div id="response"></div>
+    </div>
 
-  <h1>แจ้งปัญหาหรือคำร้องทุกข์</h1>
-  <form id="complaintForm">
-    <label for="fullName">ชื่อ-สกุล:</label>
-    <input type="text" id="fullName" name="fullName" required>
+    <script>
+        document.getElementById('dataForm').addEventListener('submit', function(e) {
+            e.preventDefault();
 
-    <label for="phone">หมายเลขโทรศัพท์:</label>
-    <input type="tel" id="phone" name="phone" required>
+            // รวบรวมข้อมูลจากฟอร์ม
+            const data = {
+                userId: document.getElementById('userId').value,
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                position: document.getElementById('position').value,
+                complaint: document.getElementById('complaint').value
+            };
 
-    <label for="address">ที่อยู่:</label>
-    <textarea id="address" name="address" rows="4" required></textarea>
+            // URL จาก Google Apps Script Web App ที่คุณ deploy แล้ว
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbxTVlOPHjkM65QHgIHemp1-L_0jRVHoUCoPIY9E5DuQ7zrBxXkZygldxl3jMm-qP9e8/exec';
 
-    <label for="complaint">คำร้องทุกข์:</label>
-    <textarea id="complaint" name="complaint" rows="4" required></textarea>
-
-    <button type="submit">ส่งคำร้อง</button>
-  </form>
-
-  <script>
-    const liffId = "2006915175-ZOxEXyeA"; // แทน YOUR_LIFF_ID ด้วย LIFF ID ของคุณ
-
-    async function initializeLiff() {
-      try {
-        await liff.init({ liffId });
-
-        if (liff.isLoggedIn()) {
-          const profile = await liff.getProfile();
-          document.getElementById('displayName').textContent = profile.displayName;
-          document.getElementById('statusMessage').textContent = profile.statusMessage || "ไม่มีสถานะ";
-          document.getElementById('profileImage').src = profile.pictureUrl || "default-image-url.jpg";
-          document.getElementById('userStatus').textContent = "ออนไลน์";
-        } else {
-          liff.login(); // ล็อกอินหากยังไม่ได้ล็อกอิน
-        }
-      } catch (error) {
-        console.error("เกิดข้อผิดพลาดในการเริ่มต้น LIFF:", error);
-      }
-    }
-
-    initializeLiff();
-
-    async function sendToGoogleSheet(userId, fullName, phone, address, complaint) {
-      try {
-        const response = await fetch('https://script.google.com/macros/s/AKfycbxTVlOPHjkM65QHgIHemp1-L_0jRVHoUCoPIY9E5DuQ7zrBxXkZygldxl3jMm-qP9e8/exec', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: userId,
-            fullName: fullName,
-            phone: phone,
-            address: address,
-            complaint: complaint,
-          }),
+            // ส่งข้อมูลไปยัง Google Apps Script
+            fetch(scriptURL, {
+                method: 'POST',
+                mode: 'no-cors', // จำเป็นสำหรับการข้าม CORS
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                // เนื่องจากใช้ mode: 'no-cors' เราจะไม่ได้รับ response จริง
+                document.getElementById('response').innerHTML = 'ส่งข้อมูลสำเร็จ!';
+                document.getElementById('dataForm').reset();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('response').innerHTML = 'เกิดข้อผิดพลาดในการส่งข้อมูล';
+            });
         });
-
-        const result = await response.json();
-        if (response.ok) {
-          console.log("ส่งข้อมูลสำเร็จ:", result);
-          await sendFlexMessage(fullName, phone, address, complaint); // ส่ง Flex Message
-          liff.closeWindow(); // ปิดหน้าต่าง LIFF ทันที
-        } else {
-          console.error("เกิดข้อผิดพลาดในการส่งข้อมูล:", result);
-        }
-      } catch (error) {
-        console.error("เกิดข้อผิดพลาดในการส่งข้อมูล:", error);
-      }
-    }
-
-    async function sendFlexMessage(fullName, phone, address, complaint) {
-      try {
-        const flexMessage = {
-          type: "flex",
-          altText: "รายละเอียดคำร้องทุกข์",
-          contents: {
-            type: "bubble",
-            header: {
-              type: "box",
-              layout: "vertical",
-              contents: [
-                {
-                  type: "text",
-                  text: "คำร้องทุกข์ของคุณ",
-                  weight: "bold",
-                  size: "xl",
-                },
-              ],
-            },
-            body: {
-              type: "box",
-              layout: "vertical",
-              contents: [
-                {
-                  type: "text",
-                  text: `ชื่อ-สกุล: ${fullName}`,
-                  wrap: true,
-                },
-                {
-                  type: "text",
-                  text: `หมายเลขโทรศัพท์: ${phone}`,
-                  wrap: true,
-                },
-                {
-                  type: "text",
-                  text: `ที่อยู่: ${address}`,
-                  wrap: true,
-                },
-                {
-                  type: "text",
-                  text: `คำร้องทุกข์: ${complaint}`,
-                  wrap: true,
-                },
-              ],
-            },
-          },
-        };
-
-        await liff.sendMessages([flexMessage]);
-        console.log("Flex Message ส่งสำเร็จ");
-      } catch (error) {
-        console.error("เกิดข้อผิดพลาดในการส่ง Flex Message:", error);
-      }
-    }
-
-    document.getElementById('complaintForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const profile = await liff.getProfile();
-      const userId = profile.userId;
-      const fullName = document.getElementById('fullName').value;
-      const phone = document.getElementById('phone').value;
-      const address = document.getElementById('address').value;
-      const complaint = document.getElementById('complaint').value;
-
-      await sendToGoogleSheet(userId, fullName, phone, address, complaint);
-    });
-  </script>
+    </script>
 </body>
 </html>
