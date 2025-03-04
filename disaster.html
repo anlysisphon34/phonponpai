@@ -10,6 +10,17 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         /* Custom Styles */
+        
+        .time-display {
+            background-color: #2c3e50;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
         .form-container {
             max-width: 500px;
             margin: 20px auto;
@@ -41,7 +52,6 @@
                 <img id="profileImage" src="https://cdn.pixabay.com/animation/2022/11/04/09/42/09-42-03-510_512.gif" alt="Profile" class="w-16 h-16 rounded-full mr-4">
                 <div>
                     <h4 id="displayName" class="text-lg font-semibold text-gray-800">Loading...</h4>
-                    <p id="statusMessage" class="text-sm text-gray-500">Loading status...</p>
                     <span id="userStatus" class="status-badge inline-block mt-2">Online</span>
                 </div>
             </div>
@@ -102,17 +112,14 @@
             }
         }
 
-        // ฟังก์ชันสำหรับนับเวลา
-        function updateTimeDisplay() {
-            let seconds = 0;
-            setInterval(() => {
-                seconds++;
-                const hours = Math.floor(seconds / 3600).toString().padStart(2, '0');
-                const minutes = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
-                const secs = (seconds % 60).toString().padStart(2, '0');
-                document.getElementById('timeDisplay').textContent = `${hours}:${minutes}:${secs}`;
-            }, 1000);
-        }
+        // ฟังก์ชันสำหรับอัปเดตเวลาแบบเรียลไทม์
+    function updateTime() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        document.getElementById('timeDisplay').textContent = `${hours}:${minutes}:${seconds}`;
+    }
 
         document.getElementById('dataForm').addEventListener('submit', async function(e) {
             e.preventDefault();
