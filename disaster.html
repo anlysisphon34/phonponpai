@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ระบบแจ้งปัญหาผ่าน LINE</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -113,21 +112,12 @@
         if (response.ok) {
           console.log("ส่งข้อมูลสำเร็จ:", result);
           await sendFlexMessage(fullName, phone, address, complaint); // ส่ง Flex Message
+          liff.closeWindow(); // ปิดหน้าต่าง LIFF ทันที
         } else {
           console.error("เกิดข้อผิดพลาดในการส่งข้อมูล:", result);
-          Swal.fire({
-            icon: 'error',
-            title: 'เกิดข้อผิดพลาด!',
-            text: 'ไม่สามารถส่งข้อมูลไปยังเซิร์ฟเวอร์ได้'
-          });
         }
       } catch (error) {
         console.error("เกิดข้อผิดพลาดในการส่งข้อมูล:", error);
-        Swal.fire({
-          icon: 'error',
-          title: 'เกิดข้อผิดพลาด!',
-          text: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้'
-        });
       }
     }
 
@@ -179,18 +169,12 @@
           },
         };
 
-    await liff.sendMessages([flexMessage]);
-    console.log("Flex Message ส่งสำเร็จ");
-    liff.closeWindow(); // ปิดหน้าต่าง LIFF
-  } catch (error) {
-    console.error("เกิดข้อผิดพลาดในการส่ง Flex Message:", error);
-    Swal.fire({
-      icon: 'error',
-      title: 'เกิดข้อผิดพลาด!',
-      text: 'ไม่สามารถส่งข้อความกลับไปยังแชทได้'
-    });
-  }
-}
+        await liff.sendMessages([flexMessage]);
+        console.log("Flex Message ส่งสำเร็จ");
+      } catch (error) {
+        console.error("เกิดข้อผิดพลาดในการส่ง Flex Message:", error);
+      }
+    }
 
     document.getElementById('complaintForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -203,12 +187,6 @@
       const complaint = document.getElementById('complaint').value;
 
       await sendToGoogleSheet(userId, fullName, phone, address, complaint);
-
-      Swal.fire({
-        icon: 'success',
-        title: 'ส่งคำร้องสำเร็จ!',
-        text: 'ขอบคุณที่ส่งคำร้อง เราจะติดต่อกลับโดยเร็วที่สุด'
-      });
     });
   </script>
 </body>
