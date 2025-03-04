@@ -50,42 +50,144 @@
         </form>
         <div id="response"></div>
     </div>
+<script>
+    const liffId = '2006915175-ZOxEXyeA'; // แทน YOUR_LIFF_ID ด้วย ID ของ LIFF App ของคุณ
 
-    <script>
-        document.getElementById('dataForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+    async function initializeLiff() {
+        try {
+            await liff.init({ liffId: liffId });
+            if (liff.isLoggedIn()) {
+                const profile = await liff.getProfile();
+                document.getElementById('userId').value = profile.userId; // กำหนดค่า UserID
+                document.getElementById('displayName').textContent = profile.displayName;
+                document.getElementById('statusMessage').textContent = profile.statusMessage || 'No status message';
+                document.getElementById('profileImage').src = profile.pictureUrl || 'https://via.placeholder.com/150';
+                document.getElementById('userStatus').textContent = liff.isLoggedIn() ? 'Online' : 'Offline';
+            } else {
+                liff.login();
+            }
+        } catch (error) {
+            console.error('LIFF initialization error:', error);
+        }
+    }
 
-            // รวบรวมข้อมูลจากฟอร์ม
-            const data = {
-                userId: document.getElementById('userId').value,
-                firstName: document.getElementById('firstName').value,
-                lastName: document.getElementById('lastName').value,
-                position: document.getElementById('position').value,
-                complaint: document.getElementById('complaint').value
-            };
+    document.getElementById('dataForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
 
-            // URL จาก Google Apps Script Web App ที่คุณ deploy แล้ว
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbxTVlOPHjkM65QHgIHemp1-L_0jRVHoUCoPIY9E5DuQ7zrBxXkZygldxl3jMm-qP9e8/exec';
+        // รวบรวมข้อมูลจากฟอร์ม
+        const data = {
+            userId: document.getElementById('userId').value,
+            fullName: document.getElementById('fullName').value,
+            phoneNumber: document.getElementById('phoneNumber').value,
+            address: document.getElementById('address').value,
+            complaint: document.getElementById('complaint').value
+        };
 
+        // URL จาก Google Apps Script Web App ที่คุณ deploy แล้ว
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxTVlOPHjkM65QHgIHemp1-L_0jRVHoUCoPIY9E5DuQ7zrBxXkZygldxl3jMm-qP9e8/exec';
+
+        try {
             // ส่งข้อมูลไปยัง Google Apps Script
-            fetch(scriptURL, {
+            await fetch(scriptURL, {
                 method: 'POST',
                 mode: 'no-cors', // จำเป็นสำหรับการข้าม CORS
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(data)
-            })
-            .then(response => {
-                // เนื่องจากใช้ mode: 'no-cors' เราจะไม่ได้รับ response จริง
-                document.getElementById('response').innerHTML = 'ส่งข้อมูลสำเร็จ!';
-                document.getElementById('dataForm').reset();
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('response').innerHTML = 'เกิดข้อผิดพลาดในการส่งข้อมูล';
             });
-        });
-    </script>
+
+            // ส่งข้อความแจ้งเตือนผ่าน LINE ในรูปแบบ Flex Message
+            const flexMessage = {
+                type: 'flex',
+                altText: 'ขอบคุณที่ส่งข้อมูล!',
+                contents: {
+                    type: 'bubble',
+                    header: {
+                        type: 'box',
+                        layout: 'vertical',
+                        contents: [
+                            {
+                                type: 'text',
+                                text: 'ขอบคุณที่ส่งข้อมูล!',
+                                weight: 'bold',
+                                size: 'xl',
+                                align: 'center'
+                            }
+                        ]
+                    },
+                    body: {
+                        type: 'box',
+                        layout: 'vertical',
+                        spacing: 'md',
+                        contents: [
+                            {
+                                type: 'text',
+                                text: 'รายละเอียด:',
+                                weight: 'bold',
+                                size: 'sm',
+                                margin: 'md'
+                            },
+                            {
+                                type: 'text',
+                                text: `ชื่อ-สกุล: ${data.fullName}`,
+                                size: 'sm',
+                                color: '#555555',
+                                wrap: true
+                            },
+                            {
+                                type: 'text',
+                                text: `หมายเลขโทรศัพท์: ${data.phoneNumber}`,
+                                size: 'sm',
+                                color: '#555555',
+                                wrap: true
+                            },
+                            {
+                                type: 'text',
+                                text: `ที่อยู่: ${data.address}`,
+                                size: 'sm',
+                                color: '#555555',
+                                wrap: true
+                            },
+                            {
+                                type: 'text',
+                                text: `คำร้องทุกข์: ${data.complaint}`,
+                                size: 'sm',
+                                color: '#555555',
+                                wrap: true
+                            }
+                        ]
+                    },
+                    footer: {
+                        type: 'box',
+                        layout: 'horizontal',
+                        spacing: 'sm',
+                        contents: [
+                            {
+                                type: 'button',
+                                style: 'primary',
+                                action: {
+                                    type: 'uri',
+                                    label: 'ปิดหน้าต่าง',
+                                    uri: 'https://linecorp.com' // ลิงก์ปลอมเพื่อแสดงปุ่ม
+                                }
+                            }
+                        ]
+                    }
+                }
+            };
+
+            await liff.sendMessages([flexMessage]);
+
+            // ปิดหน้าต่าง LIFF
+            liff.closeWindow();
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('response').innerHTML = 'เกิดข้อผิดพลาดในการส่งข้อมูล';
+        }
+    });
+
+    initializeLiff();
+</script>
 </body>
 </html>
