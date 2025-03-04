@@ -143,7 +143,7 @@
                 // ส่งข้อความแจ้งเตือนผ่าน LINE ในรูปแบบ Flex Message
                 const flexMessage = {
                     type: 'flex',
-                    altText: 'ขอบคุณที่ส่งข้อมูล!',
+                    altText: 'คำร้องที่คุณส่งมา',
                     contents: {
                         type: 'bubble',
                         header: {
@@ -152,7 +152,7 @@
                             contents: [
                                 {
                                     type: 'text',
-                                    text: 'ขอบคุณที่ส่งข้อมูล!',
+                                    text: 'คำร้องที่คุณส่งมา',
                                     weight: 'bold',
                                     size: 'xl',
                                     align: 'center'
@@ -211,7 +211,7 @@
                                     style: 'primary',
                                     action: {
                                         type: 'uri',
-                                        label: 'ปิดหน้าต่าง',
+                                        label: 'ติดตามสถานะคำร้อง',
                                         uri: 'https://linecorp.com' // ลิงก์ปลอมเพื่อแสดงปุ่ม
                                     }
                                 }
