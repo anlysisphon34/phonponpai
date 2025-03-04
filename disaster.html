@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ลงทะเบียนสมาชิก</title>
+    <title>คำร้องขอความช่วยเหลือภัยพิบัติ</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
@@ -49,7 +49,7 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         .loading-overlay {
-            position: fixed;
+            address: fixed;
             top: 0;
             left: 0;
             width: 100%;
@@ -101,16 +101,16 @@
         <div class="p-4">
             <form id="registrationForm">
                 <div class="mb-4">
-                    <label for="firstName" class="block text-gray-700 text-sm font-bold mb-2">ชื่อ</label>
-                    <input type="text" id="firstName" name="firstName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <label for="name" class="block text-gray-700 text-sm font-bold mb-2">ชื่อ - นามสกุล</label>
+                    <input type="text" id="name" name="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                 </div>
                 <div class="mb-4">
-                    <label for="lastName" class="block text-gray-700 text-sm font-bold mb-2">นามสกุล</label>
-                    <input type="text" id="lastName" name="lastName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <label for="phone" class="block text-gray-700 text-sm font-bold mb-2">หมายเลขโทรศัพท์</label>
+                    <input type="text" id="phone" name="phone" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                 </div>
                 <div class="mb-4">
-                    <label for="position" class="block text-gray-700 text-sm font-bold mb-2">ปฏิบัติหน้าที่เป็น</label>
-                      <select name="position" id="position" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <label for="address" class="block text-gray-700 text-sm font-bold mb-2">ที่อยู่</label>
+                      <select name="address" id="address" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                         <option value="FCG" selected>ผู้ดูแลในครอบครัว</option>
                         <option value="CG">CG</option>
                         <option value="CM">CM</option>
@@ -118,8 +118,8 @@
                       </select>
                 </div>
                 <div class="mb-4">
-                    <label for="department" class="block text-gray-700 text-sm font-bold mb-2">ขึ้นตรงหน่วยงาน(ชื่อ) </label>
-                    <input type="text" id="department" name="department" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <label for="complaint" class="block text-gray-700 text-sm font-bold mb-2">คำร้องให้ช่วยเหลือ </label>
+                    <input type="text" id="complaint" name="complaint" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                 </div>
                 <div class="flex items-center justify-center">
                     <button type="submit" class="bg-gray-800 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">ลงทะเบียน</button>
@@ -137,17 +137,7 @@
     <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
     <script>
 
-document.getElementById('position').addEventListener('change', change2);
 
-        function change2() {
-            if (this.value == "user") {
-                    document.getElementById('department').value = "บุคคลทั่วไป";
-                    document.getElementById('department').disabled = true;
-                } else {
-                document.getElementById('department').value = "";
-                    document.getElementById('department').disabled = false;
-                }
-        }
       
     const liffId = '2006915175-ZOxEXyeA'; // เปลี่ยนจุดที่ 1 liff register
 
@@ -194,7 +184,7 @@ document.getElementById('position').addEventListener('change', change2);
         initializeLiff();
 
         
-        async function sendToGoogleSheet(userId, firstName, lastName, position, department) {
+        async function sendToGoogleSheet(userId, name, phone, address, complaint) {
             try {
                 const response = await fetch('https://script.google.com/macros/s/AKfycbxTVlOPHjkM65QHgIHemp1-L_0jRVHoUCoPIY9E5DuQ7zrBxXkZygldxl3jMm-qP9e8/exec', {  // เปลี่ยนจุดที่ 2 (3.Register)
                     method: 'POST',
@@ -203,10 +193,10 @@ document.getElementById('position').addEventListener('change', change2);
                     },
                     body: new URLSearchParams({
                         userId: userId,
-                        firstName: firstName,
-                        lastName: lastName,
-                        position: position,
-                        department: department,
+                        name: name,
+                        phone: phone,
+                        address: address,
+                        complaint: complaint,
                     })
                 });
 
@@ -225,16 +215,16 @@ document.getElementById('position').addEventListener('change', change2);
         document.getElementById('registrationForm').addEventListener('submit', async function(event) {
             event.preventDefault();
 
-            const firstName = document.getElementById('firstName').value;
-            const lastName = document.getElementById('lastName').value;
-            const position = document.getElementById('position').value;
-            const department = document.getElementById('department').value;
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const address = document.getElementById('address').value;
+            const complaint = document.getElementById('complaint').value;
             const profileImage = document.getElementById('profileImage').src;
             const userId = liff.getDecodedIDToken().sub; 
 
             showLoading(); 
 
-            await sendToGoogleSheet(userId, firstName, lastName, position, department);
+            await sendToGoogleSheet(userId, name, phone, address, complaint);
 
             hideLoading(); 
             document.getElementById('registrationForm').reset();
@@ -244,10 +234,10 @@ document.getElementById('position').addEventListener('change', change2);
             const now = new Date();
             const time = now.toLocaleTimeString('en-GB', { hour12: false });
 
-            const firstName = document.getElementById('firstName').value;
-            const lastName = document.getElementById('lastName').value;
-            const position = document.getElementById('position').value;
-            const department = document.getElementById('department').value;            
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const address = document.getElementById('address').value;
+            const complaint = document.getElementById('complaint').value;            
             const profile = await liff.getProfile();
             const message = {
                 type: 'flex',
@@ -290,7 +280,7 @@ document.getElementById('position').addEventListener('change', change2);
                                                     },
                                                     {
                                                         "type": "span",
-                                                        "text": `${firstName} ${lastName}`,
+                                                        "text": `${name} ${phone}`,
                                                         "weight": "bold",
                                                         "color": "#0000aa"
                                                     }
@@ -307,7 +297,7 @@ document.getElementById('position').addEventListener('change', change2);
                                                     },
                                                     {
                                                         "type": "span",
-                                                        "text": `${position}`,
+                                                        "text": `${address}`,
                                                         "weight": "bold",
                                                         "color": "#0000aa"
                                                     }
@@ -324,7 +314,7 @@ document.getElementById('position').addEventListener('change', change2);
                                                     },
                                                     {
                                                         "type": "span",
-                                                        "text": `${department}`,
+                                                        "text": `${complaint}`,
                                                         "weight": "bold",
                                                         "color": "#0000aa"
                                                     }
