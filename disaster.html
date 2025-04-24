@@ -154,106 +154,113 @@
 
             try {
                 // ส่งข้อมูลไปยัง Google Apps Script
-                await fetch(scriptURL, {
+                const response = await fetch(scriptURL, {
                     method: 'POST',
-                    mode: 'no-cors', // จำเป็นสำหรับการข้าม CORS
+                    mode: 'cors', // เปลี่ยนเป็น 'cors'
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(data)
                 });
 
-                // ส่งข้อความแจ้งเตือนผ่าน LINE ในรูปแบบ Flex Message
-                const flexMessage = {
-                    type: 'flex',
-                    altText: 'คำร้องที่คุณส่งมา',
-                    contents: {
-                        type: 'bubble',
-                        header: {
-                            type: 'box',
-                            layout: 'vertical',
-                            contents: [
-                                {
-                                    type: 'text',
-                                    text: 'คำร้องที่คุณส่งมา',
-                                    weight: 'bold',
-                                    size: 'xl',
-                                    align: 'center'
-                                }
-                            ]
-                        },
-                        body: {
-                            type: 'box',
-                            layout: 'vertical',
-                            spacing: 'md',
-                            contents: [
-                                {
-                                    type: 'text',
-                                    text: 'รายละเอียด:',
-                                    weight: 'bold',
-                                    size: 'sm',
-                                    margin: 'md'
-                                },
-                                {
-                                    type: 'text',
-                                    text: `ชื่อ-สกุล: ${data.fullName}`,
-                                    size: 'sm',
-                                    color: '#555555',
-                                    wrap: true
-                                },
-                                {
-                                    type: 'text',
-                                    text: `หมายเลขโทรศัพท์: ${data.phoneNumber}`,
-                                    size: 'sm',
-                                    color: '#555555',
-                                    wrap: true
-                                },
-                                {
-                                    type: 'text',
-                                    text: `ที่อยู่: ${data.address}`,
-                                    size: 'sm',
-                                    color: '#555555',
-                                    wrap: true
-                                },
-                                {
-                                    type: 'text',
-                                    text: `คำร้องทุกข์: ${data.complaint}`,
-                                    size: 'sm',
-                                    color: '#555555',
-                                    wrap: true
-                                }
-                            ]
-                        },
-                        footer: {
-                            type: 'box',
-                            layout: 'horizontal',
-                            spacing: 'sm',
-                            contents: [
-                                {
-                                    type: 'button',
-                                    style: 'primary',
-                                    action: {
-                                        type: 'uri',
-                                        label: 'ติดตามสถานะคำร้อง',
-                                        uri: 'https://linecorp.com' // ลิงก์ปลอมเพื่อแสดงปุ่ม
+                const result = await response.json(); // อ่านการตอบกลับจากเซิร์ฟเวอร์
+
+                if (result.success) {
+                    // สร้าง Flex Message
+                    const flexMessage = {
+                        type: 'flex',
+                        altText: 'คำร้องที่คุณส่งมา',
+                        contents: {
+                            type: 'bubble',
+                            header: {
+                                type: 'box',
+                                layout: 'vertical',
+                                contents: [
+                                    {
+                                        type: 'text',
+                                        text: 'คำร้องที่คุณส่งมา',
+                                        weight: 'bold',
+                                        size: 'xl',
+                                        align: 'center'
                                     }
-                                }
-                            ]
+                                ]
+                            },
+                            body: {
+                                type: 'box',
+                                layout: 'vertical',
+                                spacing: 'md',
+                                contents: [
+                                    {
+                                        type: 'text',
+                                        text: 'รายละเอียด:',
+                                        weight: 'bold',
+                                        size: 'sm',
+                                        margin: 'md'
+                                    },
+                                    {
+                                        type: 'text',
+                                        text: `ชื่อ-สกุล: ${data.fullName}`,
+                                        size: 'sm',
+                                        color: '#555555',
+                                        wrap: true
+                                    },
+                                    {
+                                        type: 'text',
+                                        text: `หมายเลขโทรศัพท์: ${data.phoneNumber}`,
+                                        size: 'sm',
+                                        color: '#555555',
+                                        wrap: true
+                                    },
+                                    {
+                                        type: 'text',
+                                        text: `ที่อยู่: ${data.address}`,
+                                        size: 'sm',
+                                        color: '#555555',
+                                        wrap: true
+                                    },
+                                    {
+                                        type: 'text',
+                                        text: `คำร้องทุกข์: ${data.complaint}`,
+                                        size: 'sm',
+                                        color: '#555555',
+                                        wrap: true
+                                    }
+                                ]
+                            },
+                            footer: {
+                                type: 'box',
+                                layout: 'horizontal',
+                                spacing: 'sm',
+                                contents: [
+                                    {
+                                        type: 'button',
+                                        style: 'primary',
+                                        action: {
+                                            type: 'uri',
+                                            label: 'ติดตามสถานะคำร้อง',
+                                            uri: 'https://linecorp.com' // ลิงก์ปลอมเพื่อแสดงปุ่ม
+                                        }
+                                    }
+                                ]
+                            }
                         }
-                    }
-                };
+                    };
 
-                await liff.sendMessages([flexMessage]);
+                    // ส่งข้อความ Flex Message ผ่าน LIFF
+                    await liff.sendMessages([flexMessage]);
 
-                // แสดง SweetAlert สำเร็จ
-                Swal.fire({
-                    icon: 'success',
-                    title: 'ส่งข้อมูลสำเร็จ!',
-                    text: 'ข้อมูลของคุณได้ถูกบันทึกเรียบร้อยแล้ว',
-                    confirmButtonText: 'ปิด'
-                }).then(() => {
-                    liff.closeWindow(); // ปิดหน้าต่าง LIFF
-                });
+                    // แสดง SweetAlert สำเร็จ
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'ส่งข้อมูลสำเร็จ!',
+                        text: result.message, // ใช้ข้อความจากเซิร์ฟเวอร์
+                        confirmButtonText: 'ปิด'
+                    }).then(() => {
+                        liff.closeWindow(); // ปิดหน้าต่าง LIFF
+                    });
+                } else {
+                    throw new Error(result.message || 'Unknown error');
+                }
             } catch (error) {
                 console.error('Error:', error);
 
@@ -261,7 +268,7 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'เกิดข้อผิดพลาด!',
-                    text: 'ไม่สามารถส่งข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
+                    text: error.message || 'ไม่สามารถส่งข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
                     confirmButtonText: 'ปิด'
                 });
             }
