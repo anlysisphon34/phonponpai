@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="th">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         /* Custom Styles */
-
+        
         .time-display {
             background-color: #2c3e50;
             color: white;
@@ -20,9 +19,8 @@
             font-size: 0.875rem;
             display: flex;
             align-items: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-
         .form-container {
             max-width: 500px;
             margin: 20px auto;
@@ -31,13 +29,11 @@
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-
         .profile-section img {
             width: 64px;
             height: 64px;
             border-radius: 50%;
         }
-
         .status-badge {
             background-color: #10b981;
             color: white;
@@ -47,19 +43,20 @@
         }
     </style>
 </head>
-
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
     <!-- Main Container -->
     <div class="form-container bg-white p-6 rounded-lg shadow-md">
         <!-- Profile Section -->
         <div class="profile-section flex justify-between items-center mb-6">
             <div class="flex items-center">
-                <img id="profileImage" src="https://cdn.pixabay.com/animation/2022/11/04/09/42/09-42-03-510_512.gif"
-                    alt="Profile" class="w-16 h-16 rounded-full mr-4">
+                <img id="profileImage" src="https://cdn.pixabay.com/animation/2022/11/04/09/42/09-42-03-510_512.gif" alt="Profile" class="w-16 h-16 rounded-full mr-4">
                 <div>
                     <h4 id="displayName" class="text-lg font-semibold text-gray-800">Loading...</h4>
                     <span id="userStatus" class="status-badge inline-block mt-2">Online</span>
                 </div>
+            </div>
+            <div id="timeDisplay" class="text-gray-600 text-sm">
+                00:00:00
             </div>
         </div>
 
@@ -67,31 +64,21 @@
         <form id="dataForm" class="space-y-4">
             <div>
                 <label for="fullName" class="block text-sm font-medium text-gray-700">ชื่อ-สกุล:</label>
-                <input type="text" id="fullName" name="fullName" required
-                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <input type="text" id="fullName" name="fullName" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
             <div>
                 <label for="phoneNumber" class="block text-sm font-medium text-gray-700">หมายเลขโทรศัพท์:</label>
-                <input type="tel" id="phoneNumber" name="phoneNumber" required
-                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <input type="tel" id="phoneNumber" name="phoneNumber" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
             <div>
                 <label for="address" class="block text-sm font-medium text-gray-700">ที่อยู่:</label>
-                <textarea id="address" name="address" required
-                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                <textarea id="address" name="address" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
             </div>
             <div>
                 <label for="complaint" class="block text-sm font-medium text-gray-700">คำร้องทุกข์:</label>
-                <textarea id="complaint" name="complaint" required
-                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                <textarea id="complaint" name="complaint" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
             </div>
-
-            <div id="timeDisplay" class="text-gray-600 text-sm">
-                00:00:00
-            </div>
-
-            <button type="submit"
-                class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                 ส่งข้อมูล
             </button>
         </form>
@@ -126,18 +113,18 @@
         }
 
         // ฟังก์ชันสำหรับอัปเดตเวลาแบบเรียลไทม์
-        function updateTime() {
-            const now = new Date();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            document.getElementById('timeDisplay').textContent = `${hours}:${minutes}:${seconds}`;
-        }
+    function updateTime() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        document.getElementById('timeDisplay').textContent = `${hours}:${minutes}:${seconds}`;
+    }
 
         setInterval(updateTime, 1000);
-        updateTime();
+        updateTime(); 
 
-        document.getElementById('dataForm').addEventListener('submit', async function (e) {
+        document.getElementById('dataForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             // รวบรวมข้อมูลจากฟอร์ม
@@ -154,113 +141,106 @@
 
             try {
                 // ส่งข้อมูลไปยัง Google Apps Script
-                const response = await fetch(scriptURL, {
+                await fetch(scriptURL, {
                     method: 'POST',
-                    mode: 'cors', // เปลี่ยนเป็น 'cors'
+                    mode: 'no-cors', // จำเป็นสำหรับการข้าม CORS
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(data)
                 });
 
-                const result = await response.json(); // อ่านการตอบกลับจากเซิร์ฟเวอร์
-
-                if (result.success) {
-                    // สร้าง Flex Message
-                    const flexMessage = {
-                        type: 'flex',
-                        altText: 'คำร้องที่คุณส่งมา',
-                        contents: {
-                            type: 'bubble',
-                            header: {
-                                type: 'box',
-                                layout: 'vertical',
-                                contents: [
-                                    {
-                                        type: 'text',
-                                        text: 'คำร้องที่คุณส่งมา',
-                                        weight: 'bold',
-                                        size: 'xl',
-                                        align: 'center'
+                // ส่งข้อความแจ้งเตือนผ่าน LINE ในรูปแบบ Flex Message
+                const flexMessage = {
+                    type: 'flex',
+                    altText: 'คำร้องที่คุณส่งมา',
+                    contents: {
+                        type: 'bubble',
+                        header: {
+                            type: 'box',
+                            layout: 'vertical',
+                            contents: [
+                                {
+                                    type: 'text',
+                                    text: 'คำร้องที่คุณส่งมา',
+                                    weight: 'bold',
+                                    size: 'xl',
+                                    align: 'center'
+                                }
+                            ]
+                        },
+                        body: {
+                            type: 'box',
+                            layout: 'vertical',
+                            spacing: 'md',
+                            contents: [
+                                {
+                                    type: 'text',
+                                    text: 'รายละเอียด:',
+                                    weight: 'bold',
+                                    size: 'sm',
+                                    margin: 'md'
+                                },
+                                {
+                                    type: 'text',
+                                    text: `ชื่อ-สกุล: ${data.fullName}`,
+                                    size: 'sm',
+                                    color: '#555555',
+                                    wrap: true
+                                },
+                                {
+                                    type: 'text',
+                                    text: `หมายเลขโทรศัพท์: ${data.phoneNumber}`,
+                                    size: 'sm',
+                                    color: '#555555',
+                                    wrap: true
+                                },
+                                {
+                                    type: 'text',
+                                    text: `ที่อยู่: ${data.address}`,
+                                    size: 'sm',
+                                    color: '#555555',
+                                    wrap: true
+                                },
+                                {
+                                    type: 'text',
+                                    text: `คำร้องทุกข์: ${data.complaint}`,
+                                    size: 'sm',
+                                    color: '#555555',
+                                    wrap: true
+                                }
+                            ]
+                        },
+                        footer: {
+                            type: 'box',
+                            layout: 'horizontal',
+                            spacing: 'sm',
+                            contents: [
+                                {
+                                    type: 'button',
+                                    style: 'primary',
+                                    action: {
+                                        type: 'uri',
+                                        label: 'ติดตามสถานะคำร้อง',
+                                        uri: 'https://linecorp.com' // ลิงก์ปลอมเพื่อแสดงปุ่ม
                                     }
-                                ]
-                            },
-                            body: {
-                                type: 'box',
-                                layout: 'vertical',
-                                spacing: 'md',
-                                contents: [
-                                    {
-                                        type: 'text',
-                                        text: 'รายละเอียด:',
-                                        weight: 'bold',
-                                        size: 'sm',
-                                        margin: 'md'
-                                    },
-                                    {
-                                        type: 'text',
-                                        text: `ชื่อ-สกุล: ${data.fullName}`,
-                                        size: 'sm',
-                                        color: '#555555',
-                                        wrap: true
-                                    },
-                                    {
-                                        type: 'text',
-                                        text: `หมายเลขโทรศัพท์: ${data.phoneNumber}`,
-                                        size: 'sm',
-                                        color: '#555555',
-                                        wrap: true
-                                    },
-                                    {
-                                        type: 'text',
-                                        text: `ที่อยู่: ${data.address}`,
-                                        size: 'sm',
-                                        color: '#555555',
-                                        wrap: true
-                                    },
-                                    {
-                                        type: 'text',
-                                        text: `คำร้องทุกข์: ${data.complaint}`,
-                                        size: 'sm',
-                                        color: '#555555',
-                                        wrap: true
-                                    }
-                                ]
-                            },
-                            footer: {
-                                type: 'box',
-                                layout: 'horizontal',
-                                spacing: 'sm',
-                                contents: [
-                                    {
-                                        type: 'button',
-                                        style: 'primary',
-                                        action: {
-                                            type: 'uri',
-                                            label: 'ติดตามสถานะคำร้อง',
-                                            uri: 'https://linecorp.com' // ลิงก์ปลอมเพื่อแสดงปุ่ม
-                                        }
-                                    }
-                                ]
-                            }
+                                }
+                            ]
                         }
-                    };
+                    }
+                };
 
-                    // ส่งข้อความ Flex Message ผ่าน LIFF
-                    await liff.sendMessages([flexMessage]);
+                await liff.sendMessages([flexMessage]);
 
-                    // แสดง SweetAlert สำเร็จ
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'ส่งข้อมูลสำเร็จ!',
-                        text: result.message, // ใช้ข้อความจากเซิร์ฟเวอร์
-                        confirmButtonText: 'ปิด'
-                    }).then(() => {
-                        liff.closeWindow(); // ปิดหน้าต่าง LIFF
-                    });
-                } else {
-                    throw new Error(result.message || 'Unknown error');
-                }
+                // แสดง SweetAlert สำเร็จ
+                Swal.fire({
+                    icon: 'success',
+                    title: 'ส่งข้อมูลสำเร็จ!',
+                    text: 'ข้อมูลของคุณได้ถูกบันทึกเรียบร้อยแล้ว',
+                    confirmButtonText: 'ปิด'
+                }).then(() => {
+                    liff.closeWindow(); // ปิดหน้าต่าง LIFF
+                });
             } catch (error) {
                 console.error('Error:', error);
 
@@ -268,7 +248,7 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'เกิดข้อผิดพลาด!',
-                    text: error.message || 'ไม่สามารถส่งข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
+                    text: 'ไม่สามารถส่งข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
                     confirmButtonText: 'ปิด'
                 });
             }
@@ -277,5 +257,4 @@
         initializeLiff();
     </script>
 </body>
-
 </html>
