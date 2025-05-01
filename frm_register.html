@@ -6,27 +6,10 @@
   <title>LINE User Data Collector</title>
   <script src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"></script>
   <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-      text-align: center;
-    }
-    img {
-      border-radius: 50%;
-      margin: 15px 0;
-      border: 3px solid #00B900;
-    }
-    .success-message {
-      color: #00B900;
-      font-weight: bold;
-      margin-top: 20px;
-    }
-    .error-message {
-      color: #FF0000;
-      font-weight: bold;
-    }
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+    img { border-radius: 50%; margin: 15px 0; border: 3px solid #00B900; }
+    .success { color: #00B900; font-weight: bold; }
+    .error { color: #FF0000; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -34,39 +17,39 @@
     <h1>ข้อมูลของคุณ</h1>
     <p>กำลังเตรียมข้อมูล...</p>
   </div>
-  
+
   <script>
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgIuUzCk3WNTNxx-aEJunMFKvRSaVrgiupfH3CgnYLL7_afg1pJN6B6eBqm6Soeamq/exec";
-    
-    async function sendDataToSheet(profile) {
+
+    // ฟังก์ชันส่งข้อมูลแบบใช้ no-cors
+    async function sendDataWithNoCors(profile) {
       try {
-        // เพิ่ม timestamp เพื่อป้องกัน caching
-        const url = `${GOOGLE_SCRIPT_URL}?timestamp=${new Date().getTime()}`;
-        
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId: profile.userId,
-            displayName: profile.displayName,
-            pictureUrl: profile.pictureUrl,
-            statusMessage: profile.statusMessage
-          })
+        // สร้าง URL พร้อมพารามิเตอร์สำหรับ GET request
+        const params = new URLSearchParams();
+        params.append('userId', profile.userId);
+        params.append('displayName', profile.displayName);
+        params.append('pictureUrl', profile.pictureUrl || '');
+        params.append('statusMessage', profile.statusMessage || '');
+        params.append('timestamp', Date.now());
+
+        const url = `${GOOGLE_SCRIPT_URL}?${params.toString()}`;
+
+        // ใช้ fetch พร้อม no-cors mode
+        await fetch(url, {
+          method: 'GET', // ต้องใช้ GET เมื่อใช้ no-cors
+          mode: 'no-cors',
+          cache: 'no-cache'
         });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return await response.json();
+
+        // เนื่องจาก no-cors mode ไม่สามารถอ่าน response ได้
+        // ให้แสดงข้อความสำเร็จโดยอัตโนมัติ
+        return { status: 'success' };
       } catch (error) {
-        console.error('Error sending data:', error);
+        console.error('Error in no-cors request:', error);
         throw error;
       }
     }
-    
+
     async function initializeLiff() {
       try {
         await liff.init({ liffId: "2006915175-p0567oBr" });
@@ -86,14 +69,13 @@
             <p id="statusMessage">กำลังบันทึกข้อมูล...</p>
           `;
           
-          // ส่งข้อมูลไปยัง Google Sheet
+          // ส่งข้อมูลไปยัง Google Sheet แบบ no-cors
           try {
-            const result = await sendDataToSheet(profile);
-            console.log('Google Sheet response:', result);
-            document.getElementById('statusMessage').className = 'success-message';
+            await sendDataWithNoCors(profile);
+            document.getElementById('statusMessage').className = 'success';
             document.getElementById('statusMessage').textContent = 'บันทึกข้อมูลเรียบร้อยแล้ว!';
           } catch (error) {
-            document.getElementById('statusMessage').className = 'error-message';
+            document.getElementById('statusMessage').className = 'error';
             document.getElementById('statusMessage').textContent = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
             console.error('Error:', error);
           }
@@ -101,14 +83,13 @@
       } catch (error) {
         document.getElementById('userInfo').innerHTML = `
           <h1>เกิดข้อผิดพลาด</h1>
-          <p class="error-message">${error.message}</p>
+          <p class="error">${error.message}</p>
           <p>กรุณาลองใหม่ภายหลัง</p>
         `;
         console.error('LIFF Error:', error);
       }
     }
     
-    // เริ่มต้น LIFF App
     initializeLiff();
   </script>
 </body>
