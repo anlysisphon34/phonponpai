@@ -91,19 +91,27 @@
       </div>
     </div>
   </div>
+<body>
+  <div class="container">
+    <div id="userInfo">
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>กำลังเตรียมข้อมูล...</p>
+      </div>
+    </div>
+  </div>
 
   <script>
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgIuUzCk3WNTNxx-aEJunMFKvRSaVrgiupfH3CgnYLL7_afg1pJN6B6eBqm6Soeamq/exec";
 
-    // สร้าง Flex Message
     function createFlexMessage(profile) {
       return {
         type: "flex",
-        altText: "บันทึกข้อมูลสำเร็จ",
+        altText: "บันทึกข้อมูลสำเร็จ!",
         contents: {
           type: "bubble",
           size: "kilo",
-          header: {
+          body: {
             type: "box",
             layout: "vertical",
             contents: [
@@ -113,16 +121,12 @@
                 weight: "bold",
                 size: "xl",
                 align: "center",
-                color: "#FFFFFF"
-              }
-            ],
-            backgroundColor: "#06C755",
-            paddingAll: "20px"
-          },
-          body: {
-            type: "box",
-            layout: "vertical",
-            contents: [
+                color: "#06C755"
+              },
+              {
+                type: "separator",
+                margin: "md"
+              },
               {
                 type: "box",
                 layout: "horizontal",
@@ -131,33 +135,30 @@
                   {
                     type: "image",
                     url: profile.pictureUrl,
-                    size: "sm",
+                    size: "xxs",
                     aspectMode: "cover",
                     aspectRatio: "1:1",
                     gravity: "center",
-                    flex: 2,
-                    cornerRadius: "100px"
+                    flex: 1
                   },
                   {
                     type: "box",
                     layout: "vertical",
-                    flex: 5,
+                    flex: 4,
                     margin: "lg",
                     contents: [
                       {
                         type: "text",
                         text: profile.displayName,
                         weight: "bold",
-                        size: "md",
-                        wrap: true
+                        size: "md"
                       },
                       {
                         type: "text",
                         text: `ID: ${profile.userId}`,
-                        size: "xs",
+                        size: "sm",
                         color: "#888888",
-                        margin: "sm",
-                        wrap: true
+                        margin: "sm"
                       }
                     ]
                   }
@@ -172,12 +173,9 @@
                 text: "ข้อมูลของคุณได้ถูกบันทึกเรียบร้อยแล้ว",
                 margin: "lg",
                 wrap: true,
-                align: "center",
-                size: "sm"
+                align: "center"
               }
             ]
-          },
-          footer: {
           }
         }
       };
@@ -185,7 +183,7 @@
 
     async function sendDataToSheet(profile) {
       try {
-        // ส่งข้อมูลด้วย POST และ no-cors
+        // ส่งข้อมูลด้วย no-cors
         await fetch(GOOGLE_SCRIPT_URL, {
           method: 'POST',
           mode: 'no-cors',
@@ -200,30 +198,27 @@
           })
         });
 
-        // ส่ง Flex Message
-        const flexMessage = createFlexMessage(profile);
-        await liff.sendMessages([flexMessage]);
-        
-        return { status: 'sent' };
-        
+        return true;
       } catch (error) {
-        console.error('Error:', error);
-        throw error;
+        console.error('Error sending data:', error);
+        return false;
       }
     }
 
-    async function showSuccessAlert() {
-      await Swal.fire({
-        title: 'บันทึกข้อมูลสำเร็จ',
-        text: 'ข้อมูลของคุณได้ถูกบันทึกเรียบร้อยแล้ว',
-        icon: 'success',
-        confirmButtonText: 'ปิดหน้าต่าง',
-        confirmButtonColor: '#06C755',
-        allowOutsideClick: false
-      });
+    async function sendFlexMessage(profile) {
+      if (!liff.isInClient()) {
+        console.log('ไม่สามารถส่ง Flex Message นอกแอป LINE');
+        return false;
+      }
       
-      // ปิดหน้าต่าง LIFF
-      liff.closeWindow();
+      try {
+        const flexMessage = createFlexMessage(profile);
+        await liff.sendMessages([flexMessage]);
+        return true;
+      } catch (error) {
+        console.error('Error sending Flex Message:', error);
+        return false;
+      }
     }
 
     async function initializeLiff() {
@@ -252,18 +247,30 @@
           </div>
         `;
 
-        // ส่งข้อมูลอัตโนมัติ
-        try {
-          await sendDataToSheet(profile);
-          await showSuccessAlert();
-          
-        } catch (error) {
+        // ส่งข้อมูลและ Flex Message
+        const dataSent = await sendDataToSheet(profile);
+        const flexSent = await sendFlexMessage(profile);
+
+        if (dataSent) {
           document.getElementById('statusMessage').innerHTML = `
-            <div class="error-message">
-              <p>เกิดข้อผิดพลาดในการบันทึกข้อมูล</p>
-              <button onclick="window.location.reload()">ลองอีกครั้ง</button>
+            <div style="text-align: center; color: #06C755; margin-top: 20px;">
+              <p>บันทึกข้อมูลสำเร็จแล้ว!</p>
             </div>
           `;
+          
+          await Swal.fire({
+            icon: 'success',
+            title: 'สำเร็จ!',
+            text: 'ข้อมูลของคุณถูกบันทึกเรียบร้อยแล้ว',
+            confirmButtonText: 'ปิด',
+            confirmButtonColor: '#06C755'
+          });
+          
+          if (liff.isInClient()) {
+            setTimeout(() => liff.closeWindow(), 2000);
+          }
+        } else {
+          throw new Error('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
         }
 
       } catch (error) {
@@ -271,14 +278,13 @@
           <div class="error-message">
             <h3>เกิดข้อผิดพลาด</h3>
             <p>${error.message}</p>
-            <p>กรุณาลองใหม่ภายหลัง</p>
+            <button onclick="window.location.reload()">ลองอีกครั้ง</button>
           </div>
         `;
-        console.error('LIFF Error:', error);
+        console.error('Error:', error);
       }
     }
     
-    // เริ่มต้นแอปพลิเคชัน
     initializeLiff();
   </script>
 </body>
