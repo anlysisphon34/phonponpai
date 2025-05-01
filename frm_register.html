@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LINE User Data Collector</title>
+  <script src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"></script>
+</head>
+<body>
+  <div id="userInfo">
+    <h1>ข้อมูลของคุณ</h1>
+    <p>กำลังเตรียมข้อมูล...</p>
+  </div>
+  
+  <script>
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgIuUzCk3WNTNxx-aEJunMFKvRSaVrgiupfH3CgnYLL7_afg1pJN6B6eBqm6Soeamq/exec";
+    
+    async function initializeLiff() {
+      try {
+        await liff.init({ liffId: "2006915175-p0567oBr" });
+        
+        if (!liff.isLoggedIn()) {
+          liff.login();
+        } else {
+          const profile = await liff.getProfile();
+          const context = liff.getContext();
+          
+          document.getElementById('userInfo').innerHTML = `
+            <h1>ข้อมูลของคุณ</h1>
+            <p><strong>User ID:</strong> ${profile.userId}</p>
+            <p><strong>ชื่อบัญชีของคุณ :</strong> ${profile.displayName}</p>
+            <img src="${profile.pictureUrl}" width="200" alt="Profile Picture">
+            <p><strong>สถานะ:</strong> ${profile.statusMessage || "N/A"}</p>
+            <p>เราได้ทำการบันทึกข้อมูลของคุณเรียบร้อย</p>
+          `;
+          
+          // Send data to Google Sheet
+          const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: profile.userId,
+              displayName: profile.displayName,
+              pictureUrl: profile.pictureUrl,
+              statusMessage: profile.statusMessage
+            })
+          });
+          
+          const result = await response.json();
+          console.log('Google Sheet response:', result);
+        }
+      } catch (error) {
+        document.getElementById('userInfo').innerHTML = `
+          <h1>Error</h1>
+          <p>${error.message}</p>
+        `;
+        console.error(error);
+      }
+    }
+    
+    initializeLiff();
+  </script>
+</body>
+</html>
