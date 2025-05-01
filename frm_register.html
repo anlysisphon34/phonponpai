@@ -1,100 +1,66 @@
 <!DOCTYPE html>
-<html lang="th">
+<html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบบันทึกข้อมูล LINE</title>
-  <!-- LIFF SDK -->
+  <title>LINE User Data Collector</title>
   <script src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"></script>
-  <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    :root {
-      --primary-color: #06C755;
-      --secondary-color: #00B900;
-      --text-color: #333;
-      --light-gray: #f5f5f5;
-      --white: #ffffff;
-      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+    body { 
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    
-    body {
-      background-color: var(--light-gray);
-      color: var(--text-color);
-      line-height: 1.6;
+      max-width: 600px; 
+      margin: 0 auto; 
       padding: 20px;
-      max-width: 100%;
+      background-color: #f5f5f5;
+      color: #333;
     }
     
     .container {
-      max-width: 500px;
-      margin: 0 auto;
-      background: var(--white);
-      border-radius: 12px;
-      padding: 25px;
-      box-shadow: var(--shadow);
-    }
-    
-    .header {
-      text-align: center;
-      margin-bottom: 25px;
-    }
-    
-    .header h1 {
-      color: var(--primary-color);
-      font-size: 24px;
-      margin-bottom: 10px;
-    }
-    
-    .profile-card {
-      background: var(--white);
+      background: white;
       border-radius: 10px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: var(--shadow);
+      padding: 25px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    h1 {
+      color: #06C755;
       text-align: center;
+      margin-bottom: 20px;
     }
     
     .profile-img {
-      width: 120px;
-      height: 120px;
+      width: 150px;
+      height: 150px;
       border-radius: 50%;
-      object-fit: cover;
-      border: 4px solid var(--secondary-color);
-      margin: 0 auto 15px;
+      border: 4px solid #06C755;
       display: block;
+      margin: 0 auto 20px;
+      object-fit: cover;
     }
     
     .profile-info {
-      margin-bottom: 15px;
+      margin-bottom: 20px;
     }
     
     .profile-info p {
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+      font-size: 16px;
     }
     
     .profile-info strong {
-      color: var(--primary-color);
+      color: #06C755;
     }
     
     .loading {
       text-align: center;
-      padding: 30px;
+      padding: 30px 0;
     }
     
     .spinner {
-      border: 4px solid rgba(0, 0, 0, 0.1);
+      border: 4px solid rgba(0,0,0,0.1);
       border-radius: 50%;
-      border-top: 4px solid var(--primary-color);
+      border-top: 4px solid #06C755;
       width: 40px;
       height: 40px;
       animation: spin 1s linear infinite;
@@ -106,56 +72,123 @@
       100% { transform: rotate(360deg); }
     }
     
-    .btn {
-      display: inline-block;
-      background: var(--primary-color);
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      text-decoration: none;
-      font-size: 16px;
-      transition: background 0.3s;
-      width: 100%;
-      text-align: center;
-    }
-    
-    .btn:hover {
-      background: var(--secondary-color);
-    }
-    
     .error-message {
       color: #d32f2f;
-      text-align: center;
-      padding: 15px;
       background: #ffebee;
+      padding: 15px;
       border-radius: 5px;
       margin-top: 20px;
+      text-align: center;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <h1><i class="fab fa-line"></i> ระบบบันทึกข้อมูล LINE</h1>
-    </div>
-    
     <div id="userInfo">
       <div class="loading">
         <div class="spinner"></div>
-        <p>กำลังบันทึกข้อมูลโปรไฟล์ของคุณ...</p>
+        <p>กำลังเตรียมข้อมูล...</p>
       </div>
     </div>
   </div>
 
   <script>
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgIuUzCk3WNTNxx-aEJunMFKvRSaVrgiupfH3CgnYLL7_afg1pJN6B6eBqm6Soeamq/exec";
-    
+
+    // สร้าง Flex Message
+    function createFlexMessage(profile) {
+      return {
+        type: "flex",
+        altText: "บันทึกข้อมูลสำเร็จ",
+        contents: {
+          type: "bubble",
+          size: "kilo",
+          header: {
+            type: "box",
+            layout: "vertical",
+            contents: [
+              {
+                type: "text",
+                text: "บันทึกข้อมูลสำเร็จ",
+                weight: "bold",
+                size: "xl",
+                align: "center",
+                color: "#FFFFFF"
+              }
+            ],
+            backgroundColor: "#06C755",
+            paddingAll: "20px"
+          },
+          body: {
+            type: "box",
+            layout: "vertical",
+            contents: [
+              {
+                type: "box",
+                layout: "horizontal",
+                margin: "lg",
+                contents: [
+                  {
+                    type: "image",
+                    url: profile.pictureUrl,
+                    size: "sm",
+                    aspectMode: "cover",
+                    aspectRatio: "1:1",
+                    gravity: "center",
+                    flex: 2,
+                    cornerRadius: "100px"
+                  },
+                  {
+                    type: "box",
+                    layout: "vertical",
+                    flex: 5,
+                    margin: "lg",
+                    contents: [
+                      {
+                        type: "text",
+                        text: profile.displayName,
+                        weight: "bold",
+                        size: "md",
+                        wrap: true
+                      },
+                      {
+                        type: "text",
+                        text: `ID: ${profile.userId}`,
+                        size: "xs",
+                        color: "#888888",
+                        margin: "sm",
+                        wrap: true
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                type: "separator",
+                margin: "lg"
+              },
+              {
+                type: "text",
+                text: "ข้อมูลของคุณได้ถูกบันทึกเรียบร้อยแล้ว",
+                margin: "lg",
+                wrap: true,
+                align: "center",
+                size: "sm"
+              }
+            ]
+          },
+          footer: {
+          }
+        }
+      };
+    }
+
     async function sendDataToSheet(profile) {
       try {
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
+        // ส่งข้อมูลด้วย POST และ no-cors
+        await fetch(GOOGLE_SCRIPT_URL, {
           method: 'POST',
+          mode: 'no-cors',
           headers: {
             'Content-Type': 'application/json',
           },
@@ -167,11 +200,12 @@
           })
         });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        return await response.json();
+        // ส่ง Flex Message
+        const flexMessage = createFlexMessage(profile);
+        await liff.sendMessages([flexMessage]);
+        
+        return { status: 'sent' };
+        
       } catch (error) {
         console.error('Error:', error);
         throw error;
@@ -181,22 +215,14 @@
     async function showSuccessAlert() {
       await Swal.fire({
         title: 'บันทึกข้อมูลสำเร็จ',
-        text: 'ข้อมูลโปรไฟล์ของคุณได้ถูกบันทึกเรียบร้อยแล้ว',
+        text: 'ข้อมูลของคุณได้ถูกบันทึกเรียบร้อยแล้ว',
         icon: 'success',
         confirmButtonText: 'ปิดหน้าต่าง',
         confirmButtonColor: '#06C755',
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        allowEnterKey: false,
-        backdrop: `
-          rgba(6,199,85,0.2)
-          url("https://scdn.line-apps.com/n/line_add_friends/btn/th.png")
-          center top
-          no-repeat
-        `
+        allowOutsideClick: false
       });
       
-      // ปิดหน้าต่าง LIFF หลังจากแสดง Alert
+      // ปิดหน้าต่าง LIFF
       liff.closeWindow();
     }
 
@@ -211,43 +237,39 @@
 
         const profile = await liff.getProfile();
         
-        // ส่งข้อมูลทันทีโดยไม่ต้องกดปุ่ม
+        // แสดงข้อมูลผู้ใช้
+        document.getElementById('userInfo').innerHTML = `
+          <h1>ข้อมูลของคุณ</h1>
+          <img src="${profile.pictureUrl}" class="profile-img" alt="Profile Picture">
+          <div class="profile-info">
+            <p><strong>User ID:</strong> ${profile.userId}</p>
+            <p><strong>ชื่อบัญชี:</strong> ${profile.displayName}</p>
+            <p><strong>สถานะ:</strong> ${profile.statusMessage || "N/A"}</p>
+          </div>
+          <div id="statusMessage" class="loading">
+            <div class="spinner"></div>
+            <p>กำลังบันทึกข้อมูล...</p>
+          </div>
+        `;
+
+        // ส่งข้อมูลอัตโนมัติ
         try {
           await sendDataToSheet(profile);
-          
-          // แสดงข้อมูลโปรไฟล์อย่างรวดเร็ว
-          document.getElementById('userInfo').innerHTML = `
-            <div class="profile-card">
-              <img src="${profile.pictureUrl}" class="profile-img" alt="Profile Picture">
-              <div class="profile-info">
-                <p><strong><i class="fas fa-id-card"></i> User ID:</strong> ${profile.userId}</p>
-                <p><strong><i class="fas fa-user"></i> ชื่อบัญชี:</strong> ${profile.displayName}</p>
-                <p><strong><i class="fas fa-comment"></i> สถานะ:</strong> ${profile.statusMessage || "N/A"}</p>
-              </div>
-            </div>
-          `;
-          
-          // แสดง SweetAlert และปิดหน้าต่าง
           await showSuccessAlert();
           
         } catch (error) {
-          document.getElementById('userInfo').innerHTML = `
+          document.getElementById('statusMessage').innerHTML = `
             <div class="error-message">
-              <h3><i class="fas fa-exclamation-triangle"></i> เกิดข้อผิดพลาด</h3>
-              <p>ไม่สามารถบันทึกข้อมูลได้</p>
-              <p>${error.message}</p>
-              <button class="btn" onclick="window.location.reload()">
-                <i class="fas fa-redo"></i> ลองอีกครั้ง
-              </button>
+              <p>เกิดข้อผิดพลาดในการบันทึกข้อมูล</p>
+              <button onclick="window.location.reload()">ลองอีกครั้ง</button>
             </div>
           `;
-          console.error('Submission Error:', error);
         }
 
       } catch (error) {
         document.getElementById('userInfo').innerHTML = `
           <div class="error-message">
-            <h3><i class="fas fa-exclamation-triangle"></i> เกิดข้อผิดพลาด</h3>
+            <h3>เกิดข้อผิดพลาด</h3>
             <p>${error.message}</p>
             <p>กรุณาลองใหม่ภายหลัง</p>
           </div>
