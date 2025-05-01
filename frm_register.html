@@ -5,6 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LINE User Data Collector</title>
   <script src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"></script>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      text-align: center;
+    }
+    img {
+      border-radius: 50%;
+      margin: 15px 0;
+      border: 3px solid #00B900;
+    }
+    .success-message {
+      color: #00B900;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+    .error-message {
+      color: #FF0000;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
   <div id="userInfo">
@@ -15,6 +38,35 @@
   <script>
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgIuUzCk3WNTNxx-aEJunMFKvRSaVrgiupfH3CgnYLL7_afg1pJN6B6eBqm6Soeamq/exec";
     
+    async function sendDataToSheet(profile) {
+      try {
+        // เพิ่ม timestamp เพื่อป้องกัน caching
+        const url = `${GOOGLE_SCRIPT_URL}?timestamp=${new Date().getTime()}`;
+        
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: profile.userId,
+            displayName: profile.displayName,
+            pictureUrl: profile.pictureUrl,
+            statusMessage: profile.statusMessage
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error('Error sending data:', error);
+        throw error;
+      }
+    }
+    
     async function initializeLiff() {
       try {
         await liff.init({ liffId: "2006915175-p0567oBr" });
@@ -23,44 +75,40 @@
           liff.login();
         } else {
           const profile = await liff.getProfile();
-          const context = liff.getContext();
           
+          // แสดงข้อมูลผู้ใช้
           document.getElementById('userInfo').innerHTML = `
             <h1>ข้อมูลของคุณ</h1>
             <p><strong>User ID:</strong> ${profile.userId}</p>
-            <p><strong>ชื่อบัญชีของคุณ :</strong> ${profile.displayName}</p>
+            <p><strong>ชื่อบัญชีของคุณ:</strong> ${profile.displayName}</p>
             <img src="${profile.pictureUrl}" width="200" alt="Profile Picture">
             <p><strong>สถานะ:</strong> ${profile.statusMessage || "N/A"}</p>
-            <p>เราได้ทำการบันทึกข้อมูลของคุณเรียบร้อย</p>
+            <p id="statusMessage">กำลังบันทึกข้อมูล...</p>
           `;
           
-          // Send data to Google Sheet
-          const response = await fetch(GOOGLE_SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors', // ใช้ no-cors สำหรับการเรียกข้ามโดเมน
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userId: profile.userId,
-              displayName: profile.displayName,
-              pictureUrl: profile.pictureUrl,
-              statusMessage: profile.statusMessage
-            })
-          });
-          
-          const result = await response.json();
-          console.log('Google Sheet response:', result);
+          // ส่งข้อมูลไปยัง Google Sheet
+          try {
+            const result = await sendDataToSheet(profile);
+            console.log('Google Sheet response:', result);
+            document.getElementById('statusMessage').className = 'success-message';
+            document.getElementById('statusMessage').textContent = 'บันทึกข้อมูลเรียบร้อยแล้ว!';
+          } catch (error) {
+            document.getElementById('statusMessage').className = 'error-message';
+            document.getElementById('statusMessage').textContent = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
+            console.error('Error:', error);
+          }
         }
       } catch (error) {
         document.getElementById('userInfo').innerHTML = `
-          <h1>Error</h1>
-          <p>${error.message}</p>
+          <h1>เกิดข้อผิดพลาด</h1>
+          <p class="error-message">${error.message}</p>
+          <p>กรุณาลองใหม่ภายหลัง</p>
         `;
-        console.error(error);
+        console.error('LIFF Error:', error);
       }
     }
     
+    // เริ่มต้น LIFF App
     initializeLiff();
   </script>
 </body>
