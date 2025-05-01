@@ -37,6 +37,7 @@
           // Send data to Google Sheet
           const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
+            mode: 'no-cors', // ใช้ no-cors สำหรับการเรียกข้ามโดเมน
             headers: {
               'Content-Type': 'application/json',
             },
