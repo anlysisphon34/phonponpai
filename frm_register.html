@@ -10,6 +10,7 @@
     img { border-radius: 50%; margin: 15px 0; border: 3px solid #00B900; }
     .success { color: #00B900; font-weight: bold; }
     .error { color: #FF0000; font-weight: bold; }
+    #debugInfo { background: #f5f5f5; padding: 10px; margin-top: 20px; border-radius: 5px; }
   </style>
 </head>
 <body>
@@ -17,35 +18,54 @@
     <h1>ข้อมูลของคุณ</h1>
     <p>กำลังเตรียมข้อมูล...</p>
   </div>
+  
+  <div id="debugInfo" style="display: none;">
+    <h3>ข้อมูล Debug</h3>
+    <pre id="debugContent"></pre>
+  </div>
 
   <script>
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgIuUzCk3WNTNxx-aEJunMFKvRSaVrgiupfH3CgnYLL7_afg1pJN6B6eBqm6Soeamq/exec";
+    const DEBUG_MODE = true; // ตั้งเป็น false เมื่อ deploy จริง
 
-    // ฟังก์ชันส่งข้อมูลแบบใช้ no-cors
-    async function sendDataWithNoCors(profile) {
+    async function sendDataToSheet(profile) {
       try {
-        // สร้าง URL พร้อมพารามิเตอร์สำหรับ GET request
-        const params = new URLSearchParams();
-        params.append('userId', profile.userId);
-        params.append('displayName', profile.displayName);
-        params.append('pictureUrl', profile.pictureUrl || '');
-        params.append('statusMessage', profile.statusMessage || '');
-        params.append('timestamp', Date.now());
+        // แสดงข้อมูล debug
+        if (DEBUG_MODE) {
+          document.getElementById('debugInfo').style.display = 'block';
+          document.getElementById('debugContent').textContent = 
+            `กำลังส่งข้อมูล:\n${JSON.stringify(profile, null, 2)}`;
+        }
 
-        const url = `${GOOGLE_SCRIPT_URL}?${params.toString()}`;
-
-        // ใช้ fetch พร้อม no-cors mode
-        await fetch(url, {
-          method: 'GET', // ต้องใช้ GET เมื่อใช้ no-cors
+        // ส่งข้อมูลด้วย POST และ no-cors
+        await fetch(GOOGLE_SCRIPT_URL, {
+          method: 'POST',
           mode: 'no-cors',
-          cache: 'no-cache'
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: profile.userId,
+            displayName: profile.displayName,
+            pictureUrl: profile.pictureUrl,
+            statusMessage: profile.statusMessage || ""
+          })
         });
 
-        // เนื่องจาก no-cors mode ไม่สามารถอ่าน response ได้
+        // เนื่องจาก no-cors ไม่สามารถอ่าน response ได้
         // ให้แสดงข้อความสำเร็จโดยอัตโนมัติ
-        return { status: 'success' };
+        if (DEBUG_MODE) {
+          document.getElementById('debugContent').textContent += 
+            '\n\nส่งข้อมูลเรียบร้อย (no-cors mode ไม่สามารถอ่าน response ได้)';
+        }
+        
+        return { status: 'sent' };
+        
       } catch (error) {
-        console.error('Error in no-cors request:', error);
+        if (DEBUG_MODE) {
+          document.getElementById('debugContent').textContent += 
+            `\n\nเกิดข้อผิดพลาด:\n${error.message}`;
+        }
         throw error;
       }
     }
@@ -69,15 +89,14 @@
             <p id="statusMessage">กำลังบันทึกข้อมูล...</p>
           `;
           
-          // ส่งข้อมูลไปยัง Google Sheet แบบ no-cors
+          // ส่งข้อมูล
           try {
-            await sendDataWithNoCors(profile);
+            await sendDataToSheet(profile);
             document.getElementById('statusMessage').className = 'success';
             document.getElementById('statusMessage').textContent = 'บันทึกข้อมูลเรียบร้อยแล้ว!';
           } catch (error) {
             document.getElementById('statusMessage').className = 'error';
             document.getElementById('statusMessage').textContent = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
-            console.error('Error:', error);
           }
         }
       } catch (error) {
@@ -86,7 +105,6 @@
           <p class="error">${error.message}</p>
           <p>กรุณาลองใหม่ภายหลัง</p>
         `;
-        console.error('LIFF Error:', error);
       }
     }
     
