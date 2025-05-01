@@ -144,7 +144,7 @@
     <div id="userInfo">
       <div class="loading">
         <div class="spinner"></div>
-        <p>กำลังโหลดข้อมูลโปรไฟล์...</p>
+        <p>กำลังบันทึกข้อมูลโปรไฟล์ของคุณ...</p>
       </div>
     </div>
   </div>
@@ -152,99 +152,6 @@
   <script>
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgIuUzCk3WNTNxx-aEJunMFKvRSaVrgiupfH3CgnYLL7_afg1pJN6B6eBqm6Soeamq/exec";
     
-    // สร้าง Flex Message
-    function createFlexMessage(profile) {
-      return {
-        type: "flex",
-        altText: "บันทึกข้อมูลสำเร็จ",
-        contents: {
-          type: "bubble",
-          body: {
-            type: "box",
-            layout: "vertical",
-            contents: [
-              {
-                type: "text",
-                text: "บันทึกข้อมูลสำเร็จ",
-                weight: "bold",
-                size: "xl",
-                align: "center",
-                color: "#06C755"
-              },
-              {
-                type: "separator",
-                margin: "md"
-              },
-              {
-                type: "box",
-                layout: "horizontal",
-                margin: "lg",
-                contents: [
-                  {
-                    type: "image",
-                    url: profile.pictureUrl,
-                    size: "xxs",
-                    aspectMode: "cover",
-                    aspectRatio: "1:1",
-                    gravity: "center",
-                    flex: 1
-                  },
-                  {
-                    type: "box",
-                    layout: "vertical",
-                    flex: 4,
-                    margin: "lg",
-                    contents: [
-                      {
-                        type: "text",
-                        text: profile.displayName,
-                        weight: "bold",
-                        size: "md"
-                      },
-                      {
-                        type: "text",
-                        text: `ID: ${profile.userId}`,
-                        size: "sm",
-                        color: "#888888",
-                        margin: "sm"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                type: "separator",
-                margin: "lg"
-              },
-              {
-                type: "text",
-                text: "ข้อมูลของคุณได้ถูกบันทึกเรียบร้อยแล้ว",
-                margin: "lg",
-                wrap: true,
-                align: "center"
-              }
-            ]
-          },
-          footer: {
-            type: "box",
-            layout: "vertical",
-            contents: [
-              {
-                type: "button",
-                action: {
-                  type: "uri",
-                  label: "ปิดหน้าต่าง",
-                  uri: "https://line.me"
-                },
-                style: "primary",
-                color: "#06C755"
-              }
-            ]
-          }
-        }
-      };
-    }
-
     async function sendDataToSheet(profile) {
       try {
         const response = await fetch(GOOGLE_SCRIPT_URL, {
@@ -271,6 +178,28 @@
       }
     }
 
+    async function showSuccessAlert() {
+      await Swal.fire({
+        title: 'บันทึกข้อมูลสำเร็จ',
+        text: 'ข้อมูลโปรไฟล์ของคุณได้ถูกบันทึกเรียบร้อยแล้ว',
+        icon: 'success',
+        confirmButtonText: 'ปิดหน้าต่าง',
+        confirmButtonColor: '#06C755',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        allowEnterKey: false,
+        backdrop: `
+          rgba(6,199,85,0.2)
+          url("https://scdn.line-apps.com/n/line_add_friends/btn/th.png")
+          center top
+          no-repeat
+        `
+      });
+      
+      // ปิดหน้าต่าง LIFF หลังจากแสดง Alert
+      liff.closeWindow();
+    }
+
     async function initializeLiff() {
       try {
         await liff.init({ liffId: "2006915175-p0567oBr" });
@@ -282,22 +211,38 @@
 
         const profile = await liff.getProfile();
         
-        // แสดงข้อมูลผู้ใช้
-        document.getElementById('userInfo').innerHTML = `
-          <div class="profile-card">
-            <img src="${profile.pictureUrl}" class="profile-img" alt="Profile Picture">
-            <div class="profile-info">
-              <p><strong><i class="fas fa-id-card"></i> User ID:</strong> ${profile.userId}</p>
-              <p><strong><i class="fas fa-user"></i> ชื่อบัญชี:</strong> ${profile.displayName}</p>
-              <p><strong><i class="fas fa-comment"></i> สถานะ:</strong> ${profile.statusMessage || "N/A"}</p>
+        // ส่งข้อมูลทันทีโดยไม่ต้องกดปุ่ม
+        try {
+          await sendDataToSheet(profile);
+          
+          // แสดงข้อมูลโปรไฟล์อย่างรวดเร็ว
+          document.getElementById('userInfo').innerHTML = `
+            <div class="profile-card">
+              <img src="${profile.pictureUrl}" class="profile-img" alt="Profile Picture">
+              <div class="profile-info">
+                <p><strong><i class="fas fa-id-card"></i> User ID:</strong> ${profile.userId}</p>
+                <p><strong><i class="fas fa-user"></i> ชื่อบัญชี:</strong> ${profile.displayName}</p>
+                <p><strong><i class="fas fa-comment"></i> สถานะ:</strong> ${profile.statusMessage || "N/A"}</p>
+              </div>
             </div>
-            <div id="statusMessage">
-              <button class="btn" onclick="submitData()">
-                <i class="fas fa-save"></i> บันทึกข้อมูล
+          `;
+          
+          // แสดง SweetAlert และปิดหน้าต่าง
+          await showSuccessAlert();
+          
+        } catch (error) {
+          document.getElementById('userInfo').innerHTML = `
+            <div class="error-message">
+              <h3><i class="fas fa-exclamation-triangle"></i> เกิดข้อผิดพลาด</h3>
+              <p>ไม่สามารถบันทึกข้อมูลได้</p>
+              <p>${error.message}</p>
+              <button class="btn" onclick="window.location.reload()">
+                <i class="fas fa-redo"></i> ลองอีกครั้ง
               </button>
             </div>
-          </div>
-        `;
+          `;
+          console.error('Submission Error:', error);
+        }
 
       } catch (error) {
         document.getElementById('userInfo').innerHTML = `
@@ -308,55 +253,6 @@
           </div>
         `;
         console.error('LIFF Error:', error);
-      }
-    }
-    
-    async function submitData() {
-      try {
-        const profile = await liff.getProfile();
-        
-        // แสดง loading
-        document.getElementById('statusMessage').innerHTML = `
-          <div class="loading">
-            <div class="spinner"></div>
-            <p>กำลังบันทึกข้อมูล...</p>
-          </div>
-        `;
-        
-        // ส่งข้อมูล
-        await sendDataToSheet(profile);
-        
-        // สร้างและส่ง Flex Message
-        const flexMessage = createFlexMessage(profile);
-        await liff.sendMessages([flexMessage]);
-        
-        // แสดง SweetAlert
-        Swal.fire({
-          icon: 'success',
-          title: 'ส่งข้อมูลสำเร็จ!',
-          text: 'ข้อมูลของคุณได้ถูกบันทึกเรียบร้อยแล้ว',
-          confirmButtonText: 'ปิด',
-          confirmButtonColor: '#06C755',
-          backdrop: `
-            rgba(6,199,85,0.2)
-            url("/images/line-logo.png")
-            center top
-            no-repeat
-          `
-        }).then(() => {
-          liff.closeWindow(); // ปิดหน้าต่าง LIFF
-        });
-        
-      } catch (error) {
-        document.getElementById('statusMessage').innerHTML = `
-          <div class="error-message">
-            <p><i class="fas fa-exclamation-circle"></i> เกิดข้อผิดพลาดในการบันทึกข้อมูล</p>
-            <button class="btn" onclick="submitData()">
-              <i class="fas fa-redo"></i> ลองอีกครั้ง
-            </button>
-          </div>
-        `;
-        console.error('Submission Error:', error);
       }
     }
     
