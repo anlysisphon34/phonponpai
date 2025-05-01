@@ -55,13 +55,19 @@
                     <span id="userStatus" class="status-badge inline-block mt-2">Online</span>
                 </div>
             </div>
-            <div id="timeDisplay" class="text-gray-600 text-sm">
-                00:00:00
-            </div>
         </div>
 
         <!-- Form Section -->
         <form id="dataForm" class="space-y-4">
+            <div class="mb-4">
+                <label for="disaster" class="block text-gray-700 text-sm  mb-2">ได้รับความเดือดร้อนเนื่องจาก : </label>
+                  <select name="disaster" id="disaster" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <option value="วาตภัย" selected>วาตภัย (ลมพายุ)</option>
+                    <option value="อุทกภัย">อุทกภัย (น้ำท่วม)</option>
+                    <option value="อัคคีภัย">อัคคีภัย (ไฟไหม้)</option>
+                    <option value="อุบัติเหตุ">อุบัติเหตุ</option>
+                  </select>
+            </div>            
             <div>
                 <label for="fullName" class="block text-sm font-medium text-gray-700">ชื่อ-สกุล:</label>
                 <input type="text" id="fullName" name="fullName" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
@@ -78,6 +84,11 @@
                 <label for="complaint" class="block text-sm font-medium text-gray-700">คำร้องทุกข์:</label>
                 <textarea id="complaint" name="complaint" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
             </div>
+            
+            <div id="timeDisplay" class="text-gray-600 text-sm">
+                00:00:00
+            </div>
+            
             <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                 ส่งข้อมูล
             </button>
@@ -133,7 +144,8 @@
                 fullName: document.getElementById('fullName').value,
                 phoneNumber: document.getElementById('phoneNumber').value,
                 address: document.getElementById('address').value,
-                complaint: document.getElementById('complaint').value
+                complaint: document.getElementById('complaint').value,
+                disaster: document.getElementById('disaster').value
             };
 
             // URL จาก Google Apps Script Web App ที่คุณ deploy แล้ว
@@ -180,6 +192,13 @@
                                     weight: 'bold',
                                     size: 'sm',
                                     margin: 'md'
+                                },
+                                {
+                                    type: 'text',
+                                    text: `ได้รับความเดือดร้อนเนื่องจาก : ${data.disaster}`,
+                                    size: 'sm',
+                                    color: '#555555',
+                                    wrap: true
                                 },
                                 {
                                     type: 'text',
