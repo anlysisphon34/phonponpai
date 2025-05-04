@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบจัดการคำร้องทุกข์</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Sarabun', sans-serif;
+    }
+    .header {
+      background-color: #1a5fb4;
+      color: white;
+      padding: 20px 0;
+      margin-bottom: 30px;
+    }
+    .table-responsive {
+      margin-bottom: 30px;
+    }
+    .btn-status {
+      margin: 2px;
+    }
+    .status-badge {
+      font-size: 0.85rem;
+      padding: 5px 10px;
+    }
+    .status-pending {
+      background-color: #dc3545;
+    }
+    .status-contacted {
+      background-color: #ffc107;
+    }
+    .status-inprogress {
+      background-color: #0d6efd;
+    }
+    .status-completed {
+      background-color: #198754;
+    }
+    .loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="loading">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <header class="header">
+    <div class="container">
+      <h1 class="text-center"><i class="fas fa-clipboard-list me-2"></i>ระบบจัดการคำร้องทุกข์</h1>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">สรุปคำร้องทุกข์</h5>
+            <div class="row mt-3">
+              <div class="col-md-3 col-6 mb-3 text-center">
+                <div class="p-3 bg-light rounded">
+                  <h3 id="total-count">0</h3>
+                  <p class="mb-0">ทั้งหมด</p>
+                </div>
+              </div>
+              <div class="col-md-3 col-6 mb-3 text-center">
+                <div class="p-3 bg-danger text-white rounded">
+                  <h3 id="pending-count">0</h3>
+                  <p class="mb-0">รอดำเนินการ</p>
+                </div>
+              </div>
+              <div class="col-md-3 col-6 mb-3 text-center">
+                <div class="p-3 bg-warning text-dark rounded">
+                  <h3 id="contacted-count">0</h3>
+                  <p class="mb-0">ติดต่อแล้ว</p>
+                </div>
+              </div>
+              <div class="col-md-3 col-6 mb-3 text-center">
+                <div class="p-3 bg-primary text-white rounded">
+                  <h3 id="inprogress-count">0</h3>
+                  <p class="mb-0">กำลังดำเนินการ</p>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12">
+                <div class="p-3 bg-success text-white rounded text-center">
+                  <h3 id="completed-count">0</h3>
+                  <p class="mb-0">เสร็จสมบูรณ์</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">ประเภทความเดือดร้อน</h5>
+            <div id="trouble-types" class="mt-3">
+              <!-- จะถูกเติมข้อมูลโดย JavaScript -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-4">
+      <div class="input-group">
+        <input type="text" id="search-input" class="form-control" placeholder="ค้นหา...">
+        <button class="btn btn-primary" id="search-button">
+          <i class="fas fa-search"></i> ค้นหา
+        </button>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-striped table-bordered table-hover">
+        <thead class="table-dark">
+          <tr>
+            <th>วันที่-เวลา</th>
+            <th>ชื่อ-สกุล</th>
+            <th>หมายเลขโทรศัพท์</th>
+            <th>ที่อยู่</th>
+            <th>คำร้องทุกข์</th>
+            <th>สาเหตุ</th>
+            <th>สถานะ</th>
+            <th>การดำเนินการ</th>
+          </tr>
+        </thead>
+        <tbody id="request-table-body">
+          <!-- ข้อมูลจะถูกเติมโดย JavaScript -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal สำหรับยืนยันการเปลี่ยนสถานะ -->
+  <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmModalLabel">ยืนยันการเปลี่ยนสถานะ</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>คุณต้องการเปลี่ยนสถานะคำร้องทุกข์ของ <span id="request-name"></span> เป็น <span id="new-status"></span> ใช่หรือไม่?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+          <button type="button" class="btn btn-primary" id="confirm-status-change">ยืนยัน</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // URL ของ Google Apps Script Web App
+    const scriptUrl = 'https://script.google.com/macros/s/AKfycbzBzcjtb6V8oAyjbfkcwnbTauz56jhyOWiT-vV2lY6b6EoD3rx3BnSD5ODjvCfFrVaJ/exec';
+    
+    // ข้อมูลคำร้องทุกข์
+    let requestsData = [];
+    
+    // ประเภทความเดือดร้อน
+    let troubleTypes = {};
+    
+    // สถานะต่างๆ
+    const statusTypes = {
+      'ยังไม่ดำเนินการ': { class: 'status-pending text-white', icon: 'fa-clock' },
+      'ดำเนินการติดต่อ': { class: 'status-contacted text-dark', icon: 'fa-phone' },
+      'กำลังดำเนินการ': { class: 'status-inprogress text-white', icon: 'fa-tools' },
+      'ดำเนินการเสร็จสิ้น': { class: 'status-completed text-white', icon: 'fa-check-circle' }
+    };
+    
+    // ข้อมูลสำหรับ Modal
+    let currentRequest = null;
+    let currentStatus = '';
+    
+    // โหลดข้อมูลเมื่อหน้าเว็บโหลดเสร็จ
+    $(document).ready(function() {
+      fetchData();
+      
+      // การค้นหา
+      $('#search-button').click(function() {
+        filterRequests();
+      });
+      
+      $('#search-input').on('keyup', function(e) {
+        if (e.key === 'Enter') {
+          filterRequests();
+        }
+      });
+      
+      // การยืนยันเปลี่ยนสถานะ
+      $('#confirm-status-change').click(function() {
+        updateStatus(currentRequest, currentStatus);
+        $('#confirmModal').modal('hide');
+      });
+    });
+    
+    // ฟังก์ชันดึงข้อมูลจาก Google Apps Script
+    function fetchData() {
+      $('.loading').show();
+      $.ajax({
+        url: scriptUrl,
+        type: 'GET',
+        dataType: 'jsonp',
+        data: { action: 'getRequests' },
+        success: function(response) {
+          if (response.success) {
+            requestsData = response.data;
+            processData();
+            renderTable();
+            updateSummary();
+          } else {
+            alert('เกิดข้อผิดพลาด: ' + response.message);
+          }
+          $('.loading').hide();
+        },
+        error: function() {
+          alert('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+          $('.loading').hide();
+        }
+      });
+    }
+    
+    // ประมวลผลข้อมูลเพื่อสรุป
+    function processData() {
+      troubleTypes = {};
+      requestsData.forEach(request => {
+        const cause = request['ได้รับความเดือดร้อนเนื่องจาก'];
+        if (cause) {
+          troubleTypes[cause] = (troubleTypes[cause] || 0) + 1;
+        }
+      });
+      
+      let troubleHtml = '';
+      for (const [type, count] of Object.entries(troubleTypes)) {
+        troubleHtml += `<div class="mb-2">
+          <span class="badge bg-info">${count}</span> ${type}
+        </div>`;
+      }
+      $('#trouble-types').html(troubleHtml);
+    }
+    
+    // อัพเดทข้อมูลสรุป
+    function updateSummary() {
+      let pending = 0;
+      let contacted = 0;
+      let inprogress = 0;
+      let completed = 0;
+      
+      requestsData.forEach(request => {
+        const status = request['สถานะคำร้อง'];
+        if (status === 'ยังไม่ดำเนินการ') pending++;
+        else if (status === 'ดำเนินการติดต่อ') contacted++;
+        else if (status === 'กำลังดำเนินการ') inprogress++;
+        else if (status === 'ดำเนินการเสร็จสิ้น') completed++;
+      });
+      
+      $('#total-count').text(requestsData.length);
+      $('#pending-count').text(pending);
+      $('#contacted-count').text(contacted);
+      $('#inprogress-count').text(inprogress);
+      $('#completed-count').text(completed);
+    }
+    
+    // แสดงข้อมูลในตาราง
+    function renderTable() {
+      const tableBody = $('#request-table-body');
+      tableBody.empty();
+      
+      requestsData.forEach(request => {
+        const timestamp = request['Timestamp'];
+        const name = request['ชื่อ-สกุล'];
+        const phone = request['หมายเลขโทรศัพท์'];
+        const address = request['ที่อยู่'];
+        const complaint = request['คำร้องทุกข์'];
+        const cause = request['ได้รับความเดือดร้อนเนื่องจาก'];
+        const status = request['สถานะคำร้อง'];
+        const userId = request['UserID'];
+        
+        const statusInfo = statusTypes[status] || { class: '', icon: 'fa-question' };
+        
+        const row = `
+          <tr data-id="${userId}">
+            <td>${formatDate(timestamp)}</td>
+            <td>${name}</td>
+            <td>${phone}</td>
+            <td>${address}</td>
+            <td>${complaint}</td>
+            <td>${cause}</td>
+            <td>
+              <span class="badge status-badge ${statusInfo.class}">
+                <i class="fas ${statusInfo.icon} me-1"></i> ${status}
+              </span>
+            </td>
+            <td>
+              ${renderActionButtons(userId, name, status)}
+            </td>
+          </tr>
+        `;
+        tableBody.append(row);
+      });
+      
+      // เพิ่ม event listener สำหรับปุ่ม
+      $('.status-btn').click(function() {
+        const id = $(this).data('id');
+        const name = $(this).data('name');
+        const status = $(this).data('status');
+        
+        currentRequest = id;
+        currentStatus = status;
+        
+        $('#request-name').text(name);
+        $('#new-status').text(status);
+        $('#confirmModal').modal('show');
+      });
+    }
+    
+    // สร้างปุ่มดำเนินการตามสถานะปัจจุบัน
+    function renderActionButtons(id, name, status) {
+      let buttonsHtml = '';
+      
+      if (status !== 'ดำเนินการติดต่อ' && status !== 'กำลังดำเนินการ' && status !== 'ดำเนินการเสร็จสิ้น') {
+        buttonsHtml += `<button class="btn btn-sm btn-warning btn-status status-btn" data-id="${id}" data-name="${name}" data-status="ดำเนินการติดต่อ">
+          <i class="fas fa-phone"></i> ติดต่อ
+        </button>`;
+      }
+      
+      if (status !== 'กำลังดำเนินการ' && status !== 'ดำเนินการเสร็จสิ้น') {
+        buttonsHtml += `<button class="btn btn-sm btn-primary btn-status status-btn" data-id="${id}" data-name="${name}" data-status="กำลังดำเนินการ">
+          <i class="fas fa-tools"></i> ดำเนินการ
+        </button>`;
+      }
+      
+      if (status !== 'ดำเนินการเสร็จสิ้น') {
+        buttonsHtml += `<button class="btn btn-sm btn-success btn-status status-btn" data-id="${id}" data-name="${name}" data-status="ดำเนินการเสร็จสิ้น">
+          <i class="fas fa-check-circle"></i> เสร็จสิ้น
+        </button>`;
+      }
+      
+      return buttonsHtml;
+    }
+    
+    // อัพเดทสถานะคำร้องทุกข์
+    function updateStatus(id, status) {
+      $('.loading').show();
+      $.ajax({
+        url: scriptUrl,
+        type: 'GET',
+        dataType: 'jsonp',
+        data: {
+          action: 'updateStatus',
+          userId: id,
+          status: status
+        },
+        success: function(response) {
+          if (response.success) {
+            fetchData(); // โหลดข้อมูลใหม่หลังจากอัพเดท
+          } else {
+            alert('เกิดข้อผิดพลาด: ' + response.message);
+            $('.loading').hide();
+          }
+        },
+        error: function() {
+          alert('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+          $('.loading').hide();
+        }
+      });
+    }
+    
+    // ฟังก์ชันสำหรับค้นหา
+    function filterRequests() {
+      const searchText = $('#search-input').val().toLowerCase();
+      
+      if (searchText.trim() === '') {
+        renderTable();
+        return;
+      }
+      
+      const filteredData = requestsData.filter(request => {
+        return Object.values(request).some(value => {
+          if (value && typeof value === 'string') {
+            return value.toLowerCase().includes(searchText);
+          }
+          return false;
+        });
+      });
+      
+      const tableBody = $('#request-table-body');
+      tableBody.empty();
+      
+      if (filteredData.length === 0) {
+        tableBody.append('<tr><td colspan="8" class="text-center">ไม่พบข้อมูล</td></tr>');
+        return;
+      }
+      
+      filteredData.forEach(request => {
+        const timestamp = request['Timestamp'];
+        const name = request['ชื่อ-สกุล'];
+        const phone = request['หมายเลขโทรศัพท์'];
+        const address = request['ที่อยู่'];
+        const complaint = request['คำร้องทุกข์'];
+        const cause = request['ได้รับความเดือดร้อนเนื่องจาก'];
+        const status = request['สถานะคำร้อง'];
+        const userId = request['UserID'];
+        
+        const statusInfo = statusTypes[status] || { class: '', icon: 'fa-question' };
+        
+        const row = `
+          <tr data-id="${userId}">
+            <td>${formatDate(timestamp)}</td>
+            <td>${name}</td>
+            <td>${phone}</td>
+            <td>${address}</td>
+            <td>${complaint}</td>
+            <td>${cause}</td>
+            <td>
+              <span class="badge status-badge ${statusInfo.class}">
+                <i class="fas ${statusInfo.icon} me-1"></i> ${status}
+              </span>
+            </td>
+            <td>
+              ${renderActionButtons(userId, name, status)}
+            </td>
+          </tr>
+        `;
+        tableBody.append(row);
+      });
+      
+      // เพิ่ม event listener สำหรับปุ่มอีกครั้งหลังการกรอง
+      $('.status-btn').click(function() {
+        const id = $(this).data('id');
+        const name = $(this).data('name');
+        const status = $(this).data('status');
+        
+        currentRequest = id;
+        currentStatus = status;
+        
+        $('#request-name').text(name);
+        $('#new-status').text(status);
+        $('#confirmModal').modal('show');
+      });
+    }
+    
+    // ฟังก์ชันจัดรูปแบบวันที่
+    function formatDate(dateString) {
+      if (!dateString) return '';
+      
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString;
+      
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      
+      return `${day}/${month}/${year} ${hours}:${minutes}`;
+    }
+  </script>
+</body>
+</html>
