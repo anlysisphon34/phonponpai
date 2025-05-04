@@ -254,7 +254,7 @@
       $('.loading').show();
       debugLog('Fetching data from: ' + scriptUrl);
       
-      // สร้าง callback function สำหรับ JSONP
+      // กำหนด callback function สำหรับ JSONP
       window.jsonpCallback = function(response) {
         debugLog('JSONP callback received: ' + JSON.stringify(response));
         if (response.success) {
@@ -273,12 +273,12 @@
       // สร้าง script tag สำหรับ JSONP request
       const script = document.createElement('script');
       script.src = scriptUrl + '?action=getRequests&callback=jsonpCallback';
-      document.body.appendChild(script);
-      
-      // ลบ script หลังจากโหลด
-      script.onload = script.onerror = function() {
-        document.body.removeChild(script);
+      script.onerror = function() {
+        debugLog('Error loading JSONP script');
+        alert('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+        $('.loading').hide();
       };
+      document.body.appendChild(script);
     }
     
     // ประมวลผลข้อมูลเพื่อสรุป
@@ -434,11 +434,12 @@
       
       const script = document.createElement('script');
       script.src = `${scriptUrl}?action=updateStatus&userId=${encodeURIComponent(id)}&status=${encodeURIComponent(status)}&callback=jsonpCallback`;
-      document.body.appendChild(script);
-      
-      script.onload = script.onerror = function() {
-        document.body.removeChild(script);
+      script.onerror = function() {
+        debugLog('Error loading JSONP script for status update');
+        alert('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+        $('.loading').hide();
       };
+      document.body.appendChild(script);
     }
     
     // ฟังก์ชันสำหรับค้นหา
