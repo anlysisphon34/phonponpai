@@ -64,6 +64,13 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+    .debug-info {
+      margin: 20px;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 5px;
+    }
   </style>
 </head>
 <body>
@@ -78,6 +85,11 @@
   </header>
 
   <div class="container">
+    <div class="debug-info" id="debug-info" style="display: none;">
+      <h5>Debug Information</h5>
+      <pre id="debug-output"></pre>
+    </div>
+
     <div class="row mb-4">
       <div class="col-md-6">
         <div class="card">
@@ -203,23 +215,35 @@
     let currentRequest = null;
     let currentStatus = '';
     
+    // ฟังก์ชันสำหรับบันทึก debug log
+    function debugLog(message) {
+      const debugOutput = $('#debug-output');
+      debugOutput.append(message + '\n');
+      $('#debug-info').show();
+      console.log(message);
+    }
+    
     // โหลดข้อมูลเมื่อหน้าเว็บโหลดเสร็จ
     $(document).ready(function() {
+      debugLog('Document ready, initiating data fetch');
       fetchData();
       
       // การค้นหา
       $('#search-button').click(function() {
+        debugLog('Search button clicked');
         filterRequests();
       });
       
       $('#search-input').on('keyup', function(e) {
         if (e.key === 'Enter') {
+          debugLog('Enter key pressed in search input');
           filterRequests();
         }
       });
       
       // การยืนยันเปลี่ยนสถานะ
       $('#confirm-status-change').click(function() {
+        debugLog('Confirm status change clicked for request: ' + currentRequest);
         updateStatus(currentRequest, currentStatus);
         $('#confirmModal').modal('hide');
       });
@@ -228,31 +252,38 @@
     // ฟังก์ชันดึงข้อมูลจาก Google Apps Script
     function fetchData() {
       $('.loading').show();
-      $.ajax({
-        url: scriptUrl,
-        type: 'GET',
-        dataType: 'jsonp',
-        data: { action: 'getRequests' },
-        success: function(response) {
-          if (response.success) {
-            requestsData = response.data;
-            processData();
-            renderTable();
-            updateSummary();
-          } else {
-            alert('เกิดข้อผิดพลาด: ' + response.message);
-          }
-          $('.loading').hide();
-        },
-        error: function() {
-          alert('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
-          $('.loading').hide();
+      debugLog('Fetching data from: ' + scriptUrl);
+      
+      // สร้าง callback function สำหรับ JSONP
+      window.jsonpCallback = function(response) {
+        debugLog('JSONP callback received: ' + JSON.stringify(response));
+        if (response.success) {
+          debugLog('Data received successfully, processing ' + response.data.length + ' records');
+          requestsData = response.data;
+          processData();
+          renderTable();
+          updateSummary();
+        } else {
+          debugLog('Error in response: ' + response.message);
+          alert('เกิดข้อผิดพลาด: ' + response.message);
         }
-      });
+        $('.loading').hide();
+      };
+      
+      // สร้าง script tag สำหรับ JSONP request
+      const script = document.createElement('script');
+      script.src = scriptUrl + '?action=getRequests&callback=jsonpCallback';
+      document.body.appendChild(script);
+      
+      // ลบ script หลังจากโหลด
+      script.onload = script.onerror = function() {
+        document.body.removeChild(script);
+      };
     }
     
     // ประมวลผลข้อมูลเพื่อสรุป
     function processData() {
+      debugLog('Processing data');
       troubleTypes = {};
       requestsData.forEach(request => {
         const cause = request['ได้รับความเดือดร้อนเนื่องจาก'];
@@ -268,10 +299,12 @@
         </div>`;
       }
       $('#trouble-types').html(troubleHtml);
+      debugLog('Trouble types processed: ' + JSON.stringify(troubleTypes));
     }
     
     // อัพเดทข้อมูลสรุป
     function updateSummary() {
+      debugLog('Updating summary');
       let pending = 0;
       let contacted = 0;
       let inprogress = 0;
@@ -290,22 +323,31 @@
       $('#contacted-count').text(contacted);
       $('#inprogress-count').text(inprogress);
       $('#completed-count').text(completed);
+      
+      debugLog(`Summary updated - Total: ${requestsData.length}, Pending: ${pending}, Contacted: ${contacted}, In Progress: ${inprogress}, Completed: ${completed}`);
     }
     
     // แสดงข้อมูลในตาราง
     function renderTable() {
+      debugLog('Rendering table with ' + requestsData.length + ' requests');
       const tableBody = $('#request-table-body');
       tableBody.empty();
       
+      if (requestsData.length === 0) {
+        tableBody.append('<tr><td colspan="8" class="text-center">ไม่มีข้อมูล</td></tr>');
+        debugLog('No data to render');
+        return;
+      }
+      
       requestsData.forEach(request => {
         const timestamp = request['Timestamp'];
-        const name = request['ชื่อ-สกุล'];
-        const phone = request['หมายเลขโทรศัพท์'];
-        const address = request['ที่อยู่'];
-        const complaint = request['คำร้องทุกข์'];
-        const cause = request['ได้รับความเดือดร้อนเนื่องจาก'];
-        const status = request['สถานะคำร้อง'];
-        const userId = request['UserID'];
+        const name = request['ชื่อ-สกุล'] || '';
+        const phone = request['หมายเลขโทรศัพท์'] || '';
+        const address = request['ที่อยู่'] || '';
+        const complaint = request['คำร้องทุกข์'] || '';
+        const cause = request['ได้รับความเดือดร้อนเนื่องจาก'] || '';
+        const status = request['สถานะคำร้อง'] || '';
+        const userId = request['UserID'] || '';
         
         const statusInfo = statusTypes[status] || { class: '', icon: 'fa-question' };
         
@@ -336,6 +378,7 @@
         const name = $(this).data('name');
         const status = $(this).data('status');
         
+        debugLog(`Status button clicked - ID: ${id}, Name: ${name}, Status: ${status}`);
         currentRequest = id;
         currentStatus = status;
         
@@ -343,6 +386,8 @@
         $('#new-status').text(status);
         $('#confirmModal').modal('show');
       });
+      
+      debugLog('Table rendered successfully');
     }
     
     // สร้างปุ่มดำเนินการตามสถานะปัจจุบัน
@@ -373,36 +418,37 @@
     // อัพเดทสถานะคำร้องทุกข์
     function updateStatus(id, status) {
       $('.loading').show();
-      $.ajax({
-        url: scriptUrl,
-        type: 'GET',
-        dataType: 'jsonp',
-        data: {
-          action: 'updateStatus',
-          userId: id,
-          status: status
-        },
-        success: function(response) {
-          if (response.success) {
-            fetchData(); // โหลดข้อมูลใหม่หลังจากอัพเดท
-          } else {
-            alert('เกิดข้อผิดพลาด: ' + response.message);
-            $('.loading').hide();
-          }
-        },
-        error: function() {
-          alert('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+      debugLog(`Updating status for ID: ${id} to ${status}`);
+      
+      window.jsonpCallback = function(response) {
+        debugLog('Update status response: ' + JSON.stringify(response));
+        if (response.success) {
+          debugLog('Status updated successfully, refreshing data');
+          fetchData();
+        } else {
+          debugLog('Error updating status: ' + response.message);
+          alert('เกิดข้อผิดพลาด: ' + response.message);
           $('.loading').hide();
         }
-      });
+      };
+      
+      const script = document.createElement('script');
+      script.src = `${scriptUrl}?action=updateStatus&userId=${encodeURIComponent(id)}&status=${encodeURIComponent(status)}&callback=jsonpCallback`;
+      document.body.appendChild(script);
+      
+      script.onload = script.onerror = function() {
+        document.body.removeChild(script);
+      };
     }
     
     // ฟังก์ชันสำหรับค้นหา
     function filterRequests() {
       const searchText = $('#search-input').val().toLowerCase();
+      debugLog('Filtering requests with search term: ' + searchText);
       
       if (searchText.trim() === '') {
         renderTable();
+        debugLog('Empty search term, rendering all data');
         return;
       }
       
@@ -420,18 +466,19 @@
       
       if (filteredData.length === 0) {
         tableBody.append('<tr><td colspan="8" class="text-center">ไม่พบข้อมูล</td></tr>');
+        debugLog('No results found for search');
         return;
       }
       
       filteredData.forEach(request => {
         const timestamp = request['Timestamp'];
-        const name = request['ชื่อ-สกุล'];
-        const phone = request['หมายเลขโทรศัพท์'];
-        const address = request['ที่อยู่'];
-        const complaint = request['คำร้องทุกข์'];
-        const cause = request['ได้รับความเดือดร้อนเนื่องจาก'];
-        const status = request['สถานะคำร้อง'];
-        const userId = request['UserID'];
+        const name = request['ชื่อ-สกุล'] || '';
+        const phone = request['หมายเลขโทรศัพท์'] || '';
+        const address = request['ที่อยู่'] || '';
+        const complaint = request['คำร้องทุกข์'] || '';
+        const cause = request['ได้รับความเดือดร้อนเนื่องจาก'] || '';
+        const status = request['สถานะคำร้อง'] || '';
+        const userId = request['UserID'] || '';
         
         const statusInfo = statusTypes[status] || { class: '', icon: 'fa-question' };
         
@@ -462,6 +509,7 @@
         const name = $(this).data('name');
         const status = $(this).data('status');
         
+        debugLog(`Status button clicked after filter - ID: ${id}, Name: ${name}, Status: ${status}`);
         currentRequest = id;
         currentStatus = status;
         
@@ -469,22 +517,29 @@
         $('#new-status').text(status);
         $('#confirmModal').modal('show');
       });
+      
+      debugLog('Filtered table rendered with ' + filteredData.length + ' results');
     }
     
     // ฟังก์ชันจัดรูปแบบวันที่
     function formatDate(dateString) {
       if (!dateString) return '';
       
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return dateString;
-      
-      const day = date.getDate().toString().padStart(2, '0');
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      const year = date.getFullYear();
-      const hours = date.getHours().toString().padStart(2, '0');
-      const minutes = date.getMinutes().toString().padStart(2, '0');
-      
-      return `${day}/${month}/${year} ${hours}:${minutes}`;
+      try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return dateString;
+        
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        
+        return `${day}/${month}/${year} ${hours}:${minutes}`;
+      } catch (e) {
+        debugLog('Error formatting date: ' + dateString + ', Error: ' + e.message);
+        return dateString;
+      }
     }
   </script>
 </body>
