@@ -71,6 +71,11 @@
       border: 1px solid #dee2e6;
       border-radius: 5px;
     }
+    .pagination-container {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+    }
   </style>
 </head>
 <body>
@@ -85,12 +90,13 @@
   </header>
 
   <div class="container">
-    <!--
+<!-- debug-info
     <div class="debug-info" id="debug-info" style="display: none;">
       <h5>Debug Information</h5>
       <pre id="debug-output"></pre>
     </div>
-    -->
+
+     -->
 
     <div class="row mb-4">
       <div class="col-md-6">
@@ -174,26 +180,33 @@
         </tbody>
       </table>
     </div>
-  </div>
 
-  <!-- Modal สำหรับยืนยันการเปลี่ยนสถานะ -->
-  <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="confirmModalLabel">ยืนยันการเปลี่ยนสถานะ</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p>คุณต้องการเปลี่ยนสถานะคำร้องทุกข์ของ <span id="request-name"></span> เป็น <span id="new-status"></span> ใช่หรือไม่?</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
-          <button type="button" class="btn btn-primary" id="confirm-status-change">ยืนยัน</button>
+    <div class="pagination-container">
+      <nav aria-label="Page navigation">
+        <ul class="pagination" id="pagination">
+          <!-- Pagination จะถูกเติมโดย JavaScript -->
+        </ul>
+      </nav>
+    </div>
+
+    <!-- Modal สำหรับยืนยันการเปลี่ยนสถานะ -->
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="confirmModalLabel">ยืนยันการเปลี่ยนสถานะ</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>คุณต้องการเปลี่ยนสถานะคำร้องทุกข์ของ <span id="request-name"></span> เป็น <span id="new-status"></span> ใช่หรือไม่?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+            <button type="button" class="btn btn-primary" id="confirm-status-change">ยืนยัน</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
   <script>
     // URL ของ Google Apps Script Web App
@@ -217,6 +230,10 @@
     let currentRequest = null;
     let currentStatus = '';
     
+    // การจัดการ pagination
+    let currentPage = 1;
+    const itemsPerPage = 10;
+    
     // ฟังก์ชันสำหรับบันทึก debug log
     function debugLog(message) {
       const debugOutput = $('#debug-output');
@@ -233,12 +250,14 @@
       // การค้นหา
       $('#search-button').click(function() {
         debugLog('Search button clicked');
+        currentPage = 1; // รีเซ็ตหน้าเมื่อค้นหา
         filterRequests();
       });
       
       $('#search-input').on('keyup', function(e) {
         if (e.key === 'Enter') {
           debugLog('Enter key pressed in search input');
+          currentPage = 1; // รีเซ็ตหน้าเมื่อค้นหา
           filterRequests();
         }
       });
@@ -262,9 +281,12 @@
         if (response.success) {
           debugLog('Data received successfully, processing ' + response.data.length + ' records');
           requestsData = response.data;
+          // เรียงลำดับข้อมูลตาม Timestamp จากล่าสุดไปเก่าสุด
+          requestsData.sort((a, b) => new Date(b.Timestamp || b.วันที่ยื่น) - new Date(a.Timestamp || a.วันที่ยื่น));
           processData();
           renderTable();
           updateSummary();
+          renderPagination(requestsData.length);
         } else {
           debugLog('Error in response: ' + response.message);
           alert('เกิดข้อผิดพลาด: ' + response.message);
@@ -329,20 +351,25 @@
       debugLog(`Summary updated - Total: ${requestsData.length}, Pending: ${pending}, Contacted: ${contacted}, In Progress: ${inprogress}, Completed: ${completed}`);
     }
     
-    // แสดงข้อมูลในตาราง
-    function renderTable() {
-      debugLog('Rendering table with ' + requestsData.length + ' requests');
+    // แสดงข้อมูลในตารางสำหรับหน้าปัจจุบัน
+    function renderTable(data = requestsData) {
+      debugLog(`Rendering table for page ${currentPage} with ${data.length} requests`);
       const tableBody = $('#request-table-body');
       tableBody.empty();
       
-      if (requestsData.length === 0) {
+      if (data.length === 0) {
         tableBody.append('<tr><td colspan="8" class="text-center">ไม่มีข้อมูล</td></tr>');
         debugLog('No data to render');
         return;
       }
       
-      requestsData.forEach(request => {
-        const timestamp = request['Timestamp'];
+      // คำนวณช่วงข้อมูลสำหรับหน้าปัจจุบัน
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+      const pageData = data.slice(startIndex, endIndex);
+      
+      pageData.forEach(request => {
+        const timestamp = request['Timestamp'] || request['วันที่ยื่น'];
         const name = request['ชื่อ-สกุล'] || '';
         const phone = request['หมายเลขโทรศัพท์'] || '';
         const address = request['ที่อยู่'] || '';
@@ -389,7 +416,7 @@
         $('#confirmModal').modal('show');
       });
       
-      debugLog('Table rendered successfully');
+      debugLog(`Table rendered successfully for page ${currentPage} with ${pageData.length} items`);
     }
     
     // สร้างปุ่มดำเนินการตามสถานะปัจจุบัน
@@ -426,6 +453,7 @@
         debugLog('Update status response: ' + JSON.stringify(response));
         if (response.success) {
           debugLog('Status updated successfully, refreshing data');
+          currentPage = 1; // รีเซ็ตหน้าเมื่ออัพเดทสถานะ
           fetchData();
         } else {
           debugLog('Error updating status: ' + response.message);
@@ -449,100 +477,103 @@
       const searchText = $('#search-input').val().toLowerCase();
       debugLog('Filtering requests with search term: ' + searchText);
       
-      if (searchText.trim() === '') {
-        renderTable();
-        debugLog('Empty search term, rendering all data');
-        return;
-      }
+      let filteredData = requestsData;
       
-      const filteredData = requestsData.filter(request => {
-        return Object.values(request).some(value => {
-          if (value && typeof value === 'string') {
-            return value.toLowerCase().includes(searchText);
-          }
-          return false;
+      if (searchText.trim() !== '') {
+        filteredData = requestsData.filter(request => {
+          return Object.values(request).some(value => {
+            if (value && typeof value === 'string') {
+              return value.toLowerCase().includes(searchText);
+            }
+            return false;
+          });
         });
-      });
-      
-      const tableBody = $('#request-table-body');
-      tableBody.empty();
-      
-      if (filteredData.length === 0) {
-        tableBody.append('<tr><td colspan="8" class="text-center">ไม่พบข้อมูล</td></tr>');
-        debugLog('No results found for search');
-        return;
+        // เรียงลำดับข้อมูลที่ค้นหาตาม Timestamp จากล่าสุดไปเก่าสุด
+        filteredData.sort((a, b) => new Date(b.Timestamp || b.วันที่ยื่น) - new Date(a.Timestamp || a.วันที่ยื่น));
       }
       
-      filteredData.forEach(request => {
-        const timestamp = request['Timestamp'];
-        const name = request['ชื่อ-สกุล'] || '';
-        const phone = request['หมายเลขโทรศัพท์'] || '';
-        const address = request['ที่อยู่'] || '';
-        const complaint = request['คำร้องทุกข์'] || '';
-        const cause = request['ได้รับความเดือดร้อนเนื่องจาก'] || '';
-        const status = request['สถานะคำร้อง'] || '';
-        const userId = request['UserID'] || '';
-        
-        const statusInfo = statusTypes[status] || { class: '', icon: 'fa-question' };
-        
-        const row = `
-          <tr data-id="${userId}">
-            <td>${formatDate(timestamp)}</td>
-            <td>${name}</td>
-            <td>${phone}</td>
-            <td>${address}</td>
-            <td>${complaint}</td>
-            <td>${cause}</td>
-            <td>
-              <span class="badge status-badge ${statusInfo.class}">
-                <i class="fas ${statusInfo.icon} me-1"></i> ${status}
-              </span>
-            </td>
-            <td>
-              ${renderActionButtons(userId, name, status)}
-            </td>
-          </tr>
-        `;
-        tableBody.append(row);
-      });
-      
-      // เพิ่ม event listener สำหรับปุ่มอีกครั้งหลังการกรอง
-      $('.status-btn').click(function() {
-        const id = $(this).data('id');
-        const name = $(this).data('name');
-        const status = $(this).data('status');
-        
-        debugLog(`Status button clicked after filter - ID: ${id}, Name: ${name}, Status: ${status}`);
-        currentRequest = id;
-        currentStatus = status;
-        
-        $('#request-name').text(name);
-        $('#new-status').text(status);
-        $('#confirmModal').modal('show');
-      });
+      renderTable(filteredData);
+      renderPagination(filteredData.length);
       
       debugLog('Filtered table rendered with ' + filteredData.length + ' results');
     }
     
     // ฟังก์ชันจัดรูปแบบวันที่
     function formatDate(dateString) {
-      if (!dateString) return '';
+      if (!dateString) {
+        debugLog('Empty date string received');
+        return '';
+      }
       
       try {
         const date = new Date(dateString);
-        if (isNaN(date.getTime())) return dateString;
+        if (isNaN(date.getTime())) {
+          debugLog('Invalid date string: ' + dateString);
+          return dateString;
+        }
         
         const day = date.getDate().toString().padStart(2, '0');
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
         const year = date.getFullYear();
         const hours = date.getHours().toString().padStart(2, '0');
         const minutes = date.getMinutes().toString().padStart(2, '0');
+        const seconds = date.getSeconds().toString().padStart(2, '0');
         
-        return `${day}/${month}/${year} ${hours}:${minutes}`;
+        return `${day}/${month}/${year}, ${hours}:${minutes}:${seconds}`;
       } catch (e) {
         debugLog('Error formatting date: ' + dateString + ', Error: ' + e.message);
         return dateString;
       }
+    }
+    
+    // ฟังก์ชันสำหรับสร้าง pagination
+    function renderPagination(totalItems) {
+      debugLog(`Rendering pagination for ${totalItems} items`);
+      const totalPages = Math.ceil(totalItems / itemsPerPage);
+      const pagination = $('#pagination');
+      pagination.empty();
+      
+      if (totalPages <= 1) {
+        debugLog('Only one page, no pagination needed');
+        return;
+      }
+      
+      // ปุ่ม Previous
+      pagination.append(`
+        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+          <a class="page-link" href="#" data-page="${currentPage - 1}">Previous</a>
+        </li>
+      `);
+      
+      // ปุ่มเลขหน้า
+      for (let i = 1; i <= totalPages; i++) {
+        pagination.append(`
+          <li class="page-item ${currentPage === i ? 'active' : ''}">
+            <a class="page-link" href="#" data-page="${i}">${i}</a>
+          </li>
+        `);
+      }
+      
+      // ปุ่ม Next
+      pagination.append(`
+        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+          <a class="page-link" href="#" data-page="${currentPage + 1}">Next</a>
+        </li>
+      `);
+      
+      // เพิ่ม event listener สำหรับปุ่ม pagination
+      $('.page-link').click(function(e) {
+        e.preventDefault();
+        const page = $(this).data('page');
+        if (page && page >= 1 && page <= totalPages) {
+          currentPage = page;
+          debugLog(`Navigating to page ${currentPage}`);
+          renderTable();
+          renderPagination(totalItems);
+        }
+      });
+      
+      debugLog(`Pagination rendered for ${totalPages} pages, current page: ${currentPage}`);
     }
   </script>
 </body>
