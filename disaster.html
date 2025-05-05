@@ -31,7 +31,9 @@
         .profile-section img {
             width: 64px;
             height: 64px;
-            border-radius: 50%;
+            border-radius: 50
+
+%;
         }
         .status-badge {
             background-color: #10b981;
@@ -95,7 +97,7 @@
             </div>
             <div>
                 <label for="phoneNumber" class="block text-sm font-medium text-gray-700">หมายเลขโทรศัพท์:</label>
-                <input type="tel" id="phoneNumber" name="phoneNumber" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <input type="tel" id="phoneNumber" name="phoneNumber" required pattern="0[0-9]{9}" placeholder="0XXXXXXXXXX" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
             <div>
                 <label for="address" class="block text-sm font-medium text-gray-700">ที่อยู่:</label>
@@ -139,8 +141,7 @@
                     document.getElementById('displayName').textContent = profile.displayName;
                     document.getElementById('userStatus').textContent = liff.isLoggedIn() ? 'Online' : 'Offline';
 
-                    // เริ่มนับเวลา
-                    updateTime();
+                    towards: ['updateTime']();
                 } else {
                     liff.login();
                 }
@@ -182,6 +183,18 @@
                 return;
             }
 
+            // ตรวจสอบหมายเลขโทรศัพท์
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            if (!/0[0-9]{9}/.test(phoneNumber) || phoneNumber.length !== 10) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'หมายเลขโทรศัพท์ไม่ถูกต้อง',
+                    text: 'กรุณากรอกหมายเลขโทรศัพท์ 10 หลักที่ขึ้นต้นด้วย 0',
+                    confirmButtonText: 'ปิด'
+                });
+                return;
+            }
+
             // ตรวจสอบการส่งซ้ำใน client-side (5 นาที)
             const now = new Date();
             if (lastSubmissionTime && (now - lastSubmissionTime) < 5 * 60 * 1000) {
@@ -205,7 +218,7 @@
             const data = {
                 userId: userId,
                 fullName: document.getElementById('fullName').value,
-                phoneNumber: document.getElementById('phoneNumber').value,
+                phoneNumber: phoneNumber,
                 address: document.getElementById('address').value,
                 complaint: document.getElementById('complaint').value,
                 disaster: disaster
