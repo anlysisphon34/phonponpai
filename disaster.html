@@ -10,7 +10,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         /* Custom Styles */
-        
         .time-display {
             background-color: #2c3e50;
             color: white;
@@ -41,6 +40,27 @@
             border-radius: 9999px;
             font-size: 0.75rem;
         }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #4f46e5;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .disabled-btn {
+            background-color: #a0aec0 !important;
+            cursor: not-allowed !important;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
@@ -60,13 +80,14 @@
         <!-- Form Section -->
         <form id="dataForm" class="space-y-4">
             <div class="mb-4">
-                <label for="disaster" class="block text-gray-700 text-sm  mb-2">ได้รับความเดือดร้อนเนื่องจาก : </label>
-                  <select name="disaster" id="disaster" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                    <option value="วาตภัย" selected>วาตภัย (ลมพายุ)</option>
+                <label for="disaster" class="block text-gray-700 text-sm mb-2">ได้รับความเดือดร้อนเนื่องจาก : </label>
+                <select name="disaster" id="disaster" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <option value="" selected>เลือก</option>
+                    <option value="วาตภัย">วาตภัย (ลมพายุ)</option>
                     <option value="อุทกภัย">อุทกภัย (น้ำท่วม)</option>
                     <option value="อัคคีภัย">อัคคีภัย (ไฟไหม้)</option>
                     <option value="อุบัติเหตุ">อุบัติเหตุ</option>
-                  </select>
+                </select>
             </div>            
             <div>
                 <label for="fullName" class="block text-sm font-medium text-gray-700">ชื่อ-สกุล:</label>
@@ -89,7 +110,12 @@
                 00:00:00
             </div>
             
-            <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p class="text-gray-600 text-sm">กำลังส่งข้อมูล...</p>
+            </div>
+            
+            <button type="submit" id="submitBtn" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                 ส่งข้อมูล
             </button>
         </form>
@@ -98,23 +124,22 @@
 
     <script src="https://static.line-scdn.net/liff/edge/versions/2.19.0/sdk.js"></script>
     <script>
-        const liffId = '2006915175-ZOxEXyeA'; // แทน YOUR_LIFF_ID ด้วย ID ของ LIFF App ของคุณ
+        const liffId = '2006915175-ZOxEXyeA'; // LIFF ID
 
-        let userId; // เก็บ UserID ในตัวแปร JavaScript
+        let userId; // เก็บ UserID
 
         async function initializeLiff() {
             try {
                 await liff.init({ liffId: liffId });
                 if (liff.isLoggedIn()) {
                     const profile = await liff.getProfile();
-                    userId = profile.userId; // เก็บ UserID ในตัวแปร
+                    userId = profile.userId;
                     document.getElementById('profileImage').src = profile.pictureUrl || 'https://via.placeholder.com/150';
                     document.getElementById('displayName').textContent = profile.displayName;
-                    document.getElementById('statusMessage').textContent = profile.statusMessage || 'No status message';
                     document.getElementById('userStatus').textContent = liff.isLoggedIn() ? 'Online' : 'Offline';
 
                     // เริ่มนับเวลา
-                    updateTimeDisplay();
+                    updateTime();
                 } else {
                     liff.login();
                 }
@@ -123,44 +148,72 @@
             }
         }
 
-        // ฟังก์ชันสำหรับอัปเดตเวลาแบบเรียลไทม์
-    function updateTime() {
-        const now = new Date();
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
-        document.getElementById('timeDisplay').textContent = `${hours}:${minutes}:${seconds}`;
-    }
+        // อัปเดตเวลา
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('timeDisplay').textContent = `${hours}:${minutes}:${seconds}`;
+        }
 
         setInterval(updateTime, 1000);
-        updateTime(); 
+        updateTime();
 
         document.getElementById('dataForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
+            // ตรวจสอบว่าเลือกตัวเลือกใน disaster หรือไม่
+            const disaster = document.getElementById('disaster').value;
+            if (!disaster) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'กรุณาเลือกประเภทภัยพิบัติ',
+                    text: 'โปรดเลือกประเภทภัยพิบัติก่อนส่งข้อมูล',
+                    confirmButtonText: 'ปิด'
+                });
+                return;
+            }
+
+            // ปิดการใช้งานปุ่มและแสดงตัวโหลด
+            const submitBtn = document.getElementById('submitBtn');
+            const loadingDiv = document.getElementById('loading');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('disabled-btn');
+            loadingDiv.style.display = 'block';
+
             // รวบรวมข้อมูลจากฟอร์ม
             const data = {
-                userId: userId, // ใช้ UserID จากตัวแปร JavaScript
+                userId: userId,
                 fullName: document.getElementById('fullName').value,
                 phoneNumber: document.getElementById('phoneNumber').value,
                 address: document.getElementById('address').value,
                 complaint: document.getElementById('complaint').value,
-                disaster: document.getElementById('disaster').value
+                disaster: disaster
             };
 
-            // URL จาก Google Apps Script Web App ที่คุณ deploy แล้ว
             const scriptURL = 'https://script.google.com/macros/s/AKfycbxTVlOPHjkM65QHgIHemp1-L_0jRVHoUCoPIY9E5DuQ7zrBxXkZygldxl3jMm-qP9e8/exec';
 
             try {
                 // ส่งข้อมูลไปยัง Google Apps Script
-                await fetch(scriptURL, {
+                const response = await fetch(scriptURL, {
                     method: 'POST',
-                    mode: 'no-cors', // จำเป็นสำหรับการข้าม CORS
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(data)
                 });
+
+                const result = await response.json();
+                if (!result.success) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'ไม่สามารถส่งข้อมูลได้',
+                        text: result.message,
+                        confirmButtonText: 'ปิด'
+                    });
+                    return;
+                }
 
                 // ส่งข้อความแจ้งเตือนผ่าน LINE ในรูปแบบ Flex Message
                 const flexMessage = {
@@ -241,7 +294,7 @@
                                     action: {
                                         type: 'uri',
                                         label: 'ติดตามสถานะคำร้อง',
-                                        uri: 'https://linecorp.com' // ลิงก์ปลอมเพื่อแสดงปุ่ม
+                                        uri: 'https://linecorp.com'
                                     }
                                 }
                             ]
@@ -258,18 +311,21 @@
                     text: 'ข้อมูลของคุณได้ถูกบันทึกเรียบร้อยแล้ว',
                     confirmButtonText: 'ปิด'
                 }).then(() => {
-                    liff.closeWindow(); // ปิดหน้าต่าง LIFF
+                    liff.closeWindow();
                 });
             } catch (error) {
                 console.error('Error:', error);
-
-                // แสดง SweetAlert ข้อผิดพลาด
                 Swal.fire({
                     icon: 'error',
                     title: 'เกิดข้อผิดพลาด!',
                     text: 'ไม่สามารถส่งข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
                     confirmButtonText: 'ปิด'
                 });
+            } finally {
+                // เปิดใช้งานปุ่มและซ่อนตัวโหลด
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('disabled-btn');
+                loadingDiv.style.display = 'none';
             }
         });
 
