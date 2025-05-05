@@ -127,6 +127,7 @@
         const liffId = '2006915175-ZOxEXyeA'; // LIFF ID
 
         let userId; // เก็บ UserID
+        let lastSubmissionTime = null; // เก็บเวลาการส่งครั้งล่าสุดใน client-side
 
         async function initializeLiff() {
             try {
@@ -145,6 +146,12 @@
                 }
             } catch (error) {
                 console.error('LIFF initialization error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'ข้อผิดพลาด LIFF',
+                    text: 'ไม่สามารถเริ่มต้น LIFF ได้ กรุณาลองใหม่',
+                    confirmButtonText: 'ปิด'
+                });
             }
         }
 
@@ -175,6 +182,18 @@
                 return;
             }
 
+            // ตรวจสอบการส่งซ้ำใน client-side (5 นาที)
+            const now = new Date();
+            if (lastSubmissionTime && (now - lastSubmissionTime) < 5 * 60 * 1000) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'ส่งซ้ำเร็วเกินไป',
+                    text: 'คุณเพิ่งส่งคำร้องไปเมื่อเร็ว ๆ นี้ กรุณารอสักครู่ก่อนส่งใหม่',
+                    confirmButtonText: 'ปิด'
+                });
+                return;
+            }
+
             // ปิดการใช้งานปุ่มและแสดงตัวโหลด
             const submitBtn = document.getElementById('submitBtn');
             const loadingDiv = document.getElementById('loading');
@@ -196,24 +215,17 @@
 
             try {
                 // ส่งข้อมูลไปยัง Google Apps Script
-                const response = await fetch(scriptURL, {
+                await fetch(scriptURL, {
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(data)
                 });
 
-                const result = await response.json();
-                if (!result.success) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'ไม่สามารถส่งข้อมูลได้',
-                        text: result.message,
-                        confirmButtonText: 'ปิด'
-                    });
-                    return;
-                }
+                // อัปเดตเวลาการส่งล่าสุด
+                lastSubmissionTime = new Date();
 
                 // ส่งข้อความแจ้งเตือนผ่าน LINE ในรูปแบบ Flex Message
                 const flexMessage = {
@@ -318,7 +330,7 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'เกิดข้อผิดพลาด!',
-                    text: 'ไม่สามารถส่งข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
+                    text: 'ไม่สามารถส่งข้อมูลได้ กรุณาลองใหม่อีกครั้ง หรือตรวจสอบการเชื่อมต่ออินเทอร์เน็ต',
                     confirmButtonText: 'ปิด'
                 });
             } finally {
