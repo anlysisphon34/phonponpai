@@ -31,9 +31,7 @@
         .profile-section img {
             width: 64px;
             height: 64px;
-            border-radius: 50
-
-%;
+            border-radius: 50%;
         }
         .status-badge {
             background-color: #10b981;
@@ -89,6 +87,7 @@
                     <option value="อุทกภัย">อุทกภัย (น้ำท่วม)</option>
                     <option value="อัคคีภัย">อัคคีภัย (ไฟไหม้)</option>
                     <option value="อุบัติเหตุ">อุบัติเหตุ</option>
+                    <option value="อื่นๆ">อื่นๆ</option>
                 </select>
             </div>            
             <div>
@@ -126,14 +125,22 @@
 
     <script src="https://static.line-scdn.net/liff/edge/versions/2.19.0/sdk.js"></script>
     <script>
-        const liffId = '2006915175-ZOxEXyeA'; // LIFF ID
+        const liffId = '2006915175-ZOxEXyeA'; // LIFF ID สำหรับฟอร์ม
 
         let userId; // เก็บ UserID
         let lastSubmissionTime = null; // เก็บเวลาการส่งครั้งล่าสุดใน client-side
 
         async function initializeLiff() {
             try {
+                // ตรวจสอบว่า LIFF SDK โหลดสำเร็จ
+                if (!window.liff) {
+                    throw new Error('LIFF SDK failed to load');
+                }
+
+                // เริ่มต้น LIFF
                 await liff.init({ liffId: liffId });
+                
+                // ตรวจสอบสถานะการล็อกอิน
                 if (liff.isLoggedIn()) {
                     const profile = await liff.getProfile();
                     userId = profile.userId;
@@ -141,16 +148,17 @@
                     document.getElementById('displayName').textContent = profile.displayName;
                     document.getElementById('userStatus').textContent = liff.isLoggedIn() ? 'Online' : 'Offline';
 
-                    towards: ['updateTime']();
+                    // เริ่มนับเวลา
+                    updateTime();
                 } else {
                     liff.login();
                 }
             } catch (error) {
-                console.error('LIFF initialization error:', error);
+                console.error('LIFF initialization error:', error.message);
                 Swal.fire({
                     icon: 'error',
                     title: 'ข้อผิดพลาด LIFF',
-                    text: 'ไม่สามารถเริ่มต้น LIFF ได้ กรุณาลองใหม่',
+                    text: `ไม่สามารถเริ่มต้น LIFF ได้: ${error.message}. กรุณาลองรีเฟรชหน้าเว็บหรือตรวจสอบ LIFF ID`,
                     confirmButtonText: 'ปิด'
                 });
             }
@@ -319,7 +327,7 @@
                                     action: {
                                         type: 'uri',
                                         label: 'ติดตามสถานะคำร้อง',
-                                        uri: 'https://linecorp.com'
+                                        uri: 'https://liff.line.me/2006915175-LyapQMNk'
                                     }
                                 }
                             ]
