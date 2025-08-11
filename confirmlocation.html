@@ -1,1 +1,406 @@
-<html></html>
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> แจ้งยืนยันเหตุฉุกเฉินร้ายแรง </title>
+    <script src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --primary-color: #06C755;
+            /* สีเขียว LINE */
+            --secondary-color: #00B900;
+            --text-color: #333333;
+            --light-gray: #f5f5f5;
+            --white: #ffffff;
+            --border-radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+
+
+        .profile-container {
+            max-width: 100%;
+            width: 100%;
+            margin: 0 auto;
+            background: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            padding: 24px;
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .profile-header h1 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .profile-img-container {
+            margin: 0 auto 20px;
+        }
+
+        .profile-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--primary-color);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-details {
+            padding: 0 12px;
+        }
+
+        .detail-item {
+            margin-bottom: 16px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--primary-color);
+            width: 100px;
+            flex-shrink: 0;
+            margin-bottom: 4px;
+        }
+
+        .detail-value {
+            flex-grow: 1;
+            word-break: break-word;
+            padding-left: 12px;
+        }
+
+        @media (max-width: 480px) {
+            .profile-container {
+                padding: 16px;
+            }
+
+            .profile-img-container {
+            }
+
+            .detail-item {
+                flex-direction: column;
+            }
+
+            .detail-value {
+                padding-left: 0;
+            }
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #06C755;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .profile-img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 4px solid #06C755;
+            display: block;
+            margin: 0 auto 20px;
+            object-fit: cover;
+        }
+
+        .profile-info {
+            margin-bottom: 20px;
+        }
+
+        .profile-info p {
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .profile-info strong {
+            color: #06C755;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #06C755;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error-message {
+            color: #d32f2f;
+            background: #ffebee;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div id="userInfo">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>กำลังเตรียมข้อมูล...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzrpyCWtL03_DoPAY05nndiWtKtD5TSlAzNDcTkDFG-8BufFoSCZyLKZWl0qZmFXrNhIA/exec";
+
+        function createFlexMessage(profile) {
+            return {
+                type: "flex",
+                altText: "บันทึกข้อมูลสำเร็จ!",
+                contents: {
+                    type: "bubble",
+                    size: "kilo",
+                    body: {
+                        type: "box",
+                        layout: "vertical",
+                        contents: [
+                            {
+                                type: "text",
+                                text: "บันทึกข้อมูลสำเร็จ",
+                                weight: "bold",
+                                size: "xl",
+                                align: "center",
+                                color: "#06C755"
+                            },
+                            {
+                                type: "separator",
+                                margin: "md"
+                            },
+                            {
+                                type: "box",
+                                layout: "horizontal",
+                                margin: "lg",
+                                contents: [
+                                    {
+                                        type: "image",
+                                        url: profile.pictureUrl,
+                                        size: "xxs",
+                                        aspectMode: "cover",
+                                        aspectRatio: "1:1",
+                                        gravity: "center",
+                                        flex: 1
+                                    },
+                                    {
+                                        type: "box",
+                                        layout: "vertical",
+                                        flex: 4,
+                                        margin: "lg",
+                                        contents: [
+                                            {
+                                                type: "text",
+                                                text: profile.displayName,
+                                                weight: "bold",
+                                                size: "md"
+                                            },
+                                            {
+                                                type: "text",
+                                                text: `ID: ${profile.userId}`,
+                                                size: "sm",
+                                                color: "#888888",
+                                                margin: "sm"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                type: "separator",
+                                margin: "lg"
+                            },
+                            {
+                                type: "text",
+                                text: "ข้อมูลของคุณได้ถูกบันทึกเรียบร้อยแล้ว",
+                                margin: "lg",
+                                wrap: true,
+                                align: "center"
+                            }
+                        ]
+                    }
+                }
+            };
+        }
+
+        async function sendDataToSheet(profile) {
+            try {
+                // ส่งข้อมูลด้วย no-cors
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userId: profile.userId,
+                        displayName: profile.displayName,
+                        pictureUrl: profile.pictureUrl,
+                        statusMessage: profile.statusMessage || ""
+                    })
+                });
+
+                return true;
+            } catch (error) {
+                console.error('Error sending data:', error);
+                return false;
+            }
+        }
+
+        async function sendFlexMessage(profile) {
+            if (!liff.isInClient()) {
+                console.log('ไม่สามารถส่ง Flex Message นอกแอป LINE');
+                return false;
+            }
+
+            try {
+                const flexMessage = createFlexMessage(profile);
+                await liff.sendMessages([flexMessage]);
+                return true;
+            } catch (error) {
+                console.error('Error sending Flex Message:', error);
+                return false;
+            }
+        }
+
+        async function initializeLiff() {
+            try {
+                await liff.init({ liffId: "2006915175-9zVpo0L2" });
+
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
+                }
+
+                const profile = await liff.getProfile();
+
+                // แสดงข้อมูลผู้ใช้
+                document.getElementById('userInfo').innerHTML = `
+          
+  <div class="profile-container">
+    <div class="profile-header">
+      <h1>ข้อมูลโปรไฟล์ของคุณ</h1>
+      <div class="profile-img-container">
+        <img src="${profile.pictureUrl}" class="profile-img" alt="รูปโปรไฟล์">
+      </div>
+    </div>
+    
+    <div class="profile-details">
+      <div class="detail-item">
+        <span class="detail-label">User ID:</span>
+        <span class="detail-value">${profile.userId}</span>
+      </div>
+      
+      <div class="detail-item">
+        <span class="detail-label">ชื่อบัญชี:</span>
+        <span class="detail-value">${profile.displayName}</span>
+      </div>
+      
+      <div class="detail-item">
+        <span class="detail-label">สถานะ:</span>
+        <span class="detail-value">${profile.statusMessage || "ไม่มีสถานะ"}</span>
+      </div>
+    </div>
+  </div>
+          <div id="statusMessage" class="loading">
+            <div class="spinner"></div>
+            <p>กำลังบันทึกข้อมูล...</p>
+          </div>
+        `;
+
+                // ส่งข้อมูลและ Flex Message
+                const dataSent = await sendDataToSheet(profile);
+                const flexSent = await sendFlexMessage(profile);
+
+                if (dataSent) {
+                    document.getElementById('statusMessage').innerHTML = `
+            <div style="text-align: center; color: #06C755; margin-top: 20px;">
+              <p>บันทึกข้อมูลสำเร็จแล้ว!</p>
+            </div>
+          `;
+
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'สำเร็จ!',
+                        text: 'ข้อมูลของคุณถูกบันทึกเรียบร้อยแล้ว',
+                        confirmButtonText: 'ปิด',
+                        confirmButtonColor: '#06C755'
+                    });
+
+                    if (liff.isInClient()) {
+                        setTimeout(() => liff.closeWindow(), 2000);
+                    }
+                } else {
+                    throw new Error('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+                }
+
+            } catch (error) {
+                document.getElementById('userInfo').innerHTML = `
+          <div class="error-message">
+            <h3>เกิดข้อผิดพลาด</h3>
+            <p>${error.message}</p>
+            <button onclick="window.location.reload()">ลองอีกครั้ง</button>
+          </div>
+        `;
+                console.error('Error:', error);
+            }
+        }
+
+        initializeLiff();
+    </script>
+</body>
+
+</html>
