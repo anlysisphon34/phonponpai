@@ -1,22 +1,21 @@
-
 <!DOCTYPE html>
 <html>
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> แจ้งยืนยันเหตุฉุกเฉินร้ายแรง </title>
+    <title>แจ้งยืนยันเหตุฉุกเฉินร้ายแรง</title>
     <script src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
             --primary-color: #06C755;
-            /* สีเขียว LINE */
             --secondary-color: #00B900;
             --text-color: #333333;
             --light-gray: #f5f5f5;
             --white: #ffffff;
             --border-radius: 12px;
+            --error-color: #FF3333;
         }
 
         * {
@@ -25,8 +24,6 @@
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
-
 
         .profile-container {
             max-width: 100%;
@@ -183,6 +180,50 @@
             margin-top: 20px;
             text-align: center;
         }
+
+        .location-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+
+        .location-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .location-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .location-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--light-gray);
+            border-radius: var(--border-radius);
+        }
+
+        .emergency-text {
+            color: var(--error-color);
+            font-weight: bold;
+            font-size: 18px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .timestamp {
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+            margin-top: 10px;
+        }
     </style>
 </head>
 
@@ -199,10 +240,16 @@
     <script>
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzrpyCWtL03_DoPAY05nndiWtKtD5TSlAzNDcTkDFG-8BufFoSCZyLKZWl0qZmFXrNhIA/exec";
 
-        function createFlexMessage(profile) {
+        // ฟังก์ชันสร้าง Flex Message
+        function createFlexMessage(profile, location) {
+            let locationText = "ไม่ได้รับพิกัด";
+            if (location) {
+                locationText = `ตำแหน่ง: ${location.latitude}, ${location.longitude}`;
+            }
+
             return {
                 type: "flex",
-                altText: "บันทึกข้อมูลสำเร็จ!",
+                altText: "บันทึกข้อมูลฉุกเฉินสำเร็จ!",
                 contents: {
                     type: "bubble",
                     size: "kilo",
@@ -212,11 +259,11 @@
                         contents: [
                             {
                                 type: "text",
-                                text: "บันทึกข้อมูลสำเร็จ",
+                                text: "🚨 แจ้งเหตุฉุกเฉิน",
                                 weight: "bold",
                                 size: "xl",
                                 align: "center",
-                                color: "#06C755"
+                                color: "#FF3333"
                             },
                             {
                                 type: "separator",
@@ -265,10 +312,28 @@
                             },
                             {
                                 type: "text",
-                                text: "ข้อมูลของคุณได้ถูกบันทึกเรียบร้อยแล้ว",
-                                margin: "lg",
+                                text: "🚨 ต้องการความช่วยเหลือ",
+                                margin: "md",
+                                wrap: true,
+                                align: "center",
+                                weight: "bold",
+                                color: "#FF3333"
+                            },
+                            {
+                                type: "text",
+                                text: locationText,
+                                margin: "md",
                                 wrap: true,
                                 align: "center"
+                            },
+                            {
+                                type: "text",
+                                text: new Date().toLocaleString(),
+                                margin: "md",
+                                wrap: true,
+                                align: "center",
+                                size: "sm",
+                                color: "#888888"
                             }
                         ]
                     }
@@ -276,21 +341,33 @@
             };
         }
 
-        async function sendDataToSheet(profile) {
+        // ฟังก์ชันส่งข้อมูลไปยัง Google Sheet
+        async function sendDataToSheet(profile, location) {
             try {
-                // ส่งข้อมูลด้วย no-cors
+                // สร้างข้อมูลที่จะส่ง
+                const data = {
+                    userId: profile.userId,
+                    displayName: profile.displayName,
+                    pictureUrl: profile.pictureUrl,
+                    statusMessage: profile.statusMessage || "🚨 ต้องการความช่วยเหลือ",
+                    timestamp: new Date().toISOString()
+                };
+
+                // เพิ่มข้อมูล location ถ้ามี
+                if (location) {
+                    data.latitude = location.latitude;
+                    data.longitude = location.longitude;
+                    data.locationAccuracy = location.accuracy;
+                }
+
+                // ส่งข้อมูล
                 await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        userId: profile.userId,
-                        displayName: profile.displayName,
-                        pictureUrl: profile.pictureUrl,
-                        statusMessage: profile.statusMessage || ""
-                    })
+                    body: JSON.stringify(data)
                 });
 
                 return true;
@@ -300,14 +377,15 @@
             }
         }
 
-        async function sendFlexMessage(profile) {
+        // ฟังก์ชันส่ง Flex Message
+        async function sendFlexMessage(profile, location) {
             if (!liff.isInClient()) {
                 console.log('ไม่สามารถส่ง Flex Message นอกแอป LINE');
                 return false;
             }
 
             try {
-                const flexMessage = createFlexMessage(profile);
+                const flexMessage = createFlexMessage(profile, location);
                 await liff.sendMessages([flexMessage]);
                 return true;
             } catch (error) {
@@ -316,6 +394,99 @@
             }
         }
 
+        // ฟังก์ชันขอสิทธิ์และรับตำแหน่ง
+        async function getLocation() {
+            return new Promise((resolve, reject) => {
+                if (!navigator.geolocation) {
+                    reject(new Error('เบราว์เซอร์ไม่รองรับการระบุตำแหน่ง'));
+                    return;
+                }
+
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        resolve({
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude,
+                            accuracy: position.coords.accuracy
+                        });
+                    },
+                    (error) => {
+                        reject(error);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
+                );
+            });
+        }
+
+        // ฟังก์ชันแสดงข้อมูลผู้ใช้และตำแหน่ง
+        function displayUserInfo(profile, location, error = null) {
+            let locationHtml = '';
+            if (location) {
+                locationHtml = `
+                    <div class="location-info">
+                        <p><strong>ตำแหน่งปัจจุบัน:</strong></p>
+                        <p>ละติจูด: ${location.latitude}</p>
+                        <p>ลองจิจูด: ${location.longitude}</p>
+                        <p>ความแม่นยำ: ${Math.round(location.accuracy)} เมตร</p>
+                    </div>
+                `;
+            } else if (error) {
+                locationHtml = `
+                    <div class="error-message">
+                        <p>ไม่สามารถระบุตำแหน่งได้: ${error.message}</p>
+                    </div>
+                `;
+            } else {
+                locationHtml = `
+                    <div class="error-message">
+                        <p>ไม่ได้รับข้อมูลตำแหน่ง</p>
+                    </div>
+                `;
+            }
+
+            document.getElementById('userInfo').innerHTML = `
+                <div class="profile-container">
+                    <div class="profile-header">
+                        <h1>🚨 แจ้งเหตุฉุกเฉิน</h1>
+                        <div class="profile-img-container">
+                            <img src="${profile.pictureUrl}" class="profile-img" alt="รูปโปรไฟล์">
+                        </div>
+                    </div>
+                    
+                    <div class="emergency-text">${profile.statusMessage || "🚨 ต้องการความช่วยเหลือ"}</div>
+                    
+                    <div class="profile-details">
+                        <div class="detail-item">
+                            <span class="detail-label">User ID:</span>
+                            <span class="detail-value">${profile.userId}</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">ชื่อบัญชี:</span>
+                            <span class="detail-value">${profile.displayName}</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">เวลา:</span>
+                            <span class="detail-value">${new Date().toLocaleString()}</span>
+                        </div>
+                    </div>
+                    
+                    ${locationHtml}
+                    
+                    <div id="statusMessage" class="loading">
+                        <div class="spinner"></div>
+                        <p>กำลังบันทึกข้อมูล...</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ฟังก์ชันหลักสำหรับเริ่มต้น LIFF
         async function initializeLiff() {
             try {
                 await liff.init({ liffId: "2006915175-9zVpo0L2" });
@@ -325,57 +496,48 @@
                     return;
                 }
 
+                // รับข้อมูลโปรไฟล์
                 const profile = await liff.getProfile();
+                
+                // ตรวจสอบ URL สำหรับข้อความ statusMessage
+                const urlParams = new URLSearchParams(window.location.search);
+                const textParam = urlParams.get('text');
+                
+                // ถ้ามี text parameter ใน URL ให้ใช้เป็น statusMessage
+                if (textParam) {
+                    profile.statusMessage = textParam;
+                }
 
-                // แสดงข้อมูลผู้ใช้
-                document.getElementById('userInfo').innerHTML = `
-          
-  <div class="profile-container">
-    <div class="profile-header">
-      <h1>ข้อมูลโปรไฟล์ของคุณ</h1>
-      <div class="profile-img-container">
-        <img src="${profile.pictureUrl}" class="profile-img" alt="รูปโปรไฟล์">
-      </div>
-    </div>
-    
-    <div class="profile-details">
-      <div class="detail-item">
-        <span class="detail-label">User ID:</span>
-        <span class="detail-value">${profile.userId}</span>
-      </div>
-      
-      <div class="detail-item">
-        <span class="detail-label">ชื่อบัญชี:</span>
-        <span class="detail-value">${profile.displayName}</span>
-      </div>
-      
-      <div class="detail-item">
-        <span class="detail-label">สถานะ:</span>
-        <span class="detail-value">${profile.statusMessage || "ไม่มีสถานะ"}</span>
-      </div>
-    </div>
-  </div>
-          <div id="statusMessage" class="loading">
-            <div class="spinner"></div>
-            <p>กำลังบันทึกข้อมูล...</p>
-          </div>
-        `;
+                // พยายามรับตำแหน่ง
+                let location = null;
+                let locationError = null;
+                
+                try {
+                    location = await getLocation();
+                } catch (error) {
+                    console.error('Error getting location:', error);
+                    locationError = error;
+                }
+
+                // แสดงข้อมูลผู้ใช้และตำแหน่ง
+                displayUserInfo(profile, location, locationError);
 
                 // ส่งข้อมูลและ Flex Message
-                const dataSent = await sendDataToSheet(profile);
-                const flexSent = await sendFlexMessage(profile);
+                const dataSent = await sendDataToSheet(profile, location);
+                const flexSent = await sendFlexMessage(profile, location);
 
                 if (dataSent) {
                     document.getElementById('statusMessage').innerHTML = `
-            <div style="text-align: center; color: #06C755; margin-top: 20px;">
-              <p>บันทึกข้อมูลสำเร็จแล้ว!</p>
-            </div>
-          `;
+                        <div style="text-align: center; color: #06C755; margin-top: 20px;">
+                            <p>บันทึกข้อมูลฉุกเฉินสำเร็จแล้ว!</p>
+                            <p class="timestamp">${new Date().toLocaleString()}</p>
+                        </div>
+                    `;
 
                     await Swal.fire({
                         icon: 'success',
                         title: 'สำเร็จ!',
-                        text: 'ข้อมูลของคุณถูกบันทึกเรียบร้อยแล้ว',
+                        text: 'ข้อมูลฉุกเฉินของคุณถูกบันทึกเรียบร้อยแล้ว',
                         confirmButtonText: 'ปิด',
                         confirmButtonColor: '#06C755'
                     });
@@ -389,16 +551,17 @@
 
             } catch (error) {
                 document.getElementById('userInfo').innerHTML = `
-          <div class="error-message">
-            <h3>เกิดข้อผิดพลาด</h3>
-            <p>${error.message}</p>
-            <button onclick="window.location.reload()">ลองอีกครั้ง</button>
-          </div>
-        `;
+                    <div class="error-message">
+                        <h3>เกิดข้อผิดพลาด</h3>
+                        <p>${error.message}</p>
+                        <button onclick="window.location.reload()">ลองอีกครั้ง</button>
+                    </div>
+                `;
                 console.error('Error:', error);
             }
         }
 
+        // เริ่มต้นแอปพลิเคชัน
         initializeLiff();
     </script>
 </body>
