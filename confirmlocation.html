@@ -163,15 +163,56 @@
     <script>
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzrpyCWtL03_DoPAY05nndiWtKtD5TSlAzNDcTkDFG-8BufFoSCZyLKZWl0qZmFXrNhIA/exec";
 
-        // ฟังก์ชันสร้าง Flex Message
         function createFlexMessage(profile, location) {
+            // กำหนดสีพื้นหลังตามสถานะ
+            let headerColor;
+            switch(profile.statusType) {
+                case "1": headerColor = "#FFEBEE"; break; // สีแดงอ่อน
+                case "2": headerColor = "#E8F5E9"; break; // สีเขียวอ่อน
+                case "3": headerColor = "#E3F2FD"; break; // สีน้ำเงินอ่อน
+                default: headerColor = "#F5F5F5"; // สีเทาอ่อน
+            }
+
+            // กำหนดปุ่มตามสถานะ
+            const buttons = [];
+            
+            // ปุ่มนำทาง (แสดงเมื่อมีตำแหน่ง)
+            if (location) {
+                buttons.push({
+                    type: "button",
+                    action: {
+                        type: "uri",
+                        label: "เปิดนำทางใน Google Maps",
+                        uri: `https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}&travelmode=driving`
+                    },
+                    color: profile.statusColor,
+                    style: "primary",
+                    margin: "sm"
+                });
+            }
+
+            // ปุ่มโทรฉุกเฉิน (เฉพาะสถานะต้องการความช่วยเหลือ)
+            if (profile.statusType === "1") {
+                buttons.push({
+                    type: "button",
+                    action: {
+                        type: "uri",
+                        label: "โทร 191",
+                        uri: "tel:191"
+                    },
+                    color: "#FF3333",
+                    style: "primary",
+                    margin: "sm"
+                });
+            }
+
             return {
                 type: "flex",
                 altText: `อัปเดตสถานะ: ${profile.statusMessage}`,
                 contents: {
                     type: "bubble",
                     size: "kilo",
-                    body: {
+                    header: {
                         type: "box",
                         layout: "vertical",
                         contents: [
@@ -182,11 +223,15 @@
                                 size: "xl",
                                 align: "center",
                                 color: profile.statusColor
-                            },
-                            {
-                                type: "separator",
-                                margin: "md"
-                            },
+                            }
+                        ],
+                        backgroundColor: headerColor,
+                        paddingAll: "lg"
+                    },
+                    body: {
+                        type: "box",
+                        layout: "vertical",
+                        contents: [
                             {
                                 type: "box",
                                 layout: "horizontal",
@@ -229,12 +274,32 @@
                                 margin: "lg"
                             },
                             location ? {
-                                type: "text",
-                                text: `ตำแหน่ง: ${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}`,
+                                type: "box",
+                                layout: "vertical",
                                 margin: "md",
-                                wrap: true,
-                                align: "center",
-                                size: "sm"
+                                contents: [
+                                    {
+                                        type: "text",
+                                        text: "ตำแหน่งปัจจุบัน",
+                                        weight: "bold",
+                                        size: "sm",
+                                        color: "#666666"
+                                    },
+                                    {
+                                        type: "text",
+                                        text: `${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}`,
+                                        wrap: true,
+                                        size: "sm",
+                                        margin: "sm"
+                                    },
+                                    {
+                                        type: "text",
+                                        text: `ความแม่นยำ: ${Math.round(location.accuracy)} เมตร`,
+                                        size: "xs",
+                                        color: "#888888",
+                                        margin: "sm"
+                                    }
+                                ]
                             } : {
                                 type: "text",
                                 text: "ไม่ได้รับข้อมูลตำแหน่ง",
@@ -258,23 +323,20 @@
                     footer: {
                         type: "box",
                         layout: "vertical",
-                        contents: [
-                            {
-                                type: "button",
-                                action: {
-                                    type: "uri",
-                                    label: "ดูตำแหน่งบนแผนที่",
-                                    uri: location ? `https://www.google.com/maps?q=${location.latitude},${location.longitude}` : "https://maps.google.com"
-                                },
-                                color: profile.statusColor,
-                                style: "primary"
-                            }
-                        ]
+                        contents: buttons,
+                        spacing: "sm",
+                        paddingAll: "md"
+                    },
+                    styles: {
+                        header: {
+                            separator: true
+                        }
                     }
                 }
             };
         }
 
+        // ... (ส่วนอื่นๆ ของโค้ดเหมือนเดิม)
         // ฟังก์ชันส่งข้อมูลไปยัง Google Sheet
         async function sendDataToSheet(profile, location) {
             try {
