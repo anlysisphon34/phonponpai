@@ -505,7 +505,14 @@
                 
                 // ถ้ามี text parameter ใน URL ให้ใช้เป็น statusMessage
                 if (textParam) {
-                    profile.statusMessage = textParam;
+                    if (textParam=="1") {
+                        profile.statusMessage = "🚨 ต้องการความช่วยเหลือ";
+                    } else if (textParam=="2") { 
+                        profile.statusMessage = "🙋‍♂️ พร้อมเข้าช่วยเหลือ";
+                    } else if (textParam=="3") { 
+                        profile.statusMessage = "✅ ฉันปลอดภัย";
+                    }
+                        
                 }
 
                 // พยายามรับตำแหน่ง
