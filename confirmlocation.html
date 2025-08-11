@@ -4,18 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>แจ้งยืนยันเหตุฉุกเฉินร้ายแรง</title>
+    <title>ระบบแจ้งสถานะฉุกเฉิน</title>
     <script src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
-            --primary-color: #06C755;
-            --secondary-color: #00B900;
+            --emergency-color: #FF3333;
+            --helper-color: #06C755;
+            --safe-color: #0066CC;
+            --default-color: #06C755;
             --text-color: #333333;
             --light-gray: #f5f5f5;
             --white: #ffffff;
             --border-radius: 12px;
-            --error-color: #FF3333;
         }
 
         * {
@@ -23,83 +24,6 @@
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        .profile-container {
-            max-width: 100%;
-            width: 100%;
-            margin: 0 auto;
-            background: var(--white);
-            border-radius: var(--border-radius);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            padding: 24px;
-        }
-
-        .profile-header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .profile-header h1 {
-            color: var(--primary-color);
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 16px;
-        }
-
-        .profile-img-container {
-            margin: 0 auto 20px;
-        }
-
-        .profile-img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid var(--primary-color);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .profile-details {
-            padding: 0 12px;
-        }
-
-        .detail-item {
-            margin-bottom: 16px;
-            display: flex;
-            flex-wrap: wrap;
-        }
-
-        .detail-label {
-            font-weight: 600;
-            color: var(--primary-color);
-            width: 100px;
-            flex-shrink: 0;
-            margin-bottom: 4px;
-        }
-
-        .detail-value {
-            flex-grow: 1;
-            word-break: break-word;
-            padding-left: 12px;
-        }
-
-        @media (max-width: 480px) {
-            .profile-container {
-                padding: 16px;
-            }
-
-            .profile-img-container {
-            }
-
-            .detail-item {
-                flex-direction: column;
-            }
-
-            .detail-value {
-                padding-left: 0;
-            }
         }
 
         body {
@@ -118,19 +42,46 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
-        h1 {
-            color: #06C755;
+        .status-header {
             text-align: center;
             margin-bottom: 20px;
+            padding: 15px;
+            border-radius: var(--border-radius);
+        }
+
+        .status-header.emergency {
+            background-color: rgba(255, 51, 51, 0.1);
+            border: 2px solid var(--emergency-color);
+        }
+
+        .status-header.helper {
+            background-color: rgba(6, 199, 85, 0.1);
+            border: 2px solid var(--helper-color);
+        }
+
+        .status-header.safe {
+            background-color: rgba(0, 102, 204, 0.1);
+            border: 2px solid var(--safe-color);
+        }
+
+        .status-header.default {
+            background-color: rgba(6, 199, 85, 0.1);
+            border: 2px solid var(--default-color);
+        }
+
+        .status-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
         }
 
         .profile-img {
-            width: 150px;
-            height: 150px;
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
-            border: 4px solid #06C755;
+            border: 3px solid;
             display: block;
-            margin: 0 auto 20px;
+            margin: 0 auto 15px;
             object-fit: cover;
         }
 
@@ -138,13 +89,27 @@
             margin-bottom: 20px;
         }
 
-        .profile-info p {
+        .info-item {
+            display: flex;
             margin-bottom: 10px;
-            font-size: 16px;
         }
 
-        .profile-info strong {
-            color: #06C755;
+        .info-label {
+            font-weight: 600;
+            width: 100px;
+            flex-shrink: 0;
+        }
+
+        .info-value {
+            flex-grow: 1;
+            word-break: break-word;
+        }
+
+        .location-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--light-gray);
+            border-radius: var(--border-radius);
         }
 
         .loading {
@@ -155,7 +120,7 @@
         .spinner {
             border: 4px solid rgba(0, 0, 0, 0.1);
             border-radius: 50%;
-            border-top: 4px solid #06C755;
+            border-top: 4px solid;
             width: 40px;
             height: 40px;
             animation: spin 1s linear infinite;
@@ -163,13 +128,8 @@
         }
 
         @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .error-message {
@@ -179,43 +139,6 @@
             border-radius: 5px;
             margin-top: 20px;
             text-align: center;
-        }
-
-        .location-btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: var(--border-radius);
-            font-size: 16px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 20px;
-            transition: background-color 0.3s;
-        }
-
-        .location-btn:hover {
-            background-color: var(--secondary-color);
-        }
-
-        .location-btn:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-
-        .location-info {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: var(--light-gray);
-            border-radius: var(--border-radius);
-        }
-
-        .emergency-text {
-            color: var(--error-color);
-            font-weight: bold;
-            font-size: 18px;
-            text-align: center;
-            margin: 20px 0;
         }
 
         .timestamp {
@@ -231,7 +154,7 @@
     <div class="container">
         <div id="userInfo">
             <div class="loading">
-                <div class="spinner"></div>
+                <div class="spinner" style="border-top-color: #06C755;"></div>
                 <p>กำลังเตรียมข้อมูล...</p>
             </div>
         </div>
@@ -242,14 +165,9 @@
 
         // ฟังก์ชันสร้าง Flex Message
         function createFlexMessage(profile, location) {
-            let locationText = "ไม่ได้รับพิกัด";
-            if (location) {
-                locationText = `ตำแหน่ง: ${location.latitude}, ${location.longitude}`;
-            }
-
             return {
                 type: "flex",
-                altText: "บันทึกข้อมูลฉุกเฉินสำเร็จ!",
+                altText: `อัปเดตสถานะ: ${profile.statusMessage}`,
                 contents: {
                     type: "bubble",
                     size: "kilo",
@@ -259,11 +177,11 @@
                         contents: [
                             {
                                 type: "text",
-                                text: "🚨 แจ้งเหตุฉุกเฉิน",
+                                text: `${profile.statusEmoji} ${profile.statusMessage}`,
                                 weight: "bold",
                                 size: "xl",
                                 align: "center",
-                                color: "#FF3333"
+                                color: profile.statusColor
                             },
                             {
                                 type: "separator",
@@ -310,21 +228,21 @@
                                 type: "separator",
                                 margin: "lg"
                             },
-                            {
+                            location ? {
                                 type: "text",
-                                text: "🚨 ต้องการความช่วยเหลือ",
+                                text: `ตำแหน่ง: ${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}`,
                                 margin: "md",
                                 wrap: true,
                                 align: "center",
-                                weight: "bold",
-                                color: "#FF3333"
-                            },
-                            {
+                                size: "sm"
+                            } : {
                                 type: "text",
-                                text: locationText,
+                                text: "ไม่ได้รับข้อมูลตำแหน่ง",
                                 margin: "md",
                                 wrap: true,
-                                align: "center"
+                                align: "center",
+                                size: "sm",
+                                color: "#888888"
                             },
                             {
                                 type: "text",
@@ -332,8 +250,24 @@
                                 margin: "md",
                                 wrap: true,
                                 align: "center",
-                                size: "sm",
+                                size: "xs",
                                 color: "#888888"
+                            }
+                        ]
+                    },
+                    footer: {
+                        type: "box",
+                        layout: "vertical",
+                        contents: [
+                            {
+                                type: "button",
+                                action: {
+                                    type: "uri",
+                                    label: "ดูตำแหน่งบนแผนที่",
+                                    uri: location ? `https://www.google.com/maps?q=${location.latitude},${location.longitude}` : "https://maps.google.com"
+                                },
+                                color: profile.statusColor,
+                                style: "primary"
                             }
                         ]
                     }
@@ -344,23 +278,21 @@
         // ฟังก์ชันส่งข้อมูลไปยัง Google Sheet
         async function sendDataToSheet(profile, location) {
             try {
-                // สร้างข้อมูลที่จะส่ง
                 const data = {
                     userId: profile.userId,
                     displayName: profile.displayName,
                     pictureUrl: profile.pictureUrl,
-                    statusMessage: profile.statusMessage || "🚨 ต้องการความช่วยเหลือ",
+                    statusMessage: profile.statusMessage,
+                    statusType: profile.statusType || "0",
                     timestamp: new Date().toISOString()
                 };
 
-                // เพิ่มข้อมูล location ถ้ามี
                 if (location) {
                     data.latitude = location.latitude;
                     data.longitude = location.longitude;
                     data.locationAccuracy = location.accuracy;
                 }
 
-                // ส่งข้อมูล
                 await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
@@ -422,15 +354,30 @@
             });
         }
 
-        // ฟังก์ชันแสดงข้อมูลผู้ใช้และตำแหน่ง
+        // ฟังก์ชันแสดงข้อมูลผู้ใช้
         function displayUserInfo(profile, location, error = null) {
+            // กำหนดคลาสตามสถานะ
+            let statusClass = "default";
+            let spinnerColor = "#06C755";
+            
+            if (profile.statusType === "1") {
+                statusClass = "emergency";
+                spinnerColor = "#FF3333";
+            } else if (profile.statusType === "2") {
+                statusClass = "helper";
+                spinnerColor = "#06C755";
+            } else if (profile.statusType === "3") {
+                statusClass = "safe";
+                spinnerColor = "#0066CC";
+            }
+
             let locationHtml = '';
             if (location) {
                 locationHtml = `
                     <div class="location-info">
                         <p><strong>ตำแหน่งปัจจุบัน:</strong></p>
-                        <p>ละติจูด: ${location.latitude}</p>
-                        <p>ลองจิจูด: ${location.longitude}</p>
+                        <p>ละติจูด: ${location.latitude.toFixed(6)}</p>
+                        <p>ลองจิจูด: ${location.longitude.toFixed(6)}</p>
                         <p>ความแม่นยำ: ${Math.round(location.accuracy)} เมตร</p>
                     </div>
                 `;
@@ -449,39 +396,29 @@
             }
 
             document.getElementById('userInfo').innerHTML = `
-                <div class="profile-container">
-                    <div class="profile-header">
-                        <h1>🚨 แจ้งเหตุฉุกเฉิน</h1>
-                        <div class="profile-img-container">
-                            <img src="${profile.pictureUrl}" class="profile-img" alt="รูปโปรไฟล์">
-                        </div>
+                <div class="status-header ${statusClass}">
+                    <h1 class="status-title">${profile.statusEmoji} ${profile.statusMessage}</h1>
+                    <img src="${profile.pictureUrl}" class="profile-img" style="border-color: ${profile.statusColor}" alt="รูปโปรไฟล์">
+                    <p class="timestamp">${new Date().toLocaleString()}</p>
+                </div>
+                
+                <div class="profile-info">
+                    <div class="info-item">
+                        <span class="info-label">User ID:</span>
+                        <span class="info-value">${profile.userId}</span>
                     </div>
                     
-                    <div class="emergency-text">${profile.statusMessage || "🚨 ต้องการความช่วยเหลือ"}</div>
-                    
-                    <div class="profile-details">
-                        <div class="detail-item">
-                            <span class="detail-label">User ID:</span>
-                            <span class="detail-value">${profile.userId}</span>
-                        </div>
-                        
-                        <div class="detail-item">
-                            <span class="detail-label">ชื่อบัญชี:</span>
-                            <span class="detail-value">${profile.displayName}</span>
-                        </div>
-                        
-                        <div class="detail-item">
-                            <span class="detail-label">เวลา:</span>
-                            <span class="detail-value">${new Date().toLocaleString()}</span>
-                        </div>
+                    <div class="info-item">
+                        <span class="info-label">ชื่อบัญชี:</span>
+                        <span class="info-value">${profile.displayName}</span>
                     </div>
-                    
-                    ${locationHtml}
-                    
-                    <div id="statusMessage" class="loading">
-                        <div class="spinner"></div>
-                        <p>กำลังบันทึกข้อมูล...</p>
-                    </div>
+                </div>
+                
+                ${locationHtml}
+                
+                <div id="statusMessage" class="loading">
+                    <div class="spinner" style="border-top-color: ${spinnerColor}"></div>
+                    <p>กำลังบันทึกข้อมูล...</p>
                 </div>
             `;
         }
@@ -503,16 +440,36 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const textParam = urlParams.get('text');
                 
-                // ถ้ามี text parameter ใน URL ให้ใช้เป็น statusMessage
+                // กำหนดค่าเริ่มต้น
+                profile.statusType = "0"; // ค่าเริ่มต้น
+                profile.statusColor = "#06C755";
+                profile.statusEmoji = "ℹ️";
+                profile.statusMessage = "อัปเดตสถานะ";
+
+                // กำหนดข้อความตามตัวเลขที่ได้รับ
                 if (textParam) {
-                    if (textParam=="1") {
-                        profile.statusMessage = "🚨 ต้องการความช่วยเหลือ";
-                    } else if (textParam=="2") { 
-                        profile.statusMessage = "🙋‍♂️ พร้อมเข้าช่วยเหลือ";
-                    } else if (textParam=="3") { 
-                        profile.statusMessage = "✅ ฉันปลอดภัย";
+                    switch(textParam) {
+                        case "1":
+                            profile.statusType = "1";
+                            profile.statusMessage = "🚨 ต้องการความช่วยเหลือ";
+                            profile.statusColor = "#FF3333";
+                            profile.statusEmoji = "🚨";
+                            break;
+                        case "2":
+                            profile.statusType = "2";
+                            profile.statusMessage = "🙋‍♂️ พร้อมเข้าช่วยเหลือ";
+                            profile.statusColor = "#06C755";
+                            profile.statusEmoji = "🙋‍♂️";
+                            break;
+                        case "3":
+                            profile.statusType = "3";
+                            profile.statusMessage = "✅ ฉันปลอดภัย";
+                            profile.statusColor = "#0066CC";
+                            profile.statusEmoji = "✅";
+                            break;
+                        default:
+                            profile.statusMessage = textParam;
                     }
-                        
                 }
 
                 // พยายามรับตำแหน่ง
@@ -526,7 +483,7 @@
                     locationError = error;
                 }
 
-                // แสดงข้อมูลผู้ใช้และตำแหน่ง
+                // แสดงข้อมูลผู้ใช้
                 displayUserInfo(profile, location, locationError);
 
                 // ส่งข้อมูลและ Flex Message
@@ -535,8 +492,8 @@
 
                 if (dataSent) {
                     document.getElementById('statusMessage').innerHTML = `
-                        <div style="text-align: center; color: #06C755; margin-top: 20px;">
-                            <p>บันทึกข้อมูลฉุกเฉินสำเร็จแล้ว!</p>
+                        <div style="text-align: center; color: ${profile.statusColor}; margin-top: 20px;">
+                            <p>บันทึกข้อมูลสำเร็จแล้ว!</p>
                             <p class="timestamp">${new Date().toLocaleString()}</p>
                         </div>
                     `;
@@ -544,9 +501,9 @@
                     await Swal.fire({
                         icon: 'success',
                         title: 'สำเร็จ!',
-                        text: 'ข้อมูลฉุกเฉินของคุณถูกบันทึกเรียบร้อยแล้ว',
+                        text: 'ข้อมูลของคุณถูกบันทึกเรียบร้อยแล้ว',
                         confirmButtonText: 'ปิด',
-                        confirmButtonColor: '#06C755'
+                        confirmButtonColor: profile.statusColor
                     });
 
                     if (liff.isInClient()) {
@@ -561,7 +518,7 @@
                     <div class="error-message">
                         <h3>เกิดข้อผิดพลาด</h3>
                         <p>${error.message}</p>
-                        <button onclick="window.location.reload()">ลองอีกครั้ง</button>
+                        <button onclick="window.location.reload()" style="margin-top: 10px; padding: 8px 16px; background-color: #06C755; color: white; border: none; border-radius: 4px; cursor: pointer;">ลองอีกครั้ง</button>
                     </div>
                 `;
                 console.error('Error:', error);
