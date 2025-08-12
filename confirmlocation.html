@@ -162,8 +162,7 @@
 
     <script>
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzrpyCWtL03_DoPAY05nndiWtKtD5TSlAzNDcTkDFG-8BufFoSCZyLKZWl0qZmFXrNhIA/exec";
-
-        function createFlexMessage(profile, location) {
+       function createFlexMessage(profile, location) {
             // กำหนดสีพื้นหลังตามสถานะ
             let headerColor;
             switch(profile.statusType) {
@@ -182,8 +181,8 @@
                     type: "button",
                     action: {
                         type: "uri",
-                        label: "เปิดนำทางใน Google Maps",
-                        uri: `https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}&travelmode=driving`
+                        label: "เปิดแผนที่",
+                        uri: `https://lookerstudio.google.com/reporting/908881f5-5bf8-40ef-80d3-4b76599bb2fb`
                     },
                     color: profile.statusColor,
                     style: "primary",
@@ -197,10 +196,10 @@
                     type: "button",
                     action: {
                         type: "uri",
-                        label: "โทร 191",
-                        uri: "tel:191"
+                        label: "เปิดนำทางใน Google Maps",
+                        uri: `https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}&travelmode=driving`
                     },
-                    color: "#FF3333",
+                    color: profile.statusColor,
                     style: "primary",
                     margin: "sm"
                 });
@@ -218,7 +217,7 @@
                         contents: [
                             {
                                 type: "text",
-                                text: `${profile.statusEmoji} ${profile.statusMessage}`,
+                                text: `${profile.statusMessage} ${profile.statusEmoji}`,
                                 weight: "bold",
                                 size: "xl",
                                 align: "center",
