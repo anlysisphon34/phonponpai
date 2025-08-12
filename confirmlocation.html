@@ -10,8 +10,8 @@
     <style>
         :root {
             --emergency-color: #FF3333;
-            --helper-color: #06C755;
-            --safe-color: #0066CC;
+            --helper-color: #0066CC;
+            --safe-color: #06C755;
             --default-color: #06C755;
             --text-color: #333333;
             --light-gray: #f5f5f5;
@@ -154,7 +154,7 @@
     <div class="container">
         <div id="userInfo">
             <div class="loading">
-                <div class="spinner" style="border-top-color: #06C755;"></div>
+                <div class="spinner" style="border-top-color: #E8F5E9;"></div> #06C755
                 <p>กำลังเตรียมข้อมูล...</p>
             </div>
         </div>
@@ -426,10 +426,10 @@
                 spinnerColor = "#FF3333";
             } else if (profile.statusType === "2") {
                 statusClass = "helper";
-                spinnerColor = "#06C755";
+                spinnerColor = "#0066CC";
             } else if (profile.statusType === "3") {
                 statusClass = "safe";
-                spinnerColor = "#0066CC";
+                spinnerColor = "#06C755";
             }
 
             let locationHtml = '';
