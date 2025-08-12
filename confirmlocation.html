@@ -51,17 +51,17 @@
 
         .status-header.emergency {
             background-color: rgba(255, 51, 51, 0.1);
-            border: 2px solid var(--emergency-color);
+            border: 6px solid var(--emergency-color);
         }
 
         .status-header.helper {
-            background-color: rgba(6, 199, 85, 0.1);
-            border: 2px solid var(--helper-color);
+            background-color: rgba(0, 102, 204, 0.1);
+            border: 6px solid var(--helper-color);
         }
 
         .status-header.safe {
-            background-color: rgba(0, 102, 204, 0.1);
-            border: 2px solid var(--safe-color);
+            background-color: rgba(6, 199, 85, 0.1);
+            border: 6px solid var(--safe-color);
         }
 
         .status-header.default {
@@ -167,8 +167,8 @@
             let headerColor;
             switch(profile.statusType) {
                 case "1": headerColor = "#FFEBEE"; break; // สีแดงอ่อน
-                case "2": headerColor = "#E8F5E9"; break; // สีเขียวอ่อน
-                case "3": headerColor = "#E3F2FD"; break; // สีน้ำเงินอ่อน
+                case "2": headerColor = "#E3F2FD"; break; // สีเขียวอ่อน
+                case "3": headerColor = "#E8F5E9"; break; // สีน้ำเงินอ่อน
                 default: headerColor = "#F5F5F5"; // สีเทาอ่อน
             }
 
@@ -519,13 +519,13 @@
                         case "2":
                             profile.statusType = "2";
                             profile.statusMessage = "🙋‍♂️ พร้อมเข้าช่วยเหลือ";
-                            profile.statusColor = "#06C755";
+                            profile.statusColor = "#0066CC";
                             profile.statusEmoji = "🙋‍♂️";
                             break;
                         case "3":
                             profile.statusType = "3";
                             profile.statusMessage = "✅ ฉันปลอดภัย";
-                            profile.statusColor = "#0066CC";
+                            profile.statusColor = "#06C755";
                             profile.statusEmoji = "✅";
                             break;
                         default:
