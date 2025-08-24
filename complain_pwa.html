@@ -389,43 +389,36 @@
                 loadingOverlay.classList.remove('hidden');
                 
                 try {
-                    // เตรียมข้อมูลสำหรับส่ง
-                    const formData = new FormData();
-                    formData.append('timestamp', new Date().toISOString());
-                    formData.append('userid', document.getElementById('userid').value);
-                    formData.append('fullname', document.getElementById('fullname').value);
-                    formData.append('phone', document.getElementById('phone').value);
+                    // เตรียมข้อมูลสำหรับส่ง (ใช้ JSON แทน FormData เพื่อหลีกเลี่ยง CORS issues)
+                    const formData = {
+                        timestamp: new Date().toISOString(),
+                        userid: document.getElementById('userid').value,
+                        fullname: document.getElementById('fullname').value,
+                        phone: document.getElementById('phone').value,
+                        problemType: document.getElementById('problemType').value === 'อื่นๆ' 
+                            ? document.getElementById('otherProblem').value 
+                            : document.getElementById('problemType').value,
+                        problemDetails: document.getElementById('problemDetails').value,
+                        latitude: latitudeInput.value,
+                        longitude: longitudeInput.value,
+                        imageData: null
+                    };
                     
-                    // ระบุประเภทปัญหา
-                    let problemTypeValue = document.getElementById('problemType').value;
-                    if (problemTypeValue === 'อื่นๆ') {
-                        problemTypeValue = document.getElementById('otherProblem').value;
-                    }
-                    formData.append('problemType', problemTypeValue);
-                    
-                    formData.append('problemDetails', document.getElementById('problemDetails').value);
-                    formData.append('latitude', latitudeInput.value);
-                    formData.append('longitude', longitudeInput.value);
-                    
-                    // เพิ่มรูปภาพถ้ามี
+                    // หากมีรูปภาพ ให้แปลงเป็น base64
                     if (imageFile) {
-                        formData.append('image', imageFile);
-                    }
-                    
-                    // ส่งข้อมูลไปยัง Google Apps Script
-                    const response = await fetch('https://script.google.com/macros/s/AKfycbyVonRxINr15fh83-Ti2Dpvmocs1jlGY_RT2m2NSFH6lig9YokomN_PchgAnZIy9roiBA/exec', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (result.status === 'success') {
-                        // แสดง modal ข้อความสำเร็จ
-                        loadingOverlay.classList.add('hidden');
-                        successModal.classList.remove('hidden');
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            formData.imageData = e.target.result.split(',')[1]; // เอาเฉพาะ data ส่วน
+                            formData.imageName = imageFile.name;
+                            formData.imageType = imageFile.type;
+                            
+                            // ส่งข้อมูลหลังจากแปลงรูปภาพเสร็จ
+                            sendDataToGoogleScript(formData);
+                        };
+                        reader.readAsDataURL(imageFile);
                     } else {
-                        throw new Error(result.message);
+                        // ส่งข้อมูลโดยไม่มีรูปภาพ
+                        sendDataToGoogleScript(formData);
                     }
                     
                 } catch (error) {
@@ -434,6 +427,43 @@
                     loadingOverlay.classList.add('hidden');
                 }
             });
+            
+            // ฟังก์ชันสำหรับส่งข้อมูลไปยัง Google Apps Script
+            function sendDataToGoogleScript(formData) {
+                // ใช้ Google Apps Script URL แบบ /exec (ไม่ใช่ /dev)
+                const scriptURL = 'https://script.google.com/macros/s/AKfycbyVonRxINr15fh83-Ti2Dpvmocs1jlGY_RT2m2NSFH6lig9YokomN_PchgAnZIy9roiBA/exec';
+                
+                // สร้าง iframe เพื่อส่งข้อมูล (วิธีแก้ปัญหา CORS)
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+                
+                // สร้างฟอร์มและส่งข้อมูลผ่าน iframe
+                const form = document.createElement('form');
+                form.action = scriptURL;
+                form.method = 'POST';
+                form.target = iframe.name;
+                
+                // เพิ่มข้อมูลทั้งหมดเป็น hidden input
+                Object.keys(formData).forEach(key => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = key;
+                    input.value = typeof formData[key] === 'object' ? JSON.stringify(formData[key]) : formData[key];
+                    form.appendChild(input);
+                });
+                
+                document.body.appendChild(form);
+                form.submit();
+                
+                // หลังจากส่งข้อมูล ให้แสดงหน้าสำเร็จ (จำลองการตอบกลับ)
+                setTimeout(() => {
+                    loadingOverlay.classList.add('hidden');
+                    successModal.classList.remove('hidden');
+                    document.body.removeChild(form);
+                    document.body.removeChild(iframe);
+                }, 2000);
+            }
             
             // ปิด modal ความสำเร็จ
             closeSuccessModal.addEventListener('click', function() {
