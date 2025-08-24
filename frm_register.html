@@ -1,297 +1,405 @@
 <!DOCTYPE html>
-<html lang="th">
+<html>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบแจ้งปัญหาน้ำประปาบ้าน</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>ระบบบันทึกข้อมูล LINE</title>
+    <script src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
+        :root {
+            --primary-color: #06C755;
+            /* สีเขียว LINE */
+            --secondary-color: #00B900;
+            --text-color: #333333;
+            --light-gray: #f5f5f5;
+            --white: #ffffff;
+            --border-radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+
+
+        .profile-container {
+            max-width: 100%;
+            width: 100%;
+            margin: 0 auto;
+            background: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            padding: 24px;
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .profile-header h1 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .profile-img-container {
+            margin: 0 auto 20px;
+        }
+
+        .profile-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--primary-color);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-details {
+            padding: 0 12px;
+        }
+
+        .detail-item {
+            margin-bottom: 16px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--primary-color);
+            width: 100px;
+            flex-shrink: 0;
+            margin-bottom: 4px;
+        }
+
+        .detail-value {
+            flex-grow: 1;
+            word-break: break-word;
+            padding-left: 12px;
+        }
+
+        @media (max-width: 480px) {
+            .profile-container {
+                padding: 16px;
+            }
+
+            .profile-img-container {
+            }
+
+            .detail-item {
+                flex-direction: column;
+            }
+
+            .detail-value {
+                padding-left: 0;
+            }
+        }
+
         body {
-            background: linear-gradient(135deg, #1e77b3, #bedff0);
-            min-height: 100vh;
-            font-family: 'Noto Sans Thai', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
         }
-        .card {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #1e77b3, #bedff0);
-            color: white;
-            border: none;
-            transition: all 0.3s;
+
+        h1 {
+            color: #06C755;
+            text-align: center;
+            margin-bottom: 20px;
         }
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #166096, #a8d2e6);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+
+        .profile-img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 4px solid #06C755;
+            display: block;
+            margin: 0 auto 20px;
+            object-fit: cover;
+        }
+
+        .profile-info {
+            margin-bottom: 20px;
+        }
+
+        .profile-info p {
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .profile-info strong {
+            color: #06C755;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #06C755;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error-message {
+            color: #d32f2f;
+            background: #ffebee;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: center;
         }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="py-8 px-4">
-    <div class="max-w-md mx-auto">
-        <div class="card p-6 mb-6">
-            <h1 class="text-2xl font-bold text-center text-[#1e77b3] mb-6">แจ้งปัญหาน้ำประปาที่บ้าน</h1>
-            
-            <form id="complaintForm" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อ-สกุล</label>
-                    <input type="text" id="fullname" required
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e77b3] focus:border-transparent">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">หมายเลขติดต่อ</label>
-                    <input type="tel" id="phone" required
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e77b3] focus:border-transparent">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">สภาพปัญหา</label>
-                    <select id="problemType" required
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e77b3] focus:border-transparent">
-                        <option value="">เลือกสภาพปัญหา</option>
-                        <option value="ท่อน้ำประปาแตก">ท่อน้ำประปาแตก</option>
-                        <option value="น้ำขุ่น">น้ำขุ่น</option>
-                        <option value="น้ำไม่ไหล">น้ำไม่ไหล</option>
-                        <option value="น้ำมีกลิ่น">น้ำมีกลิ่น</option>
-                        <option value="น้ำมีหนอนไรแดง">น้ำมีหนอนไรแดง</option>
-                        <option value="น้ำมีสนิม">น้ำมีสนิม</option>
-                        <option value="อื่นๆ">อื่นๆ</option>
-                    </select>
-                </div>
-                
-                <div id="otherProblemContainer" class="hidden">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">ระบุปัญหาอื่นๆ</label>
-                    <input type="text" id="otherProblem"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e77b3] focus:border-transparent">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">รายละเอียดเพิ่มเติม</label>
-                    <textarea id="problemDetails" rows="3"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e77b3] focus:border-transparent"></textarea>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">พิกัด</label>
-                    <div class="flex space-x-2">
-                        <input type="text" id="latitude" readonly placeholder="ละติจูด"
-                            class="w-1/2 px-4 py-2 border border-gray-300 rounded-lg bg-gray-100">
-                        <input type="text" id="longitude" readonly placeholder="ลองจิจูด"
-                            class="w-1/2 px-4 py-2 border border-gray-300 rounded-lg bg-gray-100">
-                    </div>
-                    <button type="button" id="getLocationBtn" class="mt-2 text-sm text-[#1e77b3] hover:underline">
-                        ดึงพิกัดปัจจุบัน
-                    </button>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">อัพโหลดรูปภาพ (ถ้ามี)</label>
-                    <input type="file" id="imageUpload" accept="image/*" class="hidden">
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                        <img id="imagePreview" class="mx-auto mb-2 max-h-40 hidden">
-                        <button type="button" id="uploadTrigger" class="text-[#1e77b3] font-medium">
-                            คลิกเพื่อเลือกรูปภาพ
-                        </button>
-                    </div>
-                </div>
-                
-                <button type="submit" class="btn-primary w-full py-3 rounded-lg font-medium text-lg">
-                    แจ้งปัญหา
-                </button>
-            </form>
-        </div>
-    </div>
 
-    <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-        <div class="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1e77b3] mb-4"></div>
-            <p class="text-gray-700">กำลังประมวลผล...</p>
+<body>
+    <div class="container">
+        <div id="userInfo">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>กำลังเตรียมข้อมูล...</p>
+            </div>
         </div>
     </div>
 
     <script>
-        // ฟังก์ชันสำหรับดึงข้อมูลผู้ใช้จาก LINE LIFF
-        function initializeLiff() {
-            // ในสภาพแวดล้อมจริงจะใช้ liff.init() และ liff.getProfile()
-            // สำหรับตัวอย่างนี้ เราจะจำลองข้อมูลผู้ใช้
-            const mockUser = {
-                userId: "U1234567890abcdef1234567890abcdef",
-                displayName: "สมชาย ใจดี",
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgIuUzCk3WNTNxx-aEJunMFKvRSaVrgiupfH3CgnYLL7_afg1pJN6B6eBqm6Soeamq/exec";
+
+        function createFlexMessage(profile) {
+            return {
+                type: "flex",
+                altText: "บันทึกข้อมูลสำเร็จ!",
+                contents: {
+                    type: "bubble",
+                    size: "kilo",
+                    body: {
+                        type: "box",
+                        layout: "vertical",
+                        contents: [
+                            {
+                                type: "text",
+                                text: "บันทึกข้อมูลสำเร็จ",
+                                weight: "bold",
+                                size: "xl",
+                                align: "center",
+                                color: "#06C755"
+                            },
+                            {
+                                type: "separator",
+                                margin: "md"
+                            },
+                            {
+                                type: "box",
+                                layout: "horizontal",
+                                margin: "lg",
+                                contents: [
+                                    {
+                                        type: "image",
+                                        url: profile.pictureUrl,
+                                        size: "xxs",
+                                        aspectMode: "cover",
+                                        aspectRatio: "1:1",
+                                        gravity: "center",
+                                        flex: 1
+                                    },
+                                    {
+                                        type: "box",
+                                        layout: "vertical",
+                                        flex: 4,
+                                        margin: "lg",
+                                        contents: [
+                                            {
+                                                type: "text",
+                                                text: profile.displayName,
+                                                weight: "bold",
+                                                size: "md"
+                                            },
+                                            {
+                                                type: "text",
+                                                text: `ID: ${profile.userId}`,
+                                                size: "sm",
+                                                color: "#888888",
+                                                margin: "sm"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                type: "separator",
+                                margin: "lg"
+                            },
+                            {
+                                type: "text",
+                                text: "ข้อมูลของคุณได้ถูกบันทึกเรียบร้อยแล้ว",
+                                margin: "lg",
+                                wrap: true,
+                                align: "center"
+                            }
+                        ]
+                    }
+                }
             };
-            
-            document.getElementById('fullname').value = mockUser.displayName;
-            document.getElementById('userid').value = mockUser.userId;
         }
 
-        // ตัวแปร global สำหรับเก็บ URL รูปภาพ
-        let uploadedImageUrl = '';
-
-        document.addEventListener('DOMContentLoaded', function() {
-            // เริ่มต้น LIFF
-            initializeLiff();
-            
-            // ซ่อน input userid (ใช้สำหรับส่งข้อมูลเท่านั้น)
-            const userIdInput = document.createElement('input');
-            userIdInput.type = 'hidden';
-            userIdInput.id = 'userid';
-            userIdInput.name = 'userid';
-            document.getElementById('complaintForm').appendChild(userIdInput);
-            
-            // การจัดการการแสดงฟิลด์อื่นๆ เมื่อเลือก "อื่นๆ"
-            const problemTypeSelect = document.getElementById('problemType');
-            const otherProblemContainer = document.getElementById('otherProblemContainer');
-            
-            problemTypeSelect.addEventListener('change', function() {
-                if (this.value === 'อื่นๆ') {
-                    otherProblemContainer.classList.remove('hidden');
-                } else {
-                    otherProblemContainer.classList.add('hidden');
-                }
-            });
-            
-            // การจัดการอัพโหลดรูปภาพ
-            const imageUpload = document.getElementById('imageUpload');
-            const uploadTrigger = document.getElementById('uploadTrigger');
-            const imagePreview = document.getElementById('imagePreview');
-            
-            uploadTrigger.addEventListener('click', function() {
-                imageUpload.click();
-            });
-            
-            imageUpload.addEventListener('change', function() {
-                if (this.files && this.files[0]) {
-                    const reader = new FileReader();
-                    
-                    reader.onload = function(e) {
-                        imagePreview.src = e.target.result;
-                        imagePreview.classList.remove('hidden');
-                        uploadTrigger.textContent = 'เปลี่ยนรูปภาพ';
-                    };
-                    
-                    reader.readAsDataURL(this.files[0]);
-                    
-                    // ในสภาพแวดล้อมจริง ควรอัพโหลดไปยังเซิร์ฟเวอร์ที่นี่
-                    // และรับ URL กลับมาเก็บในตัวแปร uploadedImageUrl
-                    // สำหรับตัวอย่างนี้ เราจะใช้ URL จำลอง
-                    uploadedImageUrl = "https://example.com/uploaded-image.jpg";
-                }
-            });
-            
-            // การดึงพิกัด
-            const getLocationBtn = document.getElementById('getLocationBtn');
-            const latitudeInput = document.getElementById('latitude');
-            const longitudeInput = document.getElementById('longitude');
-            
-            getLocationBtn.addEventListener('click', function() {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        function(position) {
-                            latitudeInput.value = position.coords.latitude;
-                            longitudeInput.value = position.coords.longitude;
-                        },
-                        function(error) {
-                            alert('ไม่สามารถดึงข้อมูลตำแหน่งได้: ' + error.message);
-                        }
-                    );
-                } else {
-                    alert('เบราว์เซอร์นี้ไม่รองรับการดึงข้อมูลตำแหน่ง');
-                }
-            });
-            
-            // การส่งฟอร์ม
-            const complaintForm = document.getElementById('complaintForm');
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            
-            complaintForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                // ตรวจสอบความถูกต้องของข้อมูล
-                if (!document.getElementById('fullname').value) {
-                    alert('กรุณากรอกชื่อ-สกุล');
-                    return;
-                }
-                
-                if (!document.getElementById('phone').value) {
-                    alert('กรุณากรอกหมายเลขติดต่อ');
-                    return;
-                }
-                
-                if (!document.getElementById('problemType').value) {
-                    alert('กรุณาเลือกสภาพปัญหา');
-                    return;
-                }
-                
-                if (document.getElementById('problemType').value === 'อื่นๆ' && 
-                    !document.getElementById('otherProblem').value) {
-                    alert('กรุณาระบุปัญหาอื่นๆ');
-                    return;
-                }
-                
-                if (!latitudeInput.value || !longitudeInput.value) {
-                    alert('กรุณาดึงพิกัดปัจจุบัน');
-                    return;
-                }
-                
-                // แสดง loading overlay
-                loadingOverlay.classList.remove('hidden');
-                
-                try {
-                    // เตรียมข้อมูลสำหรับส่ง
-                    const formData = {
-                        timestamp: new Date().toISOString(),
-                        userid: document.getElementById('userid').value,
-                        fullname: document.getElementById('fullname').value,
-                        phone: document.getElementById('phone').value,
-                        problemType: document.getElementById('problemType').value,
-                        problemDetails: document.getElementById('problemDetails').value,
-                        latitude: latitudeInput.value,
-                        longitude: longitudeInput.value,
-                        imageUrl: uploadedImageUrl
-                    };
-                    
-                    // หากเลือก "อื่นๆ" ให้ใช้ค่าจากช่องอื่นๆ
-                    if (formData.problemType === 'อื่นๆ') {
-                        formData.problemType = document.getElementById('otherProblem').value;
-                    }
-                    
-                    // ส่งข้อมูลไปยัง Google Apps Script
-                    const response = await fetch('https://script.google.com/macros/s/AKfycbyVonRxINr15fh83-Ti2Dpvmocs1jlGY_RT2m2NSFH6lig9YokomN_PchgAnZIy9roiBA/exec', {
+        async function sendDataToSheet(profile) {
+            try {
+                // ส่งข้อมูลด้วย no-cors
+                await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: JSON.stringify(formData)
-                    });
-                    
-                    // เนื่องจากเราใช้ no-cors เราไม่สามารถตรวจสอบ response ได้โดยตรง
-                    // ในสภาพแวดล้อมจริง คุณอาจต้องการใช้วิธีการอื่นเพื่อยืนยันการบันทึกข้อมูล
-                    
-                    // แสดงข้อความสำเร็จ
-                    alert('แจ้งปัญหาเรียบร้อยแล้ว! ทีมงานจะติดต่อกลับไปในเร็วๆ นี้');
-                    
-                    // รีเซ็ตฟอร์ม
-                    complaintForm.reset();
-                    imagePreview.classList.add('hidden');
-                    uploadTrigger.textContent = 'คลิกเพื่อเลือกรูปภาพ';
-                    uploadedImageUrl = '';
-                    latitudeInput.value = '';
-                    longitudeInput.value = '';
-                    otherProblemContainer.classList.add('hidden');
-                    
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message);
-                } finally {
-                    // ซ่อน loading overlay
-                    loadingOverlay.classList.add('hidden');
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userId: profile.userId,
+                        displayName: profile.displayName,
+                        pictureUrl: profile.pictureUrl,
+                        statusMessage: profile.statusMessage || ""
+                    })
+                });
+
+                return true;
+            } catch (error) {
+                console.error('Error sending data:', error);
+                return false;
+            }
+        }
+
+        async function sendFlexMessage(profile) {
+            if (!liff.isInClient()) {
+                console.log('ไม่สามารถส่ง Flex Message นอกแอป LINE');
+                return false;
+            }
+
+            try {
+                const flexMessage = createFlexMessage(profile);
+                await liff.sendMessages([flexMessage]);
+                return true;
+            } catch (error) {
+                console.error('Error sending Flex Message:', error);
+                return false;
+            }
+        }
+
+        async function initializeLiff() {
+            try {
+                await liff.init({ liffId: "2006915175-p0567oBr" });
+
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
                 }
-            });
-        });
+
+                const profile = await liff.getProfile();
+
+                // แสดงข้อมูลผู้ใช้
+                document.getElementById('userInfo').innerHTML = `
+          
+  <div class="profile-container">
+    <div class="profile-header">
+      <h1>ข้อมูลโปรไฟล์ของคุณ</h1>
+      <div class="profile-img-container">
+        <img src="${profile.pictureUrl}" class="profile-img" alt="รูปโปรไฟล์">
+      </div>
+    </div>
+    
+    <div class="profile-details">
+      <div class="detail-item">
+        <span class="detail-label">User ID:</span>
+        <span class="detail-value">${profile.userId}</span>
+      </div>
+      
+      <div class="detail-item">
+        <span class="detail-label">ชื่อบัญชี:</span>
+        <span class="detail-value">${profile.displayName}</span>
+      </div>
+      
+      <div class="detail-item">
+        <span class="detail-label">สถานะ:</span>
+        <span class="detail-value">${profile.statusMessage || "ไม่มีสถานะ"}</span>
+      </div>
+    </div>
+  </div>
+          <div id="statusMessage" class="loading">
+            <div class="spinner"></div>
+            <p>กำลังบันทึกข้อมูล...</p>
+          </div>
+        `;
+
+                // ส่งข้อมูลและ Flex Message
+                const dataSent = await sendDataToSheet(profile);
+                const flexSent = await sendFlexMessage(profile);
+
+                if (dataSent) {
+                    document.getElementById('statusMessage').innerHTML = `
+            <div style="text-align: center; color: #06C755; margin-top: 20px;">
+              <p>บันทึกข้อมูลสำเร็จแล้ว!</p>
+            </div>
+          `;
+
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'สำเร็จ!',
+                        text: 'ข้อมูลของคุณถูกบันทึกเรียบร้อยแล้ว',
+                        confirmButtonText: 'ปิด',
+                        confirmButtonColor: '#06C755'
+                    });
+
+                    if (liff.isInClient()) {
+                        setTimeout(() => liff.closeWindow(), 2000);
+                    }
+                } else {
+                    throw new Error('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+                }
+
+            } catch (error) {
+                document.getElementById('userInfo').innerHTML = `
+          <div class="error-message">
+            <h3>เกิดข้อผิดพลาด</h3>
+            <p>${error.message}</p>
+            <button onclick="window.location.reload()">ลองอีกครั้ง</button>
+          </div>
+        `;
+                console.error('Error:', error);
+            }
+        }
+
+        initializeLiff();
     </script>
 </body>
+
 </html>
