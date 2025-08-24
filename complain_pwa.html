@@ -83,6 +83,15 @@
             margin-top: 20px;
             display: none;
         }
+        .error-message {
+            background-color: #f44336;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+        }
         .location-btn {
             background-color: #e6f2f8;
             color: #1e77b3;
@@ -99,6 +108,15 @@
         }
         .hidden {
             display: none;
+        }
+        .retry-btn {
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -191,6 +209,11 @@
             <div id="successMessage" class="success-message">
                 ส่งข้อมูลสำเร็จ! ทีมงานจะติดต่อกลับไปในเร็วๆ นี้
             </div>
+            
+            <div id="errorMessage" class="error-message">
+                เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง
+                <button id="retryButton" class="retry-btn">ลองอีกครั้ง</button>
+            </div>
         </div>
     </div>
 
@@ -220,8 +243,9 @@
             document.getElementById('complaintForm').appendChild(userIdInput);
         }
 
-        // ตัวแปร global สำหรับเก็บข้อมูลรูปภาพ
+        // ตัวแปร global สำหรับเก็บข้อมูล
         let imageFile = null;
+        let currentFormData = null;
 
         document.addEventListener('DOMContentLoaded', function() {
             // เริ่มต้น LIFF
@@ -296,39 +320,32 @@
             const complaintForm = document.getElementById('complaintForm');
             const loadingOverlay = document.getElementById('loadingOverlay');
             const successMessage = document.getElementById('successMessage');
+            const errorMessage = document.getElementById('errorMessage');
+            const retryButton = document.getElementById('retryButton');
             
             complaintForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                
+                prepareAndSendData();
+            });
+            
+            // ปุ่มลองอีกครั้ง
+            retryButton.addEventListener('click', function() {
+                errorMessage.style.display = 'none';
+                if (currentFormData) {
+                    sendFormData(currentFormData);
+                } else {
+                    prepareAndSendData();
+                }
+            });
+            
+            // ฟังก์ชันเตรียมข้อมูล
+            function prepareAndSendData() {
                 // ตรวจสอบความถูกต้องของข้อมูล
-                if (!document.getElementById('fullname').value) {
-                    alert('กรุณากรอกชื่อ-สกุล');
-                    return;
-                }
-                
-                if (!document.getElementById('phone').value) {
-                    alert('กรุณากรอกหมายเลขติดต่อ');
-                    return;
-                }
-                
-                if (!document.getElementById('problemType').value) {
-                    alert('กรุณาเลือกสภาพปัญหา');
-                    return;
-                }
-                
-                if (document.getElementById('problemType').value === 'อื่นๆ' && 
-                    !document.getElementById('otherProblem').value) {
-                    alert('กรุณาระบุปัญหาอื่นๆ');
-                    return;
-                }
-                
-                if (!latitudeInput.value || !longitudeInput.value) {
-                    alert('กรุณาดึงพิกัดปัจจุบัน');
-                    return;
-                }
+                if (!validateForm()) return;
                 
                 // แสดง loading overlay
                 loadingOverlay.style.display = 'flex';
+                errorMessage.style.display = 'none';
                 
                 try {
                     // เตรียมข้อมูลสำหรับส่ง
@@ -349,6 +366,9 @@
                     formData.append('latitude', latitudeInput.value);
                     formData.append('longitude', longitudeInput.value);
                     
+                    // บันทึกข้อมูลฟอร์มปัจจุบันสำหรับการลองใหม่
+                    currentFormData = formData;
+                    
                     // เพิ่มรูปภาพถ้ามี (แปลงเป็น base64)
                     if (imageFile) {
                         const reader = new FileReader();
@@ -368,16 +388,56 @@
                     
                 } catch (error) {
                     console.error('Error:', error);
-                    alert('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message);
+                    showError('เกิดข้อผิดพลาดในการเตรียมข้อมูล: ' + error.message);
                     loadingOverlay.style.display = 'none';
                 }
-            });
+            }
+            
+            // ฟังก์ชันตรวจสอบฟอร์ม
+            function validateForm() {
+                if (!document.getElementById('fullname').value) {
+                    alert('กรุณากรอกชื่อ-สกุล');
+                    return false;
+                }
+                
+                if (!document.getElementById('phone').value) {
+                    alert('กรุณากรอกหมายเลขติดต่อ');
+                    return false;
+                }
+                
+                if (!document.getElementById('problemType').value) {
+                    alert('กรุณาเลือกสภาพปัญหา');
+                    return false;
+                }
+                
+                if (document.getElementById('problemType').value === 'อื่นๆ' && 
+                    !document.getElementById('otherProblem').value) {
+                    alert('กรุณาระบุปัญหาอื่นๆ');
+                    return false;
+                }
+                
+                if (!latitudeInput.value || !longitudeInput.value) {
+                    alert('กรุณาดึงพิกัดปัจจุบัน');
+                    return false;
+                }
+                
+                return true;
+            }
+            
+            // ฟังก์ชันแสดงข้อผิดพลาด
+            function showError(message) {
+                errorMessage.querySelector('div').textContent = message;
+                errorMessage.style.display = 'block';
+                errorMessage.scrollIntoView({ behavior: 'smooth' });
+            }
             
             // ฟังก์ชันสำหรับส่งข้อมูล
             async function sendFormData(formData) {
                 try {
+                    // ใช้ URL ของ Google Apps Script
                     const googleScriptURL = "https://script.google.com/macros/s/AKfycbyVonRxINr15fh83-Ti2Dpvmocs1jlGY_RT2m2NSFH6lig9YokomN_PchgAnZIy9roiBA/exec";
                     
+                    // วิธีที่ 1: ใช้ fetch กับ x-www-form-urlencoded
                     const response = await fetch(googleScriptURL, {
                         method: 'POST',
                         headers: {
@@ -389,28 +449,92 @@
                     if (response.ok) {
                         // แสดงข้อความสำเร็จ
                         successMessage.style.display = 'block';
+                        successMessage.scrollIntoView({ behavior: 'smooth' });
                         
                         // รีเซ็ตฟอร์ม
-                        complaintForm.reset();
-                        imagePreview.style.display = 'none';
-                        uploadText.textContent = 'คลิกเพื่อเลือกรูปภาพ';
-                        imageFile = null;
-                        latitudeInput.value = '';
-                        longitudeInput.value = '';
-                        otherProblemContainer.style.display = 'none';
-                        
-                        // เลื่อนไปที่ข้อความสำเร็จ
-                        successMessage.scrollIntoView({ behavior: 'smooth' });
+                        resetForm();
                     } else {
-                        throw new Error('Network response was not ok.');
+                        // ลองวิธีที่ 2: ใช้ iframe หาก fetch ล้มเหลว
+                        try {
+                            await submitViaIframe(formData);
+                            successMessage.style.display = 'block';
+                            successMessage.scrollIntoView({ behavior: 'smooth' });
+                            resetForm();
+                        } catch (iframeError) {
+                            throw new Error('การส่งข้อมูลล้มเหลวทั้งสองวิธี');
+                        }
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    alert('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message);
+                    showError('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message + ' กรุณาลองใหม่อีกครั้ง');
                 } finally {
                     // ซ่อน loading overlay
                     loadingOverlay.style.display = 'none';
                 }
+            }
+            
+            // ฟังก์ชันส่งข้อมูลผ่าน iframe (สำรอง)
+            function submitViaIframe(formData) {
+                return new Promise((resolve, reject) => {
+                    try {
+                        const iframe = document.createElement('iframe');
+                        iframe.name = 'google-script-iframe';
+                        iframe.style.display = 'none';
+                        document.body.appendChild(iframe);
+                        
+                        const form = document.createElement('form');
+                        form.action = "https://script.google.com/macros/s/AKfycbyVonRxINr15fh83-Ti2Dpvmocs1jlGY_RT2m2NSFH6lig9YokomN_PchgAnZIy9roiBA/exec";
+                        form.method = 'POST';
+                        form.target = 'google-script-iframe';
+                        
+                        // เพิ่มข้อมูลทั้งหมดเป็น hidden input
+                        for (const [key, value] of formData.entries()) {
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = key;
+                            input.value = value;
+                            form.appendChild(input);
+                        }
+                        
+                        document.body.appendChild(form);
+                        
+                        // ตั้งค่าเวลา timeout
+                        const timeout = setTimeout(() => {
+                            reject(new Error('การส่งข้อมูลผ่าน iframe ใช้เวลานานเกินไป'));
+                        }, 10000);
+                        
+                        // เมื่อ iframe โหลดเสร็จ
+                        iframe.onload = function() {
+                            clearTimeout(timeout);
+                            resolve();
+                            document.body.removeChild(form);
+                            document.body.removeChild(iframe);
+                        };
+                        
+                        iframe.onerror = function() {
+                            clearTimeout(timeout);
+                            reject(new Error('เกิดข้อผิดพลาดในการโหลด iframe'));
+                            document.body.removeChild(form);
+                            document.body.removeChild(iframe);
+                        };
+                        
+                        form.submit();
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+            }
+            
+            // ฟังก์ชันรีเซ็ตฟอร์ม
+            function resetForm() {
+                complaintForm.reset();
+                imagePreview.style.display = 'none';
+                uploadText.textContent = 'คลิกเพื่อเลือกรูปภาพ';
+                imageFile = null;
+                latitudeInput.value = '';
+                longitudeInput.value = '';
+                otherProblemContainer.style.display = 'none';
+                currentFormData = null;
             }
         });
     </script>
