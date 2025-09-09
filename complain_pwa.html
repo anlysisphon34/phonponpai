@@ -225,27 +225,39 @@
     </div>
 
     <script>
-        // ฟังก์ชันสำหรับดึงข้อมูลผู้ใช้จาก LINE LIFF
-        function initializeLiff() {
-            // จำลองข้อมูลผู้ใช้ (ในสภาพแวดล้อมจริงจะใช้ liff.init() และ liff.getProfile())
-            const mockUser = {
-                userId: "U1234567890abcdef1234567890abcdef",
-                displayName: "สมชาย ใจดี",
-            };
-            
-            document.getElementById('fullname').value = mockUser.displayName;
-            // สร้าง input hidden สำหรับ userid
-            const userIdInput = document.createElement('input');
-            userIdInput.type = 'hidden';
-            userIdInput.id = 'userid';
-            userIdInput.name = 'userid';
-            userIdInput.value = mockUser.userId;
-            document.getElementById('complaintForm').appendChild(userIdInput);
-        }
-
         // ตัวแปร global สำหรับเก็บข้อมูล
         let imageFile = null;
         let currentFormData = null;
+        let userId = '';
+
+        // ฟังก์ชันสำหรับดึงข้อมูลผู้ใช้จาก LINE LIFF
+        async function initializeLiff() {
+            try {
+                await liff.init({ liffId: '2006915175-QL6m4dJK' });
+                
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
+                }
+
+                const profile = await liff.getProfile();
+                userId = profile.userId;
+                document.getElementById('fullname').value = profile.displayName;
+                
+                // สร้าง input hidden สำหรับ userid
+                const userIdInput = document.createElement('input');
+                userIdInput.type = 'hidden';
+                userIdInput.id = 'userid';
+                userIdInput.name = 'userid';
+                userIdInput.value = userId;
+                document.getElementById('complaintForm').appendChild(userIdInput);
+
+            } catch (error) {
+                console.error('LIFF Error:', error);
+                // อนุญาตให้ผู้ใช้กรอกชื่อด้วยตนเอง
+                document.getElementById('fullname').removeAttribute('readonly');
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
             // เริ่มต้น LIFF
@@ -299,8 +311,8 @@
                     
                     navigator.geolocation.getCurrentPosition(
                         function(position) {
-                            latitudeInput.value = position.coords.latitude;
-                            longitudeInput.value = position.coords.longitude;
+                            latitudeInput.value = position.coords.latitude.toFixed(6);
+                            longitudeInput.value = position.coords.longitude.toFixed(6);
                             getLocationBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> ดึงพิกัดสำเร็จ';
                             setTimeout(() => {
                                 getLocationBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> ดึงพิกัดปัจจุบัน';
@@ -348,8 +360,8 @@
                 errorMessage.style.display = 'none';
                 
                 try {
-                    // เตรียมข้อมูลสำหรับส่ง
-                    const formData = new URLSearchParams();
+                    // เตรียม FormData สำหรับส่ง
+                    const formData = new FormData();
                     formData.append('timestamp', new Date().toISOString());
                     formData.append('userid', document.getElementById('userid').value);
                     formData.append('fullname', document.getElementById('fullname').value);
@@ -366,29 +378,20 @@
                     formData.append('latitude', latitudeInput.value);
                     formData.append('longitude', longitudeInput.value);
                     
+                    // เพิ่มรูปภาพถ้ามี
+                    if (imageFile) {
+                        formData.append('image', imageFile);
+                    }
+                    
                     // บันทึกข้อมูลฟอร์มปัจจุบันสำหรับการลองใหม่
                     currentFormData = formData;
                     
-                    // เพิ่มรูปภาพถ้ามี (แปลงเป็น base64)
-                    if (imageFile) {
-                        const reader = new FileReader();
-                        reader.onload = function() {
-                            formData.append('imageData', reader.result.split(',')[1]);
-                            formData.append('imageName', imageFile.name);
-                            formData.append('imageType', imageFile.type);
-                            
-                            // ส่งข้อมูล
-                            sendFormData(formData);
-                        };
-                        reader.readAsDataURL(imageFile);
-                    } else {
-                        // ส่งข้อมูลโดยไม่มีรูปภาพ
-                        sendFormData(formData);
-                    }
+                    // ส่งข้อมูล
+                    sendFormData(formData);
                     
                 } catch (error) {
                     console.error('Error:', error);
-                    showError('เกิดข้อผิดพลาดในการเตรียมข้อมูล: ' + error.message);
+                    showError('เกิดข้อผิดพลาดในการเตรียมข้อมูล');
                     loadingOverlay.style.display = 'none';
                 }
             }
@@ -426,103 +429,51 @@
             
             // ฟังก์ชันแสดงข้อผิดพลาด
             function showError(message) {
-                errorMessage.querySelector('div').textContent = message;
+                errorMessage.innerHTML = message + ' <button id="retryButton" class="retry-btn">ลองอีกครั้ง</button>';
                 errorMessage.style.display = 'block';
-                errorMessage.scrollIntoView({ behavior: 'smooth' });
+                
+                // Re-attach event listener to the new retry button
+                document.getElementById('retryButton').addEventListener('click', function() {
+                    errorMessage.style.display = 'none';
+                    if (currentFormData) {
+                        sendFormData(currentFormData);
+                    }
+                });
             }
             
             // ฟังก์ชันสำหรับส่งข้อมูล
             async function sendFormData(formData) {
                 try {
-                    // ใช้ URL ของ Google Apps Script
                     const googleScriptURL = "https://script.google.com/macros/s/AKfycbyVonRxINr15fh83-Ti2Dpvmocs1jlGY_RT2m2NSFH6lig9YokomN_PchgAnZIy9roiBA/exec";
                     
-                    // วิธีที่ 1: ใช้ fetch กับ x-www-form-urlencoded
                     const response = await fetch(googleScriptURL, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
                         body: formData
                     });
                     
                     if (response.ok) {
-                        // แสดงข้อความสำเร็จ
-                        successMessage.style.display = 'block';
-                        successMessage.scrollIntoView({ behavior: 'smooth' });
-                        
-                        // รีเซ็ตฟอร์ม
-                        resetForm();
-                    } else {
-                        // ลองวิธีที่ 2: ใช้ iframe หาก fetch ล้มเหลว
-                        try {
-                            await submitViaIframe(formData);
+                        const result = await response.json();
+                        if (result.success) {
+                            // แสดงข้อความสำเร็จ
                             successMessage.style.display = 'block';
                             successMessage.scrollIntoView({ behavior: 'smooth' });
+                            
+                            // รีเซ็ตฟอร์ม
                             resetForm();
-                        } catch (iframeError) {
-                            throw new Error('การส่งข้อมูลล้มเหลวทั้งสองวิธี');
+                        } else {
+                            throw new Error(result.error || 'การส่งข้อมูลล้มเหลว');
                         }
+                    } else {
+                        throw new Error('HTTP Error: ' + response.status);
                     }
+                    
                 } catch (error) {
                     console.error('Error:', error);
-                    showError('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message + ' กรุณาลองใหม่อีกครั้ง');
+                    showError('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message);
                 } finally {
                     // ซ่อน loading overlay
                     loadingOverlay.style.display = 'none';
                 }
-            }
-            
-            // ฟังก์ชันส่งข้อมูลผ่าน iframe (สำรอง)
-            function submitViaIframe(formData) {
-                return new Promise((resolve, reject) => {
-                    try {
-                        const iframe = document.createElement('iframe');
-                        iframe.name = 'google-script-iframe';
-                        iframe.style.display = 'none';
-                        document.body.appendChild(iframe);
-                        
-                        const form = document.createElement('form');
-                        form.action = "https://script.google.com/macros/s/AKfycbyVonRxINr15fh83-Ti2Dpvmocs1jlGY_RT2m2NSFH6lig9YokomN_PchgAnZIy9roiBA/exec";
-                        form.method = 'POST';
-                        form.target = 'google-script-iframe';
-                        
-                        // เพิ่มข้อมูลทั้งหมดเป็น hidden input
-                        for (const [key, value] of formData.entries()) {
-                            const input = document.createElement('input');
-                            input.type = 'hidden';
-                            input.name = key;
-                            input.value = value;
-                            form.appendChild(input);
-                        }
-                        
-                        document.body.appendChild(form);
-                        
-                        // ตั้งค่าเวลา timeout
-                        const timeout = setTimeout(() => {
-                            reject(new Error('การส่งข้อมูลผ่าน iframe ใช้เวลานานเกินไป'));
-                        }, 10000);
-                        
-                        // เมื่อ iframe โหลดเสร็จ
-                        iframe.onload = function() {
-                            clearTimeout(timeout);
-                            resolve();
-                            document.body.removeChild(form);
-                            document.body.removeChild(iframe);
-                        };
-                        
-                        iframe.onerror = function() {
-                            clearTimeout(timeout);
-                            reject(new Error('เกิดข้อผิดพลาดในการโหลด iframe'));
-                            document.body.removeChild(form);
-                            document.body.removeChild(iframe);
-                        };
-                        
-                        form.submit();
-                    } catch (error) {
-                        reject(error);
-                    }
-                });
             }
             
             // ฟังก์ชันรีเซ็ตฟอร์ม
@@ -535,6 +486,11 @@
                 longitudeInput.value = '';
                 otherProblemContainer.style.display = 'none';
                 currentFormData = null;
+                
+                // รักษาค่า userid ไว้
+                if (userId) {
+                    document.getElementById('userid').value = userId;
+                }
             }
         });
     </script>
