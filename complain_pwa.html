@@ -441,44 +441,26 @@
                 });
             }
 
-
+// เปลี่ยนฟังก์ชัน sendFormData ทั้งหมดเป็นนี้:
 async function sendFormData(formData) {
     try {
         const googleScriptURL = "https://script.google.com/macros/s/AKfycbyVonRxINr15fh83-Ti2Dpvmocs1jlGY_RT2m2NSFH6lig9YokomN_PchgAnZIy9roiBA/exec";
         
-        console.log("Sending form data...");
+        console.log("Sending data to:", googleScriptURL);
         
-        // วิธีที่ 1: ส่งแบบ FormData
-        const response = await fetch(googleScriptURL, {
-            method: 'POST',
-            body: formData
-        });
-
-        console.log("Response status:", response.status);
-        
-        if (response.ok) {
-            const result = await response.json();
-            console.log("Response result:", result);
-            
-            if (result.success) {
-                successMessage.style.display = 'block';
-                resetForm();
-                return;
-            } else {
-                throw new Error(result.error || 'Server returned error');
-            }
-        }
-
-        // วิธีที่ 2: ส่งแบบ JSON หาก FormData ล้มเหลว
-        console.log("Trying JSON method...");
+        // วิธีที่ 1: ส่งแบบ JSON (แนะนำ)
         const jsonData = {};
         for (const [key, value] of formData.entries()) {
+            // ไม่รวมไฟล์ภาพใน JSON
             if (key !== 'image') {
                 jsonData[key] = value;
             }
         }
 
-        const jsonResponse = await fetch(googleScriptURL, {
+        console.log("JSON data:", jsonData);
+
+        // ส่งแบบ JSON
+        const response = await fetch(googleScriptURL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -486,25 +468,76 @@ async function sendFormData(formData) {
             body: JSON.stringify(jsonData)
         });
 
-        console.log("JSON response status:", jsonResponse.status);
+        console.log("Response status:", response.status);
         
-        if (jsonResponse.ok) {
-            const result = await jsonResponse.json();
-            console.log("JSON response result:", result);
+        if (response.ok) {
+            const result = await response.json();
+            console.log("Server response:", result);
             
             if (result.success) {
                 successMessage.style.display = 'block';
+                successMessage.scrollIntoView({ behavior: 'smooth' });
                 resetForm();
-                return;
+                return true;
+            } else {
+                throw new Error(result.error || 'Server returned error');
             }
+        } else {
+            throw new Error(`HTTP Error: ${response.status}`);
         }
-
-        throw new Error(`HTTP Error: ${response.status}, JSON Error: ${jsonResponse.status}`);
 
     } catch (error) {
         console.error('Error:', error);
         showError('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message);
+        return false;
     } finally {
+        loadingOverlay.style.display = 'none';
+    }
+}
+
+// เปลี่ยนฟังก์ชัน prepareAndSendData เป็นนี้:
+function prepareAndSendData() {
+    // ตรวจสอบความถูกต้องของข้อมูล
+    if (!validateForm()) return;
+    
+    // แสดง loading overlay
+    loadingOverlay.style.display = 'flex';
+    errorMessage.style.display = 'none';
+    
+    try {
+        // เตรียม FormData สำหรับส่ง
+        const formData = new FormData();
+        formData.append('timestamp', new Date().toISOString());
+        formData.append('userid', document.getElementById('userid').value);
+        formData.append('fullname', document.getElementById('fullname').value);
+        formData.append('phone', document.getElementById('phone').value);
+        
+        // ระบุประเภทปัญหา
+        let problemTypeValue = document.getElementById('problemType').value;
+        if (problemTypeValue === 'อื่นๆ') {
+            problemTypeValue = document.getElementById('otherProblem').value;
+        }
+        formData.append('problemType', problemTypeValue);
+        
+        formData.append('problemDetails', document.getElementById('problemDetails').value);
+        formData.append('latitude', document.getElementById('latitude').value);
+        formData.append('longitude', document.getElementById('longitude').value);
+        
+        // เพิ่มรูปภาพถ้ามี (แต่จะส่งแยกใน request อื่น)
+        if (imageFile) {
+            formData.append('image', imageFile);
+            // สำหรับ JSON เราจะไม่ส่งไฟล์ภาพ
+        }
+        
+        // บันทึกข้อมูลฟอร์มปัจจุบันสำหรับการลองใหม่
+        currentFormData = formData;
+        
+        // ส่งข้อมูล (ใช้ JSON method)
+        sendFormData(formData);
+        
+    } catch (error) {
+        console.error('Error:', error);
+        showError('เกิดข้อผิดพลาดในการเตรียมข้อมูล');
         loadingOverlay.style.display = 'none';
     }
 }
