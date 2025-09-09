@@ -3,93 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบแจ้งปัญหาน้ำประปาบ้าน - LINE LIFF</title>
+    <title>แจ้งปัญหาน้ำประปา - 5184 Saard</title>
     <script src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            background: linear-gradient(135deg, #00B900, #00BCD4);
-            min-height: 100vh;
-            font-family: 'Noto Sans Thai', sans-serif;
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e77b3 0%, #bedff0 100%);
         }
-        .card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        .card-shadow {
+            box-shadow: 0 10px 30px rgba(30, 119, 179, 0.15);
         }
         .btn-primary {
-            background: linear-gradient(135deg, #00B900, #009688);
-            color: white;
-            border: none;
-            transition: all 0.3s;
+            background: linear-gradient(135deg, #1e77b3 0%, #2c91d1 100%);
+            transition: all 0.3s ease;
         }
         .btn-primary:hover {
-            background: linear-gradient(135deg, #008F00, #00796B);
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-        .liff-header {
-            background: linear-gradient(135deg, #00B900, #00BCD4);
-            color: white;
-            border-radius: 0 0 20px 20px;
-        }
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top: 4px solid #00B900;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            box-shadow: 0 8px 20px rgba(30, 119, 179, 0.3);
         }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="pb-8">
-    <!-- LINE LIFF Header -->
-    <div class="liff-header p-4 mb-6 text-center">
-        <h1 class="text-xl font-bold">ระบบแจ้งปัญหาน้ำประปา</h1>
-        <p class="text-sm opacity-90">ผ่าน LINE Official Account</p>
-    </div>
+<body class="min-h-screen gradient-bg">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-white mb-2">แจ้งปัญหาน้ำประปา</h1>
+            <p class="text-white opacity-90">ระบบรับแจ้งปัญหาน้ำประปาหมู่บ้าน</p>
+        </div>
 
-    <div class="max-w-md mx-auto px-4">
-        <div class="card p-6 mb-6">
-            <div id="userProfile" class="flex items-center mb-4 p-3 bg-green-50 rounded-lg">
-                <img id="userPicture" src="https://via.placeholder.com/60" class="w-12 h-12 rounded-full mr-3">
-                <div>
-                    <div id="userName" class="font-bold text-green-800">กำลังโหลดข้อมูล...</div>
-                    <div class="text-xs text-green-600">ยินดีต้อนรับ</div>
-                </div>
-            </div>
-            
+        <!-- Main Form -->
+        <div class="bg-white rounded-2xl p-6 card-shadow max-w-md mx-auto">
             <form id="complaintForm" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อ-สกุล *</label>
-                    <input type="text" id="fullname" name="fullname" required
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">หมายเลขติดต่อ *</label>
-                    <input type="tel" id="phone" name="phone" required
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        pattern="[0-9]{10}" title="กรุณากรอกหมายเลขโทรศัพท์ 10 หลัก">
+                <!-- User Info (Auto-filled from LIFF) -->
+                <div id="userInfo" class="p-3 bg-blue-50 rounded-lg mb-4">
+                    <p class="text-sm text-gray-600">กำลังโหลดข้อมูลผู้ใช้...</p>
                 </div>
 
+                <!-- Problem Type -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">ที่อยู่ *</label>
-                    <textarea id="address" name="address" rows="2" required
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        placeholder="บ้านเลขที่, ถนน, ตำบล/แขวง, อำเภอ/เขต, จังหวัด"></textarea>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">สภาพปัญหา *</label>
-                    <select id="problemType" name="problemType" required
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">สภาพปัญหา *</label>
+                    <select id="problemType" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                         <option value="">เลือกสภาพปัญหา</option>
                         <option value="ท่อน้ำประปาแตก">ท่อน้ำประปาแตก</option>
                         <option value="น้ำขุ่น">น้ำขุ่น</option>
@@ -97,75 +50,68 @@
                         <option value="น้ำมีกลิ่น">น้ำมีกลิ่น</option>
                         <option value="น้ำมีหนอนไรแดง">น้ำมีหนอนไรแดง</option>
                         <option value="น้ำมีสนิม">น้ำมีสนิม</option>
-                        <option value="อื่นๆ">อื่นๆ</option>
+                        <option value="อื่นๆ">อื่นๆ (ระบุในช่อง备注)</option>
                     </select>
                 </div>
-                
-                <div id="otherProblemContainer" class="hidden">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">ระบุปัญหาอื่นๆ *</label>
-                    <input type="text" id="otherProblem" name="otherProblem"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+
+                <!-- Other Problem Details -->
+                <div id="otherProblemField" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ระบุปัญหาอื่นๆ</label>
+                    <input type="text" id="otherProblem" class="w-full p-3 border border-gray-300 rounded-lg">
                 </div>
-                
+
+                <!-- Contact Number -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">รายละเอียดเพิ่มเติม</label>
-                    <textarea id="problemDetails" name="problemDetails" rows="3"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        placeholder="อธิบายรายละเอียดปัญหาเพิ่มเติม"></textarea>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">หมายเลขติดต่อ *</label>
+                    <input type="tel" id="contactNumber" required class="w-full p-3 border border-gray-300 rounded-lg" placeholder="089-123-4567">
                 </div>
-                
+
+                <!-- Location -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">อัพโหลดรูปภาพ (ถ้ามี)</label>
-                    <input type="file" id="imageUpload" accept="image/*" class="hidden">
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-green-500 transition-colors" id="uploadArea">
-                        <div id="uploadPlaceholder">
-                            <svg class="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
-                            <p class="text-green-600 font-medium">คลิกเพื่อเลือกรูปภาพ</p>
-                        </div>
-                        <img id="imagePreview" class="mx-auto mb-2 max-h-40 hidden rounded">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">พิกัด *</label>
+                    <div class="flex space-x-2">
+                        <input type="text" id="latitude" readonly class="flex-1 p-3 border border-gray-300 rounded-lg" placeholder="ละติจูด">
+                        <input type="text" id="longitude" readonly class="flex-1 p-3 border border-gray-300 rounded-lg" placeholder="ลองจิจูด">
+                    </div>
+                    <button type="button" onclick="getLocation()" class="mt-2 text-sm text-blue-600 hover:text-blue-800">
+                        📍 ดึงพิกัดปัจจุบัน
+                    </button>
+                </div>
+
+                <!-- Image Upload -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">อัพโหลดรูปภาพ (ถ้ามี)</label>
+                    <input type="file" id="imageUpload" accept="image/*" class="w-full p-3 border border-gray-300 rounded-lg">
+                    <div id="imagePreview" class="mt-2 hidden">
+                        <img id="previewImg" class="w-full h-32 object-cover rounded-lg">
                     </div>
                 </div>
-                
-                <button type="submit" class="btn-primary w-full py-3 rounded-lg font-medium text-lg mt-6">
-                    📤 ส่งแจ้งปัญหา
+
+                <!-- Submit Button -->
+                <button type="submit" class="w-full btn-primary text-white py-3 px-4 rounded-lg font-semibold">
+                    📩 ส่งแจ้งปัญหา
                 </button>
             </form>
         </div>
 
-        <div class="card p-6 text-center">
-            <h2 class="text-lg font-bold text-green-700 mb-4">📊 สถิติการแจ้งปัญหา</h2>
-            <div class="grid grid-cols-2 gap-4 text-center">
-                <div class="bg-green-50 p-4 rounded-lg">
-                    <div class="text-2xl font-bold text-green-600" id="totalComplaints">0</div>
-                    <div class="text-sm text-green-800">การแจ้งปัญหาทั้งหมด</div>
-                </div>
-                <div class="bg-blue-50 p-4 rounded-lg">
-                    <div class="text-2xl font-bold text-blue-600" id="userComplaints">0</div>
-                    <div class="text-sm text-blue-800">การแจ้งปัญหาของคุณ</div>
-                </div>
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-white p-6 rounded-lg text-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p>กำลังส่งข้อมูล...</p>
             </div>
         </div>
     </div>
 
-    <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
-            <div class="spinner mb-4"></div>
-            <p class="text-gray-700">กำลังส่งข้อมูล...</p>
-        </div>
-    </div>
-
     <script>
-        // ตัวแปร global
-        let userId = '';
-        let displayName = '';
-        let pictureUrl = '';
-        let imageFile = null;
+        // Configuration
+        const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyVonRxINr15fh83-Ti2Dpvmocs1jlGY_RT2m2NSFH6lig9YokomN_PchgAnZIy9roiBA/exec";
 
         // Initialize LIFF
-        async function initializeLiff() {
+        let userId = '';
+        let userProfile = null;
+
+        async function initializeLIFF() {
             try {
                 await liff.init({ liffId: '2006915175-QL6m4dJK' });
                 
@@ -174,275 +120,203 @@
                     return;
                 }
 
-                // รับข้อมูลผู้ใช้
-                const profile = await liff.getProfile();
-                userId = profile.userId;
-                displayName = profile.displayName;
-                pictureUrl = profile.pictureUrl;
-
-                // แสดงข้อมูลผู้ใช้
-                document.getElementById('userName').textContent = displayName;
-                document.getElementById('userPicture').src = pictureUrl;
-                document.getElementById('fullname').value = displayName;
-
-                // โหลดสถิติ
-                loadUserStatistics();
+                // Get user profile
+                userProfile = await liff.getProfile();
+                userId = userProfile.userId;
+                
+                // Display user info
+                document.getElementById('userInfo').innerHTML = `
+                    <div class="flex items-center">
+                        <img src="${userProfile.pictureUrl}" class="w-10 h-10 rounded-full mr-3">
+                        <div>
+                            <p class="font-semibold">${userProfile.displayName}</p>
+                            <p class="text-xs text-gray-600">User ID: ${userId}</p>
+                        </div>
+                    </div>
+                `;
 
             } catch (error) {
-                console.error('LIFF initialization failed:', error);
-                document.getElementById('userName').textContent = 'ผู้ใช้ทั่วไป';
+                console.error('LIFF Initialization failed:', error);
+                document.getElementById('userInfo').innerHTML = `
+                    <p class="text-red-600">ไม่สามารถโหลดข้อมูลผู้ใช้ได้</p>
+                `;
             }
         }
 
-        // โหลดสถิติผู้ใช้
-        async function loadUserStatistics() {
-            try {
-                // สมมติว่ามี API สำหรับดึงสถิติ
-                const userComplaints = localStorage.getItem(`user_complaints_${userId}`) || 0;
-                document.getElementById('userComplaints').textContent = userComplaints;
-                
-                const totalComplaints = localStorage.getItem('total_complaints') || 0;
-                document.getElementById('totalComplaints').textContent = totalComplaints;
-            } catch (error) {
-                console.log('ไม่สามารถโหลดสถิติได้');
+        // Get current location
+        function getLocation() {
+            if (!navigator.geolocation) {
+                alert("เบราว์เซอร์นี้ไม่รองรับการดึงพิกัด");
+                return;
             }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    document.getElementById('latitude').value = position.coords.latitude;
+                    document.getElementById('longitude').value = position.coords.longitude;
+                },
+                (error) => {
+                    alert("ไม่สามารถดึงพิกัดได้: " + error.message);
+                }
+            );
         }
 
-        // ส่ง Flex Message ผ่าน LINE
-        async function sendFlexMessage(complaintData) {
-            try {
-                // สร้าง Flex Message
-                const flexMessage = {
-                    type: 'flex',
-                    altText: `แจ้งปัญหาน้ำประปาใหม่จาก ${displayName}`,
-                    contents: {
-                        type: 'bubble',
-                        header: {
-                            type: 'box',
-                            layout: 'vertical',
-                            contents: [
-                                {
-                                    type: 'text',
-                                    text: '🚰 แจ้งปัญหาน้ำประปา',
-                                    weight: 'bold',
-                                    size: 'xl',
-                                    color: '#FFFFFF'
-                                }
-                            ],
-                            backgroundColor: '#00B900',
-                            paddingAll: '20px'
-                        },
-                        body: {
-                            type: 'box',
-                            layout: 'vertical',
-                            contents: [
-                                {
-                                    type: 'text',
-                                    text: `📋 เลขที่: ${complaintData.id}`,
-                                    weight: 'bold',
-                                    margin: 'md'
-                                },
-                                {
-                                    type: 'separator',
-                                    margin: 'md'
-                                },
-                                {
-                                    type: 'box',
-                                    layout: 'vertical',
-                                    margin: 'md',
-                                    spacing: 'sm',
-                                    contents: [
-                                        {
-                                            type: 'text',
-                                            text: `👤 ${displayName}`,
-                                            size: 'sm'
-                                        },
-                                        {
-                                            type: 'text',
-                                            text: `📞 ${complaintData.phone}`,
-                                            size: 'sm'
-                                        },
-                                        {
-                                            type: 'text',
-                                            text: `📍 ${complaintData.address.substring(0, 30)}...`,
-                                            size: 'sm',
-                                            wrap: true
-                                        },
-                                        {
-                                            type: 'text',
-                                            text: `🔧 ${complaintData.problemType}`,
-                                            size: 'sm',
-                                            weight: 'bold',
-                                            color: '#FF0000'
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        footer: {
-                            type: 'box',
-                            layout: 'vertical',
-                            contents: [
-                                {
-                                    type: 'button',
-                                    action: {
-                                        type: 'uri',
-                                        label: '📋 ดูรายละเอียด',
-                                        uri: `https://your-website.com/complaints/${complaintData.id}`
-                                    },
-                                    style: 'primary',
-                                    color: '#00B900'
-                                }
-                            ]
-                        }
-                    }
-                };
-
-                // ส่งข้อความไปยังผู้ใช้
-                if (liff.isInClient()) {
-                    await liff.sendMessages([flexMessage]);
+        // Handle image preview
+        document.getElementById('imageUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('imagePreview').classList.remove('hidden');
                 }
-
-                return true;
-            } catch (error) {
-                console.error('Failed to send Flex Message:', error);
-                return false;
+                reader.readAsDataURL(file);
             }
-        }
-
-        // ส่งข้อมูลไปยัง Google Sheets
-        async function sendToGoogleSheets(complaintData) {
-            try {
-                const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVonRxINr15fh83-Ti2Dpvmocs1jlGY_RT2m2NSFH6lig9YokomN_PchgAnZIy9roiBA/exec';
-                
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        ...complaintData,
-                        userId: userId,
-                        displayName: displayName
-                    })
-                });
-
-                return await response.json();
-            } catch (error) {
-                throw new Error('Failed to send data to Google Sheets');
-            }
-        }
-
-        // Event Listeners
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Initialize LIFF
-            await initializeLiff();
-
-            // การจัดการฟอร์ม
-            const problemTypeSelect = document.getElementById('problemType');
-            const otherProblemContainer = document.getElementById('otherProblemContainer');
-            
-            problemTypeSelect.addEventListener('change', function() {
-                if (this.value === 'อื่นๆ') {
-                    otherProblemContainer.classList.remove('hidden');
-                } else {
-                    otherProblemContainer.classList.add('hidden');
-                }
-            });
-
-            // การอัพโหลดรูปภาพ
-            const imageUpload = document.getElementById('imageUpload');
-            const uploadArea = document.getElementById('uploadArea');
-            const imagePreview = document.getElementById('imagePreview');
-            
-            uploadArea.addEventListener('click', function() {
-                imageUpload.click();
-            });
-            
-            imageUpload.addEventListener('change', function() {
-                if (this.files && this.files[0]) {
-                    imageFile = this.files[0];
-                    const reader = new FileReader();
-                    
-                    reader.onload = function(e) {
-                        imagePreview.src = e.target.result;
-                        imagePreview.classList.remove('hidden');
-                        document.getElementById('uploadPlaceholder').style.display = 'none';
-                    };
-                    
-                    reader.readAsDataURL(imageFile);
-                }
-            });
-
-            // การส่งฟอร์ม
-            const complaintForm = document.getElementById('complaintForm');
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            
-            complaintForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                if (!validateForm()) return;
-                
-                loadingOverlay.classList.remove('hidden');
-                
-                try {
-                    // เตรียมข้อมูล
-                    const complaintData = {
-                        id: 'COMP-' + Date.now(),
-                        timestamp: new Date().toISOString(),
-                        fullname: document.getElementById('fullname').value,
-                        phone: document.getElementById('phone').value,
-                        address: document.getElementById('address').value,
-                        problemType: document.getElementById('problemType').value === 'อื่นๆ' 
-                            ? document.getElementById('otherProblem').value
-                            : document.getElementById('problemType').value,
-                        problemDetails: document.getElementById('problemDetails').value,
-                        status: 'รอดำเนินการ'
-                    };
-
-                    // ส่งข้อมูล
-                    const sheetResult = await sendToGoogleSheets(complaintData);
-                    
-                    if (sheetResult.status === 'success') {
-                        // ส่ง Flex Message
-                        await sendFlexMessage(complaintData);
-                        
-                        // อัพเดตสถิติ
-                        updateStatistics();
-                        
-                        // แสดงผลสำเร็จ
-                        alert('✅ ส่งแจ้งปัญหาสำเร็จ! ทีมงานจะติดต่อกลับไปเร็วๆ นี้');
-                        complaintForm.reset();
-                        imagePreview.classList.add('hidden');
-                        document.getElementById('uploadPlaceholder').style.display = 'block';
-                    }
-                    
-                } catch (error) {
-                    alert('❌ เกิดข้อผิดพลาด: ' + error.message);
-                } finally {
-                    loadingOverlay.classList.add('hidden');
-                }
-            });
         });
 
-        // ฟังก์ชันตรวจสอบความถูกต้อง
-        function validateForm() {
-            // ... same validation as before ...
-            return true;
+        // Show/hide other problem field
+        document.getElementById('problemType').addEventListener('change', function() {
+            const otherField = document.getElementById('otherProblemField');
+            otherField.classList.toggle('hidden', this.value !== 'อื่นๆ');
+        });
+
+        // Handle form submission
+        document.getElementById('complaintForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Validate form
+            const problemType = document.getElementById('problemType').value;
+            const contactNumber = document.getElementById('contactNumber').value;
+            const latitude = document.getElementById('latitude').value;
+            const longitude = document.getElementById('longitude').value;
+
+            if (!problemType || !contactNumber || !latitude || !longitude) {
+                alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+
+            try {
+                // Prepare form data
+                const formData = new FormData();
+                formData.append('userId', userId);
+                formData.append('userName', userProfile?.displayName || '');
+                formData.append('problemType', problemType);
+                
+                const otherProblem = document.getElementById('otherProblem').value;
+                if (otherProblem) {
+                    formData.append('otherProblem', otherProblem);
+                }
+                
+                formData.append('contactNumber', contactNumber);
+                formData.append('latitude', latitude);
+                formData.append('longitude', longitude);
+                formData.append('timestamp', new Date().toLocaleString('th-TH'));
+
+                // Add image if exists
+                const imageFile = document.getElementById('imageUpload').files[0];
+                if (imageFile) {
+                    formData.append('image', imageFile);
+                }
+
+                // Send to Google Apps Script
+                const response = await fetch(APP_SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Send Flex Message to user
+                    await sendFlexMessage(result);
+                    alert('ส่งแจ้งปัญหาเรียบร้อยแล้ว!');
+                    document.getElementById('complaintForm').reset();
+                    document.getElementById('imagePreview').classList.add('hidden');
+                } else {
+                    throw new Error(result.error);
+                }
+
+            } catch (error) {
+                console.error('Submission error:', error);
+                alert('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message);
+            } finally {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+            }
+        });
+
+        // Send Flex Message
+        async function sendFlexMessage(result) {
+            const flexMessage = {
+                type: 'flex',
+                altText: 'แจ้งปัญหาน้ำประปาเรียบร้อย',
+                contents: {
+                    type: 'bubble',
+                    header: {
+                        type: 'box',
+                        layout: 'vertical',
+                        contents: [
+                            {
+                                type: 'text',
+                                text: '✅ แจ้งปัญหาเรียบร้อย',
+                                weight: 'bold',
+                                size: 'xl',
+                                color: '#1e77b3'
+                            }
+                        ],
+                        backgroundColor: '#bedff0'
+                    },
+                    body: {
+                        type: 'box',
+                        layout: 'vertical',
+                        contents: [
+                            {
+                                type: 'text',
+                                text: `ปัญหาที่แจ้ง: ${result.data.problemType}`,
+                                margin: 'md'
+                            },
+                            {
+                                type: 'text',
+                                text: `วันที่: ${result.data.timestamp}`,
+                                margin: 'md'
+                            },
+                            {
+                                type: 'text',
+                                text: `หมายเลขติดต่อ: ${result.data.contactNumber}`,
+                                margin: 'md'
+                            },
+                            {
+                                type: 'text',
+                                text: `พิกัด: ${result.data.latitude}, ${result.data.longitude}`,
+                                margin: 'md',
+                                wrap: true
+                            }
+                        ]
+                    },
+                    footer: {
+                        type: 'box',
+                        layout: 'vertical',
+                        contents: [
+                            {
+                                type: 'text',
+                                text: 'ขอบคุณที่ใช้บริการ',
+                                size: 'sm',
+                                color: '#666666',
+                                align: 'center'
+                            }
+                        ]
+                    }
+                }
+            };
+
+            // Send via LIFF
+            await liff.sendMessages([flexMessage]);
         }
 
-        // อัพเดตสถิติ
-        function updateStatistics() {
-            const userComplaints = parseInt(localStorage.getItem(`user_complaints_${userId}`) || 0) + 1;
-            const totalComplaints = parseInt(localStorage.getItem('total_complaints') || 0) + 1;
-            
-            localStorage.setItem(`user_complaints_${userId}`, userComplaints);
-            localStorage.setItem('total_complaints', totalComplaints);
-            
-            document.getElementById('userComplaints').textContent = userComplaints;
-            document.getElementById('totalComplaints').textContent = totalComplaints;
-        }
+        // Initialize the application
+        window.onload = initializeLIFF;
     </script>
 </body>
 </html>
