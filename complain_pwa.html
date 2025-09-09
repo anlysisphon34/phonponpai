@@ -442,10 +442,11 @@
             }
 
 
-
-            async function sendFormData(formData) {
+async function sendFormData(formData) {
     try {
         const googleScriptURL = "https://script.google.com/macros/s/AKfycbyVonRxINr15fh83-Ti2Dpvmocs1jlGY_RT2m2NSFH6lig9YokomN_PchgAnZIy9roiBA/exec";
+        
+        console.log("Sending form data...");
         
         // วิธีที่ 1: ส่งแบบ FormData
         const response = await fetch(googleScriptURL, {
@@ -453,16 +454,23 @@
             body: formData
         });
 
+        console.log("Response status:", response.status);
+        
         if (response.ok) {
             const result = await response.json();
+            console.log("Response result:", result);
+            
             if (result.success) {
                 successMessage.style.display = 'block';
                 resetForm();
                 return;
+            } else {
+                throw new Error(result.error || 'Server returned error');
             }
         }
 
         // วิธีที่ 2: ส่งแบบ JSON หาก FormData ล้มเหลว
+        console.log("Trying JSON method...");
         const jsonData = {};
         for (const [key, value] of formData.entries()) {
             if (key !== 'image') {
@@ -478,8 +486,12 @@
             body: JSON.stringify(jsonData)
         });
 
+        console.log("JSON response status:", jsonResponse.status);
+        
         if (jsonResponse.ok) {
             const result = await jsonResponse.json();
+            console.log("JSON response result:", result);
+            
             if (result.success) {
                 successMessage.style.display = 'block';
                 resetForm();
@@ -487,7 +499,7 @@
             }
         }
 
-        throw new Error('การส่งข้อมูลล้มเหลวทั้งสองวิธี');
+        throw new Error(`HTTP Error: ${response.status}, JSON Error: ${jsonResponse.status}`);
 
     } catch (error) {
         console.error('Error:', error);
