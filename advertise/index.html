@@ -122,11 +122,15 @@
                             </div>
 
                             <!-- Field: Link URL -->
-                            <div v-if="['flex_image_url'].includes(form.messageType)">
+                            <div v-if="['flex_image_url', 'call_link'].includes(form.messageType)">
                                 <label class="block text-gray-700 font-bold mb-2">ลิงก์ปลายทาง (Target URL)</label>
                                 <input type="text" v-model="form.linkUrl"
-                                    class="w-full border border-gray-300 rounded-lg p-3" placeholder="https://...">
-                                <p class="text-xs text-gray-400 mt-1">เมื่อผู้ใช้กดที่รูป จะเปิดลิงก์นี้</p>
+                                    class="w-full border border-gray-300 rounded-lg p-3"
+                                    placeholder="https://meet.google.com/...">
+                                <p class="text-xs text-gray-400 mt-1">
+                                    {{ form.messageType === 'call_link' ? 'ลิงก์ห้องสนทนา Video Call' :
+                                    'เมื่อผู้ใช้กดที่รูป จะเปิดลิงก์นี้' }}
+                                </p>
                             </div>
 
                             <!-- Recipient Selection -->
@@ -186,6 +190,23 @@
                                     </div>
                                 </div>
 
+                                <!-- CALL LINK PREVIEW -->
+                                <div v-if="form.messageType === 'call_link'"
+                                    class="bg-white rounded-xl overflow-hidden self-start max-w-[85%] shadow-md border-l-4 border-green-500">
+                                    <div class="p-4 bg-green-50 flex items-center gap-3">
+                                        <div class="bg-green-100 p-2 rounded-full text-green-600">
+                                            <i class="fa-solid fa-user-doctor text-xl"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="font-bold text-gray-800 text-sm">คุณหมอมาแล้วครับ</h3>
+                                            <p class="text-xs text-gray-500">พร้อมให้คำปรึกษา</p>
+                                        </div>
+                                    </div>
+                                    <div class="p-3 border-t border-gray-100 text-center">
+                                        <span class="text-blue-600 font-bold text-sm">กดเพื่อเริ่มสนทนา</span>
+                                    </div>
+                                </div>
+
                                 <div v-if="!form.text && !form.imageUrl"
                                     class="flex-1 flex items-center justify-center text-white/50 text-xs">
                                     Preview Area
@@ -231,11 +252,12 @@
                     { id: 'flex_image_url', label: 'ส่งรูปและ URL', icon: 'fa-solid fa-link' },
                     { id: 'image', label: 'ส่งรูปอย่างเดียว', icon: 'fa-regular fa-image' },
                     { id: 'text', label: 'ส่งข้อความอย่างเดียว', icon: 'fa-regular fa-comment-dots' },
-                    { id: 'mixed', label: 'ข้อความ + รูป', icon: 'fa-solid fa-layer-group' }
+                    { id: 'mixed', label: 'ข้อความ + รูป', icon: 'fa-solid fa-layer-group' },
+                    { id: 'call_link', label: 'เรียกคุย (Video Call)', icon: 'fa-solid fa-video' }
                 ];
 
                 const form = ref({
-                    messageType: 'flex_image_url',
+                    messageType: 'call_link',
                     text: '',
                     imageUrl: '',
                     linkUrl: ''
