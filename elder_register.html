@@ -1,242 +1,258 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ลงทะเบียนคุยกับหมอ</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <style>
-    body { font-family: 'Prompt', sans-serif; }
-    /* Custom glassmorphism */
-    .glass {
-      background: rgba(255, 255, 255, 0.7);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ลงทะเบียนคุยกับหมอ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+        }
+
+        /* Custom glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
 </head>
+
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
 
-  <div class="glass max-w-md w-full rounded-2xl shadow-xl p-8 transform transition-all duration-300 hover:scale-[1.01]">
-    <div class="text-center mb-8">
-      <div id="profileImage" class="w-24 h-24 mx-auto rounded-full bg-gray-200 mb-4 bg-cover bg-center border-4 border-white shadow-md"></div>
-      <h2 class="text-2xl font-bold text-gray-800">ลงทะเบียนคุยกับหมอ</h2>
-      <p class="text-gray-500 text-sm">กรุณากรอกข้อมูลให้ครบถ้วน</p>
+    <div
+        class="glass max-w-md w-full rounded-2xl shadow-xl p-8 transform transition-all duration-300 hover:scale-[1.01]">
+        <div class="text-center mb-8">
+            <div id="profileImage"
+                class="w-24 h-24 mx-auto rounded-full bg-gray-200 mb-4 bg-cover bg-center border-4 border-white shadow-md">
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800">ลงทะเบียนคุยกับหมอ</h2>
+            <p class="text-gray-500 text-sm">กรุณากรอกข้อมูลให้ครบถ้วน</p>
+        </div>
+
+        <form id="registerForm" class="space-y-6">
+            <input type="hidden" id="userId" name="userId">
+            <input type="hidden" id="pictureUrl" name="pictureUrl">
+            <input type="hidden" id="displayName" name="displayName">
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อ</label>
+                    <input type="text" id="name" name="name" required
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                        placeholder="ชื่อจริง">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">นามสกุล</label>
+                    <input type="text" id="surname" name="surname" required
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                        placeholder="นามสกุล">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">สถานะ</label>
+                <select id="status" name="status" required
+                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white">
+                    <option value="" disabled selected>เลือกสถานะ</option>
+                    <option value="ประชาชนทั่วไป">ประชาชนทั่วไป</option>
+                    <option value="อสม.">อสม.</option>
+                    <option value="เจ้าหน้าที่">เจ้าหน้าที่</option>
+                </select>
+            </div>
+
+            <div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">หมายเลขโทรศัพท์</label>
+                <input type="hidden" id="department" name="department" value="รพ.พล">
+                <input type="tel" id="phone" name="phone" required pattern="[0-9]{10}"
+                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                    placeholder="08xxxxxxxx">
+            </div>
+
+            <button type="submit" id="submitBtn"
+                class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200">
+                ลงทะเบียน
+            </button>
+        </form>
     </div>
 
-    <form id="registerForm" class="space-y-6">
-      <input type="hidden" id="userId" name="userId">
-      <input type="hidden" id="pictureUrl" name="pictureUrl">
-      <input type="hidden" id="displayName" name="displayName">
-
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อ</label>
-          <input type="text" id="name" name="name" required class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" placeholder="ชื่อจริง">
+    <div id="loadingOverlay" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl flex flex-col items-center animate-bounce-small">
+            <div class="animate-spin rounded-full h-10 w-10 border-4 border-blue-500 border-t-transparent mb-3"></div>
+            <p class="text-blue-600 font-medium">กำลังบันทึกข้อมูล...</p>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">นามสกุล</label>
-          <input type="text" id="surname" name="surname" required class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" placeholder="นามสกุล">
-        </div>
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">สถานะ</label>
-        <select id="status" name="status" required class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white">
-          <option value="" disabled selected>เลือกสถานะ</option>
-          <option value="ประชาชนทั่วไป">ประชาชนทั่วไป</option>
-          <option value="อสม.">อสม.</option>
-          <option value="เจ้าหน้าที่">เจ้าหน้าที่</option>
-        </select>
-      </div>
-
-      <div>
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">หมายเลขโทรศัพท์</label>
-        
-        <hidden type="text" id="department" name="department" value="รพ.พล">
-        <input type="tel" id="phone" name="phone" required pattern="[0-9]{10}" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" placeholder="08xxxxxxxx">
-      </div>
-
-      <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200">
-        ลงทะเบียน
-      </button>
-    </form>
-  </div>
-
-  <div id="loadingOverlay" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm">
-    <div class="bg-white p-6 rounded-2xl shadow-2xl flex flex-col items-center animate-bounce-small">
-      <div class="animate-spin rounded-full h-10 w-10 border-4 border-blue-500 border-t-transparent mb-3"></div>
-      <p class="text-blue-600 font-medium">กำลังบันทึกข้อมูล...</p>
     </div>
-  </div>
 
-  <script>
-    const LIFF_ID = '2006915175-qxWNWG5b';
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxMbUXSmOLT5Qi1M2jeBFsQqZ1e79iOAZ2VCk0wPbOvjyzvfjjuW8cGhUJs9yjrAPhBpg/exec';
+    <script>
+        const LIFF_ID = '2006915175-qxWNWG5b';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxMbUXSmOLT5Qi1M2jeBFsQqZ1e79iOAZ2VCk0wPbOvjyzvfjjuW8cGhUJs9yjrAPhBpg/exec';
 
-    async function main() {
-      try {
-        await liff.init({ liffId: LIFF_ID });
-        if (!liff.isLoggedIn()) {
-          liff.login();
-          return;
-        }
-
-        const profile = await liff.getProfile();
-        document.getElementById('userId').value = profile.userId;
-        document.getElementById('displayName').value = profile.displayName;
-        document.getElementById('pictureUrl').value = profile.pictureUrl;
-
-        // Set profile image
-        if (profile.pictureUrl) {
-          document.getElementById('profileImage').style.backgroundImage = `url(${profile.pictureUrl})`;
-        }
-      } catch (err) {
-        console.error('LIFF Init failed', err);
-        // Fallback for testing in browser without LIFF (optional, usually comment out for prod)
-        // document.getElementById('userId').value = 'UTEST001';
-      }
-    }
-
-    main();
-
-    document.getElementById('registerForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const submitBtn = document.getElementById('submitBtn');
-      const loadingOverlay = document.getElementById('loadingOverlay');
-      
-      submitBtn.disabled = true;
-      loadingOverlay.classList.remove('hidden');
-      loadingOverlay.classList.add('flex');
-
-      const formData = new FormData(e.target);
-      const data = Object.fromEntries(formData.entries());
-
-      try {
-        // Send to Google Apps Script
-        // Using no-cors mode because GAS doesn't support CORS preflight well for simple web apps sometimes, 
-        // but we need response to confirm. Ideally handle CORS in GAS with ContentService.
-        // For waiting response, we can use a workaround or just fetch.
-        
-        // Use JSONP or plain fetch with 'no-cors' (opaque response) or correct CORS headers in GAS.
-        // Assuming user will add standard CORS headers in GAS: 
-        // ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
-        
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors', // Simpler for GAS integration usually, but we can't read response.
-          // If we want to read response, we must handle CORS in GAS properly. 
-          // Let's assume we proceed after fetch.
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data)
-        });
-
-        // Generate Flex Message
-        const flexMessage = {
-          type: "flex",
-          altText: "ลงทะเบียนสำเร็จ",
-          contents: {
-            type: "bubble",
-            hero: {
-              type: "image",
-              url: data.pictureUrl || "https://via.placeholder.com/1024x1024.png?text=User",
-              size: "full",
-              aspectRatio: "20:13",
-              aspectMode: "cover",
-            },
-            body: {
-              type: "box",
-              layout: "vertical",
-              contents: [
-                {
-                  type: "text",
-                  text: "ลงทะเบียนสำเร็จ",
-                  weight: "bold",
-                  size: "xl",
-                  color: "#047857"
-                },
-                {
-                  type: "box",
-                  layout: "vertical",
-                  margin: "lg",
-                  spacing: "sm",
-                  contents: [
-                    {
-                      type: "box",
-                      layout: "baseline",
-                      spacing: "sm",
-                      contents: [
-                        { type: "text", text: "ชื่อ:", color: "#aaaaaa", size: "sm", flex: 2 },
-                        { type: "text", text: `${data.name} ${data.surname}`, wrap: true, color: "#666666", size: "sm", flex: 5 }
-                      ]
-                    },
-                    {
-                      type: "box",
-                      layout: "baseline",
-                      spacing: "sm",
-                      contents: [
-                        { type: "text", text: "สถานะ:", color: "#aaaaaa", size: "sm", flex: 2 },
-                        { type: "text", text: data.status, wrap: true, color: "#666666", size: "sm", flex: 5 }
-                      ]
-                    },
-                    {
-                      type: "box",
-                      layout: "baseline",
-                      spacing: "sm",
-                      contents: [
-                        { type: "text", text: "หน่วยงาน:", color: "#aaaaaa", size: "sm", flex: 2 },
-                        { type: "text", text: data.department, wrap: true, color: "#666666", size: "sm", flex: 5 }
-                      ]
-                    }
-                  ]
+        async function main() {
+            try {
+                await liff.init({ liffId: LIFF_ID });
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
                 }
-              ]
-            }
-          }
-        };
 
-        if (liff.isInClient()) {
-          await liff.sendMessages([flexMessage]);
-          await Swal.fire({
-            icon: 'success',
-            title: 'เรียบร้อย',
-            text: 'ลงทะเบียนสำเร็จแล้ว',
-            timer: 1500,
-            showConfirmButton: false
-          });
-          liff.closeWindow();
-        } else {
-             await Swal.fire({
-            icon: 'success',
-            title: 'เรียบร้อย',
-            text: 'ลงทะเบียนสำเร็จแล้ว (เปิดใน LIFF เพื่อส่งข้อความยืนยัน)',
-          });
-          console.log("Flex Message (Mock):", flexMessage);
+                const profile = await liff.getProfile();
+                document.getElementById('userId').value = profile.userId;
+                document.getElementById('displayName').value = profile.displayName;
+                document.getElementById('pictureUrl').value = profile.pictureUrl;
+
+                // Set profile image
+                if (profile.pictureUrl) {
+                    document.getElementById('profileImage').style.backgroundImage = `url(${profile.pictureUrl})`;
+                }
+            } catch (err) {
+                console.error('LIFF Init failed', err);
+                // Fallback for testing in browser without LIFF (optional, usually comment out for prod)
+                // document.getElementById('userId').value = 'UTEST001';
+            }
         }
 
-      } catch (error) {
-        console.error(error);
-        await Swal.fire({
-          icon: 'error',
-          title: 'เกิดข้อผิดพลาด',
-          text: 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่',
+        main();
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+
+            submitBtn.disabled = true;
+            loadingOverlay.classList.remove('hidden');
+            loadingOverlay.classList.add('flex');
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                // Send to Google Apps Script
+                // Using no-cors mode because GAS doesn't support CORS preflight well for simple web apps sometimes, 
+                // but we need response to confirm. Ideally handle CORS in GAS with ContentService.
+                // For waiting response, we can use a workaround or just fetch.
+
+                // Use JSONP or plain fetch with 'no-cors' (opaque response) or correct CORS headers in GAS.
+                // Assuming user will add standard CORS headers in GAS: 
+                // ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Simpler for GAS integration usually, but we can't read response.
+                    // If we want to read response, we must handle CORS in GAS properly. 
+                    // Let's assume we proceed after fetch.
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                // Generate Flex Message
+                const flexMessage = {
+                    type: "flex",
+                    altText: "ลงทะเบียนสำเร็จ",
+                    contents: {
+                        type: "bubble",
+                        hero: {
+                            type: "image",
+                            url: data.pictureUrl || "https://via.placeholder.com/1024x1024.png?text=User",
+                            size: "full",
+                            aspectRatio: "20:13",
+                            aspectMode: "cover",
+                        },
+                        body: {
+                            type: "box",
+                            layout: "vertical",
+                            contents: [
+                                {
+                                    type: "text",
+                                    text: "ลงทะเบียนสำเร็จ",
+                                    weight: "bold",
+                                    size: "xl",
+                                    color: "#047857"
+                                },
+                                {
+                                    type: "box",
+                                    layout: "vertical",
+                                    margin: "lg",
+                                    spacing: "sm",
+                                    contents: [
+                                        {
+                                            type: "box",
+                                            layout: "baseline",
+                                            spacing: "sm",
+                                            contents: [
+                                                { type: "text", text: "ชื่อ:", color: "#aaaaaa", size: "sm", flex: 2 },
+                                                { type: "text", text: `${data.name} ${data.surname}`, wrap: true, color: "#666666", size: "sm", flex: 5 }
+                                            ]
+                                        },
+                                        {
+                                            type: "box",
+                                            layout: "baseline",
+                                            spacing: "sm",
+                                            contents: [
+                                                { type: "text", text: "สถานะ:", color: "#aaaaaa", size: "sm", flex: 2 },
+                                                { type: "text", text: data.status, wrap: true, color: "#666666", size: "sm", flex: 5 }
+                                            ]
+                                        },
+                                        {
+                                            type: "box",
+                                            layout: "baseline",
+                                            spacing: "sm",
+                                            contents: [
+                                                { type: "text", text: "หน่วยงาน:", color: "#aaaaaa", size: "sm", flex: 2 },
+                                                { type: "text", text: data.department, wrap: true, color: "#666666", size: "sm", flex: 5 }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                };
+
+                if (liff.isInClient()) {
+                    await liff.sendMessages([flexMessage]);
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'เรียบร้อย',
+                        text: 'ลงทะเบียนสำเร็จแล้ว',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    liff.closeWindow();
+                } else {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'เรียบร้อย',
+                        text: 'ลงทะเบียนสำเร็จแล้ว (เปิดใน LIFF เพื่อส่งข้อความยืนยัน)',
+                    });
+                    console.log("Flex Message (Mock):", flexMessage);
+                }
+
+            } catch (error) {
+                console.error(error);
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด',
+                    text: 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่',
+                });
+            } finally {
+                submitBtn.disabled = false;
+                loadingOverlay.classList.remove('flex');
+                loadingOverlay.classList.add('hidden');
+            }
         });
-      } finally {
-        submitBtn.disabled = false;
-        loadingOverlay.classList.remove('flex');
-        loadingOverlay.classList.add('hidden');
-      }
-    });
-  </script>
+    </script>
 </body>
+
 </html>
