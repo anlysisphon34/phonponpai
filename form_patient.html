@@ -1,1 +1,253 @@
-<h1>555</h1>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แจ้งข้อมูลผู้ที่มีภาวะพึ่งพิงรายใหม่</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        :root {
+            --primary-color: #00B900;
+            --secondary-color: #f0f0f0;
+            --text-color: #333;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        body {
+            font-family: 'Sarabun', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 500px;
+            box-sizing: border-box;
+        }
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 20px;
+            line-height: 1.4;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        input[type="text"],
+        input[type="tel"],
+        input[type="date"],
+        textarea,
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus, textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+        .radio-group, .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .radio-option, .checkbox-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        button {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #009900;
+        }
+        .loading {
+            text-align: center;
+            margin-top: 10px;
+            color: #666;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <h1>แจ้งข้อมูลผู้ที่มีภาวะพึ่งพิงรายใหม่<br><span style="font-size: 16px; font-weight: normal;">เพื่อเข้าโครงการจัดบริการดูแลระยะยาวด้านสาธารณสุข</span></h1>
+    <form id="patientForm">
+        <input type="hidden" id="userId" name="userId">
+        
+        <div class="form-group">
+            <label for="reporterName">ชื่อผู้แจ้ง</label>
+            <input type="text" id="reporterName" name="reporterName" required>
+        </div>
+
+        <div class="form-group">
+            <label for="reporterPhone">เบอร์โทรศัพท์ผู้แจ้ง</label>
+            <input type="tel" id="reporterPhone" name="reporterPhone" required>
+        </div>
+
+        <div class="form-group">
+            <label>ความสัมพันธ์กับผู้ที่มีภาวะพึ่งพิง</label>
+            <div class="radio-group">
+                <div class="radio-option"><input type="radio" name="relationship" value="สามี/ภรรยา" checked> สามี/ภรรยา</div>
+                <div class="radio-option"><input type="radio" name="relationship" value="บุตร"> บุตร</div>
+                <div class="radio-option"><input type="radio" name="relationship" value="พี่/น้อง"> พี่/น้อง</div>
+                <div class="radio-option"><input type="radio" name="relationship" value="อื่นๆ"> อื่นๆ <input type="text" id="relationshipOther" placeholder="โปรดระบุ" style="width: auto; flex-grow: 1; padding: 5px;"></div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="patientName">ชื่อ-สกุลผู้ที่มีภาวะพึ่งพิง</label>
+            <input type="text" id="patientName" name="patientName" required>
+        </div>
+
+        <div class="form-group" style="display: flex; gap: 10px;">
+            <div style="flex: 1;">
+                <label for="dob">วันเดือนปีเกิด</label>
+                <input type="date" id="dob" name="dob" required>
+            </div>
+            <div style="width: 100px;">
+                <label for="age">อายุ (ปี)</label>
+                <input type="number" id="age" name="age" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="address">ที่อยู่</label>
+            <textarea id="address" name="address" rows="3" required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="community">ชุมชน</label>
+            <input type="text" id="community" name="community" required>
+        </div>
+
+        <div class="form-group">
+            <label>โรคประจำตัว</label>
+            <div class="checkbox-group">
+                <div class="checkbox-option"><input type="checkbox" name="disease" value="เบาหวาน"> เบาหวาน</div>
+                <div class="checkbox-option"><input type="checkbox" name="disease" value="ความดันโลหิตสูง"> ความดันโลหิตสูง</div>
+                <div class="checkbox-option"><input type="checkbox" name="disease" value="โรคหัวใจ"> โรคหัวใจ</div>
+                <div class="checkbox-option"><input type="checkbox" name="disease" value="อื่นๆ"> อื่นๆ <input type="text" id="diseaseOther" placeholder="ระบุ" style="width: auto; flex-grow: 1; padding: 5px;"></div>
+            </div>
+        </div>
+
+        <button type="submit" id="submitBtn">ส่งข้อมูล</button>
+        <p id="statusMessage" class="loading"></p>
+    </form>
+</div>
+
+<script>
+    // Configuration
+    const LIFF_ID = '2006915175-sbEOntce';
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxNvF1TahnR8ER2XNcrdFQrqdZsBtCrpj5GMKdBISnYORrsHsgztJPH53XQ7q1dxrs4bg/exec';
+
+    async function main() {
+        try {
+            await liff.init({ liffId: LIFF_ID });
+            if (!liff.isLoggedIn()) {
+                liff.login();
+                return;
+            }
+            const profile = await liff.getProfile();
+            document.getElementById('userId').value = profile.userId;
+        } catch (err) {
+            console.error('LIFF Init Error', err);
+            document.getElementById('statusMessage').textContent = 'Cannot connect to LINE. Please try again.';
+        }
+    }
+
+    document.getElementById('patientForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        const status = document.getElementById('statusMessage');
+        
+        btn.disabled = true;
+        btn.innerText = 'กำลังส่งข้อมูล...';
+        status.textContent = '';
+
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+
+        if (data.relationship === 'อื่นๆ') {
+             const other = document.getElementById('relationshipOther').value;
+             data.relationship = 'อื่นๆ (' + other + ')';
+        }
+
+        let diseases = [];
+        const checkboxes = document.querySelectorAll('input[name="disease"]:checked');
+        checkboxes.forEach((cb) => {
+            if (cb.value === 'อื่นๆ') {
+                const other = document.getElementById('diseaseOther').value;
+                if(other) diseases.push('อื่นๆ (' + other + ')');
+            } else {
+                diseases.push(cb.value);
+            }
+        });
+
+        // Combine DOB and Age into Details
+        // Format date to readable string if needed, or keep YYYY-MM-DD
+        const details = `วันเกิด: ${data.dob}, อายุ: ${data.age} ปี, โรคประจำตัว: ${diseases.join(', ')}`;
+
+        const payload = {
+            action: 'submitForm',
+            formType: 'DependentPatient',
+            userId: data.userId,
+            reporterName: data.reporterName,
+            reporterPhone: data.reporterPhone,
+            patientName: data.patientName,
+            relationship: data.relationship,
+            address: data.address,
+            community: data.community,
+            details: details,
+        };
+
+        try {
+            await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify(payload),
+                mode: 'no-cors'
+            });
+
+            alert('ส่งข้อมูลเรียบร้อยแล้ว');
+            liff.closeWindow();
+        } catch (error) {
+            console.error('Error:', error);
+            status.textContent = 'เกิดข้อผิดพลาดในการส่งข้อมูล';
+            btn.disabled = false;
+            btn.innerText = 'ส่งข้อมูล';
+        }
+    });
+
+    main();
+</script>
+
+</body>
+</html>
