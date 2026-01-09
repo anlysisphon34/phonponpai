@@ -1,1 +1,264 @@
-<h1>hhh</h1>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบฟอร์มขอยืมอุปกรณ์การแพทย์</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        :root {
+            --primary-color: #00B900; /* LINE Green */
+            --secondary-color: #f0f0f0;
+            --text-color: #333;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        body {
+            font-family: 'Sarabun', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 500px;
+            box-sizing: border-box;
+        }
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        input[type="text"],
+        input[type="tel"],
+        input[type="date"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus, textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        button {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #009900;
+        }
+        button:disabled {
+            background-color: #ccc;
+        }
+        .hidden {
+            display: none;
+        }
+        .loading {
+            text-align: center;
+            margin-top: 10px;
+            color: #666;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <h1>ขอยืมอุปกรณ์การแพทย์</h1>
+    <form id="equipmentForm">
+        <input type="hidden" id="userId" name="userId">
+        
+        <div class="form-group">
+            <label for="reporterName">ชื่อผู้ยืม</label>
+            <input type="text" id="reporterName" name="reporterName" required>
+        </div>
+
+        <div class="form-group">
+            <label for="reporterPhone">เบอร์โทรศัพท์</label>
+            <input type="tel" id="reporterPhone" name="reporterPhone" required>
+        </div>
+
+        <div class="form-group">
+            <label for="patientName">ชื่อผู้ป่วย</label>
+            <input type="text" id="patientName" name="patientName" required>
+        </div>
+
+        <div class="form-group">
+            <label>ความสัมพันธ์กับผู้ป่วย</label>
+            <div class="radio-group">
+                <div class="radio-option"><input type="radio" name="relationship" value="สามี/ภรรยา" checked> สามี/ภรรยา</div>
+                <div class="radio-option"><input type="radio" name="relationship" value="บุตร"> บุตร</div>
+                <div class="radio-option"><input type="radio" name="relationship" value="พี่/น้อง"> พี่/น้อง</div>
+                <div class="radio-option"><input type="radio" name="relationship" value="อื่นๆ"> อื่นๆ <input type="text" id="relationshipOther" placeholder="โปรดระบุ" style="width: auto; flex-grow: 1; padding: 5px;"></div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="address">ที่อยู่</label>
+            <textarea id="address" name="address" rows="3" required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="community">ชุมชน</label>
+            <input type="text" id="community" name="community" required>
+        </div>
+
+        <div class="form-group">
+            <label>ประเภทอุปกรณ์ที่ยืม</label>
+            <div class="radio-group">
+                <div class="radio-option">
+                    <input type="checkbox" name="equipment" value="เตียงไฟฟ้า"> เตียงไฟฟ้า 
+                    <input type="number" id="bedQty" placeholder="จำนวน" style="width: 80px; margin-left: 10px; padding: 5px;">
+                </div>
+                <div class="radio-option">
+                    <input type="checkbox" name="equipment" value="ที่นอนลม"> ที่นอนลม 
+                    <input type="number" id="mattressQty" placeholder="จำนวน" style="width: 80px; margin-left: 10px; padding: 5px;">
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" id="submitBtn">ส่งคำร้อง</button>
+        <p id="statusMessage" class="loading"></p>
+    </form>
+</div>
+
+<script>
+    // Configuration
+    const LIFF_ID = '2006915175-nbhiWCYs';
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxNvF1TahnR8ER2XNcrdFQrqdZsBtCrpj5GMKdBISnYORrsHsgztJPH53XQ7q1dxrs4bg/exec';
+
+    async function main() {
+        try {
+            await liff.init({ liffId: LIFF_ID });
+            if (!liff.isLoggedIn()) {
+                liff.login();
+                return;
+            }
+            const profile = await liff.getProfile();
+            document.getElementById('userId').value = profile.userId;
+            
+            // Auto-fill name if possible (optional)
+            // document.getElementById('reporterName').value = profile.displayName;
+        } catch (err) {
+            console.error('LIFF Init Error', err);
+            document.getElementById('statusMessage').textContent = 'Cannot connect to LINE. Please try again.';
+        }
+    }
+
+    document.getElementById('equipmentForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        const status = document.getElementById('statusMessage');
+        
+        btn.disabled = true;
+        btn.innerText = 'กำลังส่งข้อมูล...';
+        status.textContent = '';
+
+        // Gather Data
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+        
+        // Handle custom relationship
+        if (data.relationship === 'อื่นๆ') {
+             const other = document.getElementById('relationshipOther').value;
+             data.relationship = 'อื่นๆ (' + other + ')';
+        }
+
+        // Handle equipment details
+        let equipmentDetails = [];
+        const checkboxes = document.querySelectorAll('input[name="equipment"]:checked');
+        checkboxes.forEach((cb) => {
+            let qty = 0;
+            if (cb.value === 'เตียงไฟฟ้า') qty = document.getElementById('bedQty').value || 1;
+            if (cb.value === 'ที่นอนลม') qty = document.getElementById('mattressQty').value || 1;
+            equipmentDetails.push(`${cb.value} (${qty})`);
+        });
+        
+        if (equipmentDetails.length === 0) {
+            alert('กรุณาเลือกอุปกรณ์ที่ต้องการยืม');
+            btn.disabled = false;
+            btn.innerText = 'ส่งคำร้อง';
+            return;
+        }
+
+        const payload = {
+            action: 'submitForm',
+            formType: 'MedicalEquipment',
+            userId: data.userId,
+            reporterName: data.reporterName,
+            reporterPhone: data.reporterPhone,
+            patientName: data.patientName,
+            relationship: data.relationship,
+            address: data.address,
+            community: data.community,
+            details: equipmentDetails.join(', '),
+        };
+
+        try {
+            // Using fetch with no-cors or JSONP approach is common for GAS, 
+            // but standard POST usually requires text/plain to avoid CORS preflight issues if not handled strictly.
+            // We will use standard POST with text/plain.
+            
+            await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify(payload),
+                mode: 'no-cors' // Use no-cors for simplicity with GAS
+            });
+
+            // Since we use no-cors, we can't check response status easily. 
+            // We assume success if no network error.
+            alert('ส่งคำร้องเรียบร้อยแล้ว');
+            liff.closeWindow();
+        } catch (error) {
+            console.error('Error:', error);
+            status.textContent = 'เกิดข้อผิดพลาดในการส่งข้อมูล';
+            btn.disabled = false;
+            btn.innerText = 'ส่งคำร้อง';
+        }
+    });
+
+    main();
+</script>
+
+</body>
+</html>
