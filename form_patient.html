@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>แจ้งข้อมูลผู้ที่มีภาวะพึ่งพิงรายใหม่</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
             --primary-color: #00B900;
@@ -146,7 +147,23 @@
 
         <div class="form-group">
             <label for="community">ชุมชน</label>
-            <input type="text" id="community" name="community" required>
+            <select id="community" name="community" required>
+                <option value="" disabled selected>เลือกชุมชน</option>
+                <option value="ชุมชนหนองแวง 1">ชุมชนหนองแวง 1</option>
+                <option value="ชุมชนหนองแวง 2">ชุมชนหนองแวง 2</option>
+                <option value="ชุมชนหนองแวง 3">ชุมชนหนองแวง 3</option>
+                <option value="ชุมชนหนองแวง 4">ชุมชนหนองแวง 4</option>
+                <option value="ชุมชนตลาดเก่า">ชุมชนตลาดเก่า</option>
+                <option value="ชุมชนทุ่งรวงทอง">ชุมชนทุ่งรวงทอง</option>
+                <option value="ชุมชนเมืองเก่า">ชุมชนเมืองเก่า</option>
+                <option value="ชุมชนเมืองพล">ชุมชนเมืองพล</option>
+                <option value="ชุมชนเมืองใหม่">ชุมชนเมืองใหม่</option>
+                <option value="ชุมชนศรีเมือง">ชุมชนศรีเมือง</option>
+                <option value="ชุมชน บ.ข.ส.มิ่งเมือง">ชุมชน บ.ข.ส.มิ่งเมือง</option>
+                <option value="ชุมชนพลประชานุกูล">ชุมชนพลประชานุกูล</option>
+                <option value="ชุมชนพลประชากลางเมือง">ชุมชนพลประชากลางเมือง</option>
+                <option value="ชุมชนพลประชาพัฒนา">ชุมชนพลประชาพัฒนา</option>
+            </select>
         </div>
 
         <div class="form-group">
@@ -236,11 +253,68 @@
                 mode: 'no-cors'
             });
 
-            alert('ส่งข้อมูลเรียบร้อยแล้ว');
-            liff.closeWindow();
+             // Send Flex Message
+            const flexMessage = {
+                type: 'flex',
+                altText: 'ข้อมูลผู้ป่วยภาวะพึ่งพิงรายใหม่',
+                contents: {
+                    type: 'bubble',
+                    header: {
+                        type: 'box',
+                        layout: 'vertical',
+                        contents: [
+                            { type: 'text', text: 'ข้อมูลผู้ป่วยภาวะพึ่งพิง', weight: 'bold', size: 'xl', color: '#00B900', align: 'center' }
+                        ]
+                    },
+                    body: {
+                        type: 'box',
+                        layout: 'vertical',
+                        spacing: 'md',
+                        contents: [
+                            { type: 'text', text: 'รายละเอียด:', weight: 'bold', size: 'sm' },
+                            { type: 'text', text: `ผู้แจ้ง: ${data.reporterName}`, size: 'sm', wrap: true },
+                            { type: 'text', text: `ผู้ป่วย: ${data.patientName}`, size: 'sm', wrap: true },
+                            { type: 'text', text: `ชุมชน: ${data.community}`, size: 'sm', wrap: true },
+                            { type: 'text', text: `โรคประจำตัว: ${diseases.join(', ')}`, size: 'sm', wrap: true, color: '#ff5500' }
+                        ]
+                    },
+                    footer: {
+                        type: 'box',
+                        layout: 'vertical',
+                        contents: [
+                            {
+                                type: 'button',
+                                style: 'primary',
+                                color: '#00B900',
+                                action: {
+                                    type: 'uri',
+                                    label: 'ติดตามสถานะ',
+                                    uri: 'https://liff.line.me/2006915175-fwQKJMr0'
+                                }
+                            }
+                        ]
+                    }
+                }
+            };
+
+            await liff.sendMessages([flexMessage]);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'ส่งข้อมูลเรียบร้อย',
+                text: 'บันทึกข้อมูลและแจ้งเตือนไปยังไลน์ของท่านแล้ว',
+                confirmButtonText: 'ปิด',
+                confirmButtonColor: '#00B900'
+            }).then(() => {
+                liff.closeWindow();
+            });
         } catch (error) {
             console.error('Error:', error);
-            status.textContent = 'เกิดข้อผิดพลาดในการส่งข้อมูล';
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: 'ไม่สามารถส่งข้อมูลได้ โปรดลองอีกครั้ง'
+            });
             btn.disabled = false;
             btn.innerText = 'ส่งข้อมูล';
         }
