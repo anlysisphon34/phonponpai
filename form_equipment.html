@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>แบบฟอร์มขอยืมอุปกรณ์การแพทย์</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
             --primary-color: #00B900; /* LINE Green */
@@ -140,7 +141,23 @@
 
         <div class="form-group">
             <label for="community">ชุมชน</label>
-            <input type="text" id="community" name="community" required>
+            <select id="community" name="community" required>
+                <option value="" disabled selected>เลือกชุมชน</option>
+                <option value="ชุมชนหนองแวง 1">ชุมชนหนองแวง 1</option>
+                <option value="ชุมชนหนองแวง 2">ชุมชนหนองแวง 2</option>
+                <option value="ชุมชนหนองแวง 3">ชุมชนหนองแวง 3</option>
+                <option value="ชุมชนหนองแวง 4">ชุมชนหนองแวง 4</option>
+                <option value="ชุมชนตลาดเก่า">ชุมชนตลาดเก่า</option>
+                <option value="ชุมชนทุ่งรวงทอง">ชุมชนทุ่งรวงทอง</option>
+                <option value="ชุมชนเมืองเก่า">ชุมชนเมืองเก่า</option>
+                <option value="ชุมชนเมืองพล">ชุมชนเมืองพล</option>
+                <option value="ชุมชนเมืองใหม่">ชุมชนเมืองใหม่</option>
+                <option value="ชุมชนศรีเมือง">ชุมชนศรีเมือง</option>
+                <option value="ชุมชน บ.ข.ส.มิ่งเมือง">ชุมชน บ.ข.ส.มิ่งเมือง</option>
+                <option value="ชุมชนพลประชานุกูล">ชุมชนพลประชานุกูล</option>
+                <option value="ชุมชนพลประชากลางเมือง">ชุมชนพลประชากลางเมือง</option>
+                <option value="ชุมชนพลประชาพัฒนา">ชุมชนพลประชาพัฒนา</option>
+            </select>
         </div>
 
         <div class="form-group">
@@ -215,11 +232,17 @@
         });
         
         if (equipmentDetails.length === 0) {
-            alert('กรุณาเลือกอุปกรณ์ที่ต้องการยืม');
+            Swal.fire({
+                icon: 'warning',
+                title: 'กรุณาเลือกอุปกรณ์',
+                text: 'กรุณาเลือกอุปกรณ์ที่ต้องการยืมอย่างน้อย 1 รายการ'
+            });
             btn.disabled = false;
             btn.innerText = 'ส่งคำร้อง';
             return;
         }
+
+        const equipmentString = equipmentDetails.join(', ');
 
         const payload = {
             action: 'submitForm',
@@ -231,27 +254,79 @@
             relationship: data.relationship,
             address: data.address,
             community: data.community,
-            details: equipmentDetails.join(', '),
+            details: equipmentString,
         };
 
         try {
-            // Using fetch with no-cors or JSONP approach is common for GAS, 
-            // but standard POST usually requires text/plain to avoid CORS preflight issues if not handled strictly.
-            // We will use standard POST with text/plain.
-            
             await fetch(GOOGLE_SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify(payload),
-                mode: 'no-cors' // Use no-cors for simplicity with GAS
+                mode: 'no-cors'
             });
 
-            // Since we use no-cors, we can't check response status easily. 
-            // We assume success if no network error.
-            alert('ส่งคำร้องเรียบร้อยแล้ว');
-            liff.closeWindow();
+            // Send Flex Message
+            const flexMessage = {
+                type: 'flex',
+                altText: 'คำร้องขอยืมอุปกรณ์การแพทย์',
+                contents: {
+                    type: 'bubble',
+                    header: {
+                        type: 'box',
+                        layout: 'vertical',
+                        contents: [
+                            { type: 'text', text: 'คำร้องขอยืมอุปกรณ์การแพทย์', weight: 'bold', size: 'xl', color: '#00B900', align: 'center' }
+                        ]
+                    },
+                    body: {
+                        type: 'box',
+                        layout: 'vertical',
+                        spacing: 'md',
+                        contents: [
+                            { type: 'text', text: 'รายละเอียด:', weight: 'bold', size: 'sm' },
+                            { type: 'text', text: `ผู้ยืม: ${data.reporterName}`, size: 'sm', wrap: true },
+                            { type: 'text', text: `เบอร์โทร: ${data.reporterPhone}`, size: 'sm', wrap: true },
+                            { type: 'text', text: `ผู้ป่วย: ${data.patientName}`, size: 'sm', wrap: true },
+                            { type: 'text', text: `อุปกรณ์: ${equipmentString}`, size: 'sm', wrap: true, color: '#ff5500' }
+                        ]
+                    },
+                    footer: {
+                        type: 'box',
+                        layout: 'vertical',
+                        contents: [
+                            {
+                                type: 'button',
+                                style: 'primary',
+                                color: '#00B900',
+                                action: {
+                                    type: 'uri',
+                                    label: 'ติดตามสถานะ',
+                                    uri: 'https://liff.line.me/2006915175-fwQKJMr0'
+                                }
+                            }
+                        ]
+                    }
+                }
+            };
+
+            await liff.sendMessages([flexMessage]);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'ส่งคำร้องเรียบร้อย',
+                text: 'บันทึกข้อมูลและแจ้งเตือนไปยังไลน์ของท่านแล้ว',
+                confirmButtonText: 'ปิด',
+                confirmButtonColor: '#00B900'
+            }).then(() => {
+                liff.closeWindow();
+            });
+
         } catch (error) {
             console.error('Error:', error);
-            status.textContent = 'เกิดข้อผิดพลาดในการส่งข้อมูล';
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: 'ไม่สามารถส่งข้อมูลได้ โปรดลองอีกครั้ง'
+            });
             btn.disabled = false;
             btn.innerText = 'ส่งคำร้อง';
         }
