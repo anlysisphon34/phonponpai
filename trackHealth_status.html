@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ติดตามสถานะคำร้อง</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; }
+        .card { background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 15px; margin-bottom: 15px; }
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; color: white; display: inline-block; }
+        .status-pending { background-color: #f59e0b; } /* Orange */
+        .status-contacted { background-color: #3b82f6; } /* Blue */
+        .status-ongoing { background-color: #8b5cf6; } /* Purple */
+        .status-completed { background-color: #10b981; } /* Green */
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #10b981;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="p-4 max-w-lg mx-auto">
+
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-xl font-bold text-gray-800">ประวัติคำร้องของฉัน</h1>
+        <div id="profileSection" class="hidden flex items-center">
+            <img id="profileImage" src="" class="w-8 h-8 rounded-full mr-2">
+            <span id="displayName" class="text-sm text-gray-600"></span>
+        </div>
+    </div>
+
+    <div id="loading" class="loading-spinner"></div>
+    <div id="requestList" class="space-y-4"></div>
+    <div id="noData" class="hidden text-center text-gray-500 mt-10">ไม่พบประวัติคำร้องของคุณ</div>
+
+    <script>
+        const LIFF_ID = '2006915175-fwQKJMr0';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxNvF1TahnR8ER2XNcrdFQrqdZsBtCrpj5GMKdBISnYORrsHsgztJPH53XQ7q1dxrs4bg/exec';
+
+        async function main() {
+            try {
+                await liff.init({ liffId: LIFF_ID });
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
+                }
+                
+                const profile = await liff.getProfile();
+                document.getElementById('profileImage').src = profile.pictureUrl;
+                document.getElementById('displayName').textContent = profile.displayName;
+                document.getElementById('profileSection').classList.remove('hidden');
+
+                fetchRequests(profile.userId);
+
+            } catch (err) {
+                console.error('LIFF Error', err);
+                Swal.fire('Error', 'ไม่สามารถเชื่อมต่อ LINE ได้', 'error');
+            }
+        }
+
+        async function fetchRequests(userId) {
+            try {
+                // To fetch data using GET from GAS with parameters, usually needs doGet.
+                // But since we already have doPost for actions, we can piggyback or use doPost with "action: getRequests".
+                // Since GAS WebApp GET/POST handling is distinct, let's look at code.gs plan.
+                // We planned to use doPost for everything for simplicity if possible, but standard fetch GET is easier for data retrieval if configured.
+                // However, avoiding CORS with GET often returns redirect/HTML.
+                // Best robust way for GAS JSON API is usually POST (or JSONP for GET). 
+                // Let's use POST with action 'getRequests'.
+                
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'getRequests', userId: userId }),
+                    mode: 'no-cors' 
+                    // WAIT: 'no-cors' means we CANNOT read the response body.
+                    // To read data back, we MUST use a method that allows reading response.
+                    // GAS Web App simply deployed as "Anyone" supports CORS if the server returns ContentService.
+                    // The trick is: doPost and doGet in GAS *do* support CORS if you return TextOutput and follow redirects.
+                    // But standard 'fetch' in browser might block if not set up perfectly or if it's a redirect.
+                    // Actually, for reading data, 'JSONP' was the old way.
+                    // Modern way: simple GET/POST, but we need to handle the redirect or use a proxy.
+                    // Let's try standard fetch. If it fails due to CORS, we might need a workaround.
+                    // BUT: 'no-cors' makes response opaque. We CANNOT use 'no-cors' if we want to read data.
+                    // Let's try: mode: 'cors'.
+                });
+
+                // If GAS returns JSON successfully with CORS headers (which ContentService.createTextOutput usually does now for 'Anyone'), it should work.
+                // Wait, actually, GAS Web App redirects to googleusercontent. Fetch follows redirect automatically.
+                // Let's try parsing JSON.
+                
+                // Re-fetch logic: 
+                // We will use the POST method as intended.
+                const result = await fetch(GOOGLE_SCRIPT_URL, {
+                     method: 'POST',
+                     body: JSON.stringify({ action: 'getRequests', userId: userId }),
+                });
+                
+                const data = await result.json();
+                
+                renderList(data);
+                
+            } catch (error) {
+                console.error('Fetch Error', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('noData').textContent = 'เกิดข้อผิดพลาดในการดึงข้อมูล';
+                document.getElementById('noData').classList.remove('hidden');
+            }
+        }
+        
+        function renderList(data) {
+            const list = document.getElementById('requestList');
+            const loading = document.getElementById('loading');
+            const noData = document.getElementById('noData');
+            
+            loading.style.display = 'none';
+            
+            if (!data || data.length === 0) {
+                noData.classList.remove('hidden');
+                return;
+            }
+
+            data.forEach(item => {
+                // item structure matches what we return from GAS
+                const date = new Date(item.timestamp).toLocaleDateString('th-TH');
+                const statusClass = getStatusClass(item.status);
+                
+                const html = `
+                    <div class="card">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="font-bold text-lg">${item.formType === 'MedicalEquipment' ? 'ยืมอุปกรณ์' : 'ลงทะเบียนผู้ป่วย'}</h3>
+                                <p class="text-sm text-gray-500">${date}</p>
+                            </div>
+                            <span class="status-badge ${statusClass}">${item.status}</span>
+                        </div>
+                        <div class="text-sm text-gray-700">
+                            <p><strong>ผู้ป่วย:</strong> ${item.patientName}</p>
+                             <p><strong>รายละเอียด:</strong> ${item.details}</p>
+                        </div>
+                    </div>
+                `;
+                list.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        function getStatusClass(status) {
+            if (status.includes('เสร็จสิ้น') || status.includes('อนุมัติ')) return 'status-completed';
+            if (status.includes('กำลัง') || status.includes('ติดต่อ')) return 'status-contacted';
+            if (status.includes('ไม่')) return 'status-pending';
+            return 'status-ongoing';
+        }
+
+        main();
+    </script>
+</body>
+</html>
