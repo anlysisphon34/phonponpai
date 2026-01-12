@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สมองไว แยกสี - สมองดี มีสุข</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Kanit', sans-serif; }
+        .animate-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes pop {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-red-900 via-pink-900 to-purple-900 min-h-screen text-white select-none overflow-hidden text-center">
+
+    <div class="max-w-md mx-auto h-screen flex flex-col relative shadow-2xl bg-black/20">
+        
+        <!-- Header -->
+        <header class="p-4 bg-white/10 backdrop-blur-md border-b border-white/10 z-10">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-pink-300/20 p-2 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-pink-300"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+                    </div>
+                    <div class="text-left">
+                        <h1 class="text-xl font-bold leading-none">สมองไว แยกสี</h1>
+                        <p class="text-xs text-white/60 font-light">สมองดี มีสุข</p>
+                    </div>
+                </div>
+                <button id="soundBtn" class="p-2 rounded-full hover:bg-white/10 transition-colors" onclick="toggleSound()">
+                    <svg id="soundOnIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+                    <svg id="soundOffIcon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats Bar -->
+        <div class="grid grid-cols-3 gap-2 p-3 text-center text-sm">
+            <div class="bg-white/5 rounded-xl p-2 border border-white/5">
+                <div class="text-white/50 text-[10px] uppercase tracking-wider">LEVEL</div>
+                <div id="levelDisplay" class="text-xl font-bold text-blue-300">1</div>
+            </div>
+            <div class="bg-white/5 rounded-xl p-2 border border-white/5">
+                <div class="text-white/50 text-[10px] uppercase tracking-wider">SCORE</div>
+                <div id="scoreDisplay" class="text-xl font-bold text-green-300">0</div>
+            </div>
+            <div class="bg-white/5 rounded-xl p-2 border border-white/5">
+                <div class="text-white/50 text-[10px] uppercase tracking-wider">HIGH</div>
+                <div id="highScoreDisplay" class="text-xl font-bold text-yellow-300">0</div>
+            </div>
+        </div>
+
+        <!-- Main Game Area -->
+        <main id="gameArea" class="flex-1 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+            
+            <!-- VIEW: MENU -->
+            <div id="viewMenu" class="text-center w-full max-w-xs fade-in">
+                <div class="w-32 h-32 mx-auto bg-gradient-to-tr from-pink-400 to-red-500 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(236,72,153,0.4)] mb-8 animate-pop">
+                    <span class="text-6xl">🎨</span>
+                </div>
+                <h2 class="text-3xl font-bold mb-2">ตาดี แยกสีถูก</h2>
+                <p class="text-white/70 mb-8">ความหมายของคำ ตรงกับสีของตัวอักษรหรือไม่?</p>
+                <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-pink-500 to-red-600 hover:from-pink-400 hover:to-red-500 text-white text-xl font-bold rounded-2xl shadow-lg transform active:scale-95 transition-all mb-4 border border-white/20">
+                    เริ่มเล่นเกม
+                </button>
+                <div class="text-xs text-white/40">เทศบาลเมืองเมืองพล</div>
+            </div>
+
+            <!-- VIEW: GAME -->
+            <div id="viewGame" class="hidden w-full h-full flex flex-col items-center justify-between pb-8 fade-in">
+                
+                <div class="flex-1 flex flex-col items-center justify-center w-full">
+                    <div class="text-white/50 mb-8 text-xl">ความหมาย = สี?</div>
+                    
+                     <!-- Main Word -->
+                    <div id="wordContainer" class="bg-white w-full py-16 rounded-3xl shadow-2xl mb-8 transform transition-all duration-100">
+                         <h1 id="wordDisplay" class="text-6xl font-black tracking-wider">แดง</h1>
+                    </div>
+                    
+                    <!-- Timer Bar -->
+                    <div class="w-full max-w-[200px] h-2 bg-white/10 rounded-full mx-auto overflow-hidden">
+                        <div id="timerBar" class="h-full bg-yellow-400 w-full"></div>
+                    </div>
+                </div>
+
+                <!-- Input Buttons -->
+                <div class="grid grid-cols-2 gap-4 w-full max-w-sm">
+                    <button onclick="answer(false)" class="bg-red-500 hover:bg-red-400 p-6 rounded-2xl shadow-lg active:scale-95 transition-all group">
+                         <div class="text-3xl mb-1 group-hover:scale-110 transition-transform">❌</div>
+                         <div class="text-xl font-bold">ไม่ตรง</div>
+                    </button>
+                    <button onclick="answer(true)" class="bg-green-500 hover:bg-green-400 p-6 rounded-2xl shadow-lg active:scale-95 transition-all group">
+                         <div class="text-3xl mb-1 group-hover:scale-110 transition-transform">✅</div>
+                         <div class="text-xl font-bold">ตรงกัน</div>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- VIEW: FEEDBACK -->
+            <div id="viewFeedback" class="hidden text-center fade-in absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
+                <div class="p-8 rounded-3xl bg-white/10 border border-white/20 max-w-xs w-full mx-4">
+                    <div id="feedbackIcon" class="text-6xl mb-4 animate-pop"></div>
+                    <h2 id="feedbackTitle" class="text-3xl font-bold mb-2"></h2>
+                    <p id="feedbackMessage" class="text-white/70 mb-6"></p>
+                    <button id="feedbackAction" onclick="nextAction()" class="w-full py-3 bg-white text-blue-900 font-bold rounded-xl hover:bg-gray-100 transition"></button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+<script>
+    // --- STATE ---
+    let gameState = {
+        level: 1,
+        score: 0,
+        highScore: localStorage.getItem('colorMatchHiScore') || 0,
+        isPlaying: false,
+        currentTime: 0,
+        maxTime: 0,
+        timerInterval: null,
+        currentRound: {
+            text: '',
+            colorClass: '',
+            isMatch: false
+        }
+    };
+
+    let audioEnabled = true;
+
+    // --- DATA ---
+    const COLORS = [
+        { name: 'แดง', class: 'text-red-500' },
+        { name: 'น้ำเงิน', class: 'text-blue-500' },
+        { name: 'เขียว', class: 'text-green-500' },
+        { name: 'เหลือง', class: 'text-yellow-400' }, // Adjusted for visibility
+        { name: 'ส้ม', class: 'text-orange-500' },
+        { name: 'ม่วง', class: 'text-purple-500' },
+        { name: 'ดำ', class: 'text-black' },
+        { name: 'ชมพู', class: 'text-pink-500' }
+    ];
+
+    // --- DOM ---
+    const views = {
+        menu: document.getElementById('viewMenu'),
+        game: document.getElementById('viewGame'),
+        feedback: document.getElementById('viewFeedback')
+    };
+    const display = {
+        level: document.getElementById('levelDisplay'),
+        score: document.getElementById('scoreDisplay'),
+        highScore: document.getElementById('highScoreDisplay'),
+        word: document.getElementById('wordDisplay'),
+        timer: document.getElementById('timerBar'),
+        wordContainer: document.getElementById('wordContainer')
+    };
+
+    // --- INIT ---
+    updateDisplay();
+
+    // --- LOGIC ---
+    function toggleSound() {
+        audioEnabled = !audioEnabled;
+        document.getElementById('soundOnIcon').classList.toggle('hidden');
+        document.getElementById('soundOffIcon').classList.toggle('hidden');
+    }
+
+    function switchView(viewName) {
+        Object.values(views).forEach(el => el.classList.add('hidden'));
+        views[viewName].classList.remove('hidden');
+    }
+
+    function startGame() {
+        gameState.level = 1;
+        gameState.score = 0;
+        updateDisplay();
+        startLevel();
+    }
+
+    function startLevel() {
+        gameState.isPlaying = true;
+        switchView('game');
+        nextRound();
+    }
+
+    function nextRound() {
+        if (!gameState.isPlaying) return;
+
+        // Difficulty: Time decreases as level increases
+        // Level 1: 5s, Level 10: 2s
+        const baseTime = 5000;
+        const minTime = 1500;
+        gameState.maxTime = Math.max(baseTime - ((gameState.level - 1) * 300), minTime);
+        gameState.currentTime = gameState.maxTime;
+
+        // Generate Round Data
+        generateStroop();
+        renderRound();
+        startTimer();
+    }
+
+    function generateStroop() {
+        // Decide if match or not (50% chance)
+        const shouldMatch = Math.random() > 0.5;
+        
+        // Pick a random text meaning
+        const textIdx = Math.floor(Math.random() * COLORS.length);
+        const textItem = COLORS[textIdx];
+
+        let colorItem;
+        if (shouldMatch) {
+            colorItem = textItem;
+        } else {
+            // Pick a different color
+            let colorIdx;
+            do {
+                colorIdx = Math.floor(Math.random() * COLORS.length);
+            } while (colorIdx === textIdx);
+            colorItem = COLORS[colorIdx];
+        }
+
+        gameState.currentRound = {
+            text: textItem.name,
+            colorClass: colorItem.class,
+            isMatch: shouldMatch
+        };
+    }
+
+    function renderRound() {
+        // Animate new card
+        display.wordContainer.classList.remove('scale-100');
+        display.wordContainer.classList.add('scale-90', 'opacity-50');
+        
+        setTimeout(() => {
+            display.word.textContent = gameState.currentRound.text;
+            // Remove old color classes
+            COLORS.forEach(c => display.word.classList.remove(c.class));
+            // Add new color class
+            display.word.classList.add(gameState.currentRound.colorClass);
+            
+            display.wordContainer.classList.remove('scale-90', 'opacity-50');
+            display.wordContainer.classList.add('scale-100');
+        }, 50);
+    }
+
+    function startTimer() {
+        if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+        
+        display.timer.style.transition = 'none';
+        display.timer.style.width = '100%';
+        
+        // Force reflow
+        void display.timer.offsetWidth;
+        
+        display.timer.style.transition = `width ${gameState.maxTime}ms linear`;
+        display.timer.style.width = '0%';
+
+        gameState.timerInterval = setTimeout(() => {
+            handleLoss(true); // Timeout
+        }, gameState.maxTime);
+    }
+
+    function answer(userAnswer) {
+        if (!gameState.isPlaying) return;
+        clearInterval(gameState.timerInterval);
+
+        if (userAnswer === gameState.currentRound.isMatch) {
+            handleWin();
+        } else {
+            handleLoss(false);
+        }
+    }
+
+    function handleWin() {
+        const bonus = 10 * gameState.level;
+        gameState.score += 100 + bonus;
+        gameState.level++;
+        updateDisplay();
+        
+        // Small delay before next round
+        setTimeout(nextRound, 200);
+    }
+
+    function handleLoss(isTimeout) {
+        gameState.isPlaying = false;
+        clearInterval(gameState.timerInterval);
+        
+        if (gameState.score > gameState.highScore) {
+            gameState.highScore = gameState.score;
+            localStorage.setItem('colorMatchHiScore', gameState.highScore);
+        }
+        updateDisplay();
+        showFeedback(false, isTimeout);
+    }
+
+    function showFeedback(isWin, isTimeout) {
+        const fb = views.feedback;
+        const icon = document.getElementById('feedbackIcon');
+        const title = document.getElementById('feedbackTitle');
+        const msg = document.getElementById('feedbackMessage');
+        const btn = document.getElementById('feedbackAction');
+
+        icon.textContent = isWin ? '🌟' : '❌';
+        title.textContent = isWin ? 'ยอดเยี่ยม!' : (isTimeout ? 'หมดเวลา!' : 'ผิดพลาด!');
+        title.className = isWin ? 'text-3xl font-bold mb-2 text-green-400' : 'text-3xl font-bold mb-2 text-red-400';
+        
+        if (isWin) {
+             msg.textContent = 'ไปต่อกันเลย';
+             btn.textContent = 'ด่านต่อไป';
+        } else {
+             msg.textContent = `จบเกมที่ด่าน ${gameState.level} คะแนน ${gameState.score}`;
+             btn.textContent = 'เล่นใหม่';
+        }
+        
+        btn.onclick = () => {
+            fb.classList.add('hidden');
+            if (isWin) nextRound();
+            else startGame();
+        };
+
+        fb.classList.remove('hidden');
+    }
+
+    function nextAction() {
+        // handled in showFeedback
+    }
+
+    function updateDisplay() {
+        display.level.textContent = gameState.level;
+        display.score.textContent = gameState.score;
+        display.highScore.textContent = gameState.highScore;
+    }
+</script>
+</body>
+</html>
