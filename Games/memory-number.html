@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สมองไว จำเลข - สมองดี มีสุข</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+        }
+        .animate-pop {
+            animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes pop {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1); 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3); 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5); 
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900 min-h-screen text-white select-none overflow-hidden">
+
+    <div class="max-w-md mx-auto h-screen flex flex-col relative shadow-2xl bg-black/20">
+        
+        <!-- Header -->
+        <header class="p-4 bg-white/10 backdrop-blur-md border-b border-white/10 z-10">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-yellow-300/20 p-2 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-yellow-300"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"></path><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"></path><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"></path></svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold leading-none">สมองไว จำเลข</h1>
+                        <p class="text-xs text-white/60 font-light">สมองดี มีสุข</p>
+                    </div>
+                </div>
+                <!-- Sound Toggle -->
+                <button id="soundBtn" class="p-2 rounded-full hover:bg-white/10 transition-colors" onclick="toggleSound()">
+                    <svg id="soundOnIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+                    <svg id="soundOffIcon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats Bar -->
+        <div class="grid grid-cols-3 gap-2 p-3 text-center text-sm">
+            <div class="bg-white/5 rounded-xl p-2 border border-white/5">
+                <div class="text-white/50 text-[10px] uppercase tracking-wider">LEVEL</div>
+                <div id="levelDisplay" class="text-xl font-bold text-blue-300">1</div>
+            </div>
+            <div class="bg-white/5 rounded-xl p-2 border border-white/5">
+                <div class="text-white/50 text-[10px] uppercase tracking-wider">SCORE</div>
+                <div id="scoreDisplay" class="text-xl font-bold text-green-300">0</div>
+            </div>
+            <div class="bg-white/5 rounded-xl p-2 border border-white/5">
+                <div class="text-white/50 text-[10px] uppercase tracking-wider">HIGH</div>
+                <div id="highScoreDisplay" class="text-xl font-bold text-yellow-300">0</div>
+            </div>
+        </div>
+
+        <!-- Main Game Area -->
+        <main id="gameArea" class="flex-1 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+            
+            <!-- VIEW: MENU -->
+            <div id="viewMenu" class="text-center w-full max-w-xs fade-in">
+                <div class="w-32 h-32 mx-auto bg-gradient-to-tr from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(251,191,36,0.4)] mb-8 animate-pop">
+                    <span class="text-6xl">🧠</span>
+                </div>
+                <h2 class="text-3xl font-bold mb-2">พร้อมไหม?</h2>
+                <p class="text-white/70 mb-8">จดจำตัวเลข แล้วกดตามลำดับให้ถูกต้อง</p>
+                
+                <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white text-xl font-bold rounded-2xl shadow-lg transform active:scale-95 transition-all mb-4 border border-white/20">
+                    เริ่มเล่นเกม
+                </button>
+                <div class="text-xs text-white/40">เทศบาลเมืองเมืองพล</div>
+            </div>
+
+            <!-- VIEW: MEMORIZE (Show Number) -->
+            <div id="viewMemorize" class="hidden text-center fade-in w-full">
+                <div class="text-white/50 mb-8 text-lg font-light tracking-widest uppercase">จำตัวเลข...</div>
+                
+                <!-- Number Container -->
+                <div id="numberContainer" class="flex flex-wrap items-center justify-center gap-4 min-h-[120px]">
+                    <!-- JS will inject numbers here -->
+                </div>
+
+                <!-- Timer Bar -->
+                <div class="w-full max-w-[200px] h-2 bg-white/10 rounded-full mt-12 mx-auto overflow-hidden">
+                    <div id="timerBar" class="h-full bg-yellow-400 w-full transition-all duration-100 ease-linear"></div>
+                </div>
+            </div>
+
+            <!-- VIEW: INPUT -->
+            <div id="viewInput" class="hidden w-full max-w-xs fade-in flex flex-col h-full justify-between pb-4">
+                <div class="flex-1 flex flex-col justify-center">
+                    <div class="text-center mb-6">
+                        <div class="text-white/50 text-sm mb-2">ใส่ตัวเลขตามลำดับ</div>
+                        <div id="inputParamsDisplay" class="flex justify-center flex-wrap gap-2 min-h-[50px]">
+                            <!-- Input dots/numbers will appear here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Keypad -->
+                <div class="grid grid-cols-3 gap-3 w-full max-w-[280px] mx-auto">
+                    <!-- 1-9 -->
+                    <button onclick="inputDigit(1)" class="aspect-square rounded-2xl bg-white/10 hover:bg-white/20 active:bg-white/30 text-2xl font-bold transition-all border border-white/5">1</button>
+                    <button onclick="inputDigit(2)" class="aspect-square rounded-2xl bg-white/10 hover:bg-white/20 active:bg-white/30 text-2xl font-bold transition-all border border-white/5">2</button>
+                    <button onclick="inputDigit(3)" class="aspect-square rounded-2xl bg-white/10 hover:bg-white/20 active:bg-white/30 text-2xl font-bold transition-all border border-white/5">3</button>
+                    <button onclick="inputDigit(4)" class="aspect-square rounded-2xl bg-white/10 hover:bg-white/20 active:bg-white/30 text-2xl font-bold transition-all border border-white/5">4</button>
+                    <button onclick="inputDigit(5)" class="aspect-square rounded-2xl bg-white/10 hover:bg-white/20 active:bg-white/30 text-2xl font-bold transition-all border border-white/5">5</button>
+                    <button onclick="inputDigit(6)" class="aspect-square rounded-2xl bg-white/10 hover:bg-white/20 active:bg-white/30 text-2xl font-bold transition-all border border-white/5">6</button>
+                    <button onclick="inputDigit(7)" class="aspect-square rounded-2xl bg-white/10 hover:bg-white/20 active:bg-white/30 text-2xl font-bold transition-all border border-white/5">7</button>
+                    <button onclick="inputDigit(8)" class="aspect-square rounded-2xl bg-white/10 hover:bg-white/20 active:bg-white/30 text-2xl font-bold transition-all border border-white/5">8</button>
+                    <button onclick="inputDigit(9)" class="aspect-square rounded-2xl bg-white/10 hover:bg-white/20 active:bg-white/30 text-2xl font-bold transition-all border border-white/5">9</button>
+                    
+                    <!-- Bottom Row -->
+                    <button onclick="backspace()" class="aspect-square rounded-2xl bg-red-500/20 hover:bg-red-500/30 text-red-300 transition-all flex items-center justify-center border border-red-500/10">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
+                    </button>
+                    <button onclick="inputDigit(0)" class="aspect-square rounded-2xl bg-white/10 hover:bg-white/20 active:bg-white/30 text-2xl font-bold transition-all border border-white/5">0</button>
+                    <button onclick="submitAnswer()" class="aspect-square rounded-2xl bg-green-500 hover:bg-green-400 text-white transition-all flex items-center justify-center shadow-lg shadow-green-500/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- VIEW: FEEDBACK (Correct/Incorrect) -->
+            <div id="viewFeedback" class="hidden text-center fade-in absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
+                <div class="p-8 rounded-3xl bg-white/10 border border-white/20 max-w-xs w-full mx-4">
+                    <div id="feedbackIcon" class="text-6xl mb-4 animate-pop"></div>
+                    <h2 id="feedbackTitle" class="text-3xl font-bold mb-2"></h2>
+                    <p id="feedbackMessage" class="text-white/70 mb-6"></p>
+                    <button id="feedbackAction" onclick="nextAction()" class="w-full py-3 bg-white text-blue-900 font-bold rounded-xl hover:bg-gray-100 transition"></button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+<script>
+    // --- STATE ---
+    let gameState = {
+        level: 1,
+        score: 0,
+        highScore: localStorage.getItem('memoryGameHighScore') || 0,
+        sequence: [],
+        userInput: [],
+        showingNumbers: false
+    };
+
+    let audioEnabled = true;
+
+    // --- DOM ELEMENTS ---
+    const views = {
+        menu: document.getElementById('viewMenu'),
+        memorize: document.getElementById('viewMemorize'),
+        input: document.getElementById('viewInput'),
+        feedback: document.getElementById('viewFeedback')
+    };
+
+    const display = {
+        level: document.getElementById('levelDisplay'),
+        score: document.getElementById('scoreDisplay'),
+        highScore: document.getElementById('highScoreDisplay'),
+        numberContainer: document.getElementById('numberContainer'),
+        timerBar: document.getElementById('timerBar'),
+        inputParams: document.getElementById('inputParamsDisplay'),
+        feedbackIcon: document.getElementById('feedbackIcon'),
+        feedbackTitle: document.getElementById('feedbackTitle'),
+        feedbackMessage: document.getElementById('feedbackMessage'),
+        feedbackAction: document.getElementById('feedbackAction')
+    };
+
+    // --- INITIALIZATION ---
+    updateDisplay();
+
+    // --- GAME LOGIC ---
+
+    function toggleSound() {
+        audioEnabled = !audioEnabled;
+        document.getElementById('soundOnIcon').classList.toggle('hidden');
+        document.getElementById('soundOffIcon').classList.toggle('hidden');
+    }
+
+    function playSound(type) {
+        if (!audioEnabled) return;
+        // Simple synth sounds using Web Audio API would go here, 
+        // to keep it simple and file-contained, we'll skip complex audio loading
+        // or use very short beeps if requested.
+    }
+
+    function switchView(viewName) {
+        Object.values(views).forEach(el => el.classList.add('hidden'));
+        views[viewName].classList.remove('hidden');
+    }
+
+    function startGame() {
+        gameState.level = 1;
+        gameState.score = 0;
+        gameState.sequence = [];
+        updateDisplay();
+        startLevel();
+    }
+
+    function startLevel() {
+        // Difficulty Logic:
+        // Level 1-2: 3 digits, slow time
+        // Level 3-5: 4-5 digits
+        // Level 6+: More digits, faster time
+        
+        const digitCount = Math.min(3 + Math.floor(gameState.level / 2), 12);
+        const displayTime = Math.max(3000 - (gameState.level * 100), 1000); // Faster each level, min 1s
+        
+        // Generate Sequence
+        gameState.sequence = [];
+        for (let i = 0; i < digitCount; i++) {
+            gameState.sequence.push(Math.floor(Math.random() * 10));
+        }
+        
+        gameState.userInput = [];
+        gameState.showingNumbers = true;
+        
+        showMemorizePhase(displayTime);
+    }
+
+    function showMemorizePhase(duration) {
+        switchView('memorize');
+        display.numberContainer.innerHTML = '';
+        
+        // Render numbers
+        gameState.sequence.forEach((num, index) => {
+            const el = document.createElement('div');
+            el.className = 'w-16 h-20 bg-white text-blue-900 rounded-xl flex items-center justify-center text-4xl font-bold shadow-lg animate-pop';
+            el.style.animationDelay = `${index * 0.1}s`;
+            el.textContent = num;
+            display.numberContainer.appendChild(el);
+        });
+
+        // Timer animation
+        display.timerBar.style.transition = 'none';
+        display.timerBar.style.width = '100%';
+        
+        // Force reflow
+        void display.timerBar.offsetWidth;
+
+        display.timerBar.style.transition = `width ${duration}ms linear`;
+        display.timerBar.style.width = '0%';
+
+        setTimeout(() => {
+            showInputPhase();
+        }, duration);
+    }
+
+    function showInputPhase() {
+        gameState.showingNumbers = false;
+        switchView('input');
+        renderInputDisplay();
+    }
+
+    function inputDigit(digit) {
+        if (gameState.userInput.length < gameState.sequence.length) {
+            gameState.userInput.push(digit);
+            renderInputDisplay();
+        }
+    }
+
+    function backspace() {
+        gameState.userInput.pop();
+        renderInputDisplay();
+    }
+
+    function renderInputDisplay() {
+        display.inputParams.innerHTML = '';
+        const totalLen = gameState.sequence.length;
+        
+        for (let i = 0; i < totalLen; i++) {
+            const hasVal = i < gameState.userInput.length;
+            const el = document.createElement('div');
+            // Dots style
+            if (hasVal) {
+                el.className = 'w-4 h-4 rounded-full bg-white animate-pop border border-white/20';
+            } else {
+                el.className = 'w-4 h-4 rounded-full bg-white/10 border border-white/20';
+            }
+            display.inputParams.appendChild(el);
+        }
+
+        // Enable/Disable Submit logic if needed, but we allow user to submit anytime or auto?
+        // Let's rely on manual submit button for better UX.
+    }
+
+    function submitAnswer() {
+        if (gameState.userInput.length === 0) return;
+
+        // Check Logic
+        const isCorrect = JSON.stringify(gameState.userInput) === JSON.stringify(gameState.sequence);
+        
+        if (isCorrect) {
+            handleWin();
+        } else {
+            handleLoss();
+        }
+    }
+
+    function handleWin() {
+        const bonus = 10 * gameState.level;
+        gameState.score += 100 + bonus;
+        gameState.level++;
+        updateDisplay();
+        
+        showFeedback(true);
+    }
+
+    function handleLoss() {
+        // Update High Score
+        if (gameState.score > gameState.highScore) {
+            gameState.highScore = gameState.score;
+            localStorage.setItem('memoryGameHighScore', gameState.highScore);
+        }
+        updateDisplay();
+        showFeedback(false);
+    }
+
+    function showFeedback(isWin) {
+        display.feedbackIcon.textContent = isWin ? '🎉' : '❌';
+        display.feedbackTitle.textContent = isWin ? 'ถูกต้อง!' : 'ผิดพลาด!';
+        display.feedbackTitle.className = isWin ? 'text-3xl font-bold mb-2 text-green-400' : 'text-3xl font-bold mb-2 text-red-400';
+        
+        if (isWin) {
+            display.feedbackMessage.textContent = 'ยอดเยี่ยมมาก ไปลุยด่านต่อไปกันเลย';
+            display.feedbackAction.textContent = 'ด่านต่อไป';
+            display.feedbackAction.onclick = () => {
+                views.feedback.classList.add('hidden');
+                startLevel();
+            };
+        } else {
+            display.feedbackMessage.innerHTML = `คำตอบที่ถูกคือ: <span class="text-yellow-300 font-bold text-xl block mt-2 tracking-[0.5em]">${gameState.sequence.join('')}</span>`;
+            display.feedbackAction.textContent = 'ลองอีกครั้ง';
+            display.feedbackAction.onclick = () => {
+                views.feedback.classList.add('hidden');
+                startGame(); // Restart from level 1
+            };
+        }
+        
+        views.feedback.classList.remove('hidden');
+    }
+
+    function nextAction() {
+        // Placeholder, logic handled in showFeedback
+    }
+
+    function updateDisplay() {
+        display.level.textContent = gameState.level;
+        display.score.textContent = gameState.score;
+        display.highScore.textContent = gameState.highScore;
+    }
+
+</script>
+</body>
+</html>
