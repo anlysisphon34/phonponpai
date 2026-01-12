@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สมองไว จำภาพ - สมองดี มีสุข</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Kanit', sans-serif; }
+        .animate-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes pop {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-flip { animation: flip 0.6s; }
+        @keyframes flip {
+            0% { transform: rotateY(0); }
+            100% { transform: rotateY(180deg); }
+        }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .tile-active { background-color: #3b82f6; box-shadow: 0 0 15px #3b82f6; border-color: #60a5fa; }
+        .tile-error { background-color: #ef4444 !important; }
+        .tile-success { background-color: #22c55e !important; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 min-h-screen text-white select-none overflow-hidden text-center">
+
+    <div class="max-w-md mx-auto h-screen flex flex-col relative shadow-2xl bg-black/20">
+        
+        <!-- Header -->
+        <header class="p-4 bg-white/10 backdrop-blur-md border-b border-white/10 z-10">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-300/20 p-2 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-blue-300"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><rect width="7" height="7" x="3" y="3"/><rect width="7" height="7" x="14" y="3"/><rect width="7" height="7" x="14" y="14"/><rect width="7" height="7" x="3" y="14"/></svg>
+                    </div>
+                    <div class="text-left">
+                        <h1 class="text-xl font-bold leading-none">สมองไว จำภาพ</h1>
+                        <p class="text-xs text-white/60 font-light">สมองดี มีสุข</p>
+                    </div>
+                </div>
+                <button id="soundBtn" class="p-2 rounded-full hover:bg-white/10 transition-colors" onclick="toggleSound()">
+                    <svg id="soundOnIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+                    <svg id="soundOffIcon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats Bar -->
+        <div class="grid grid-cols-3 gap-2 p-3 text-center text-sm">
+            <div class="bg-white/5 rounded-xl p-2 border border-white/5">
+                <div class="text-white/50 text-[10px] uppercase tracking-wider">LEVEL</div>
+                <div id="levelDisplay" class="text-xl font-bold text-blue-300">1</div>
+            </div>
+            <div class="bg-white/5 rounded-xl p-2 border border-white/5">
+                <div class="text-white/50 text-[10px] uppercase tracking-wider">SCORE</div>
+                <div id="scoreDisplay" class="text-xl font-bold text-green-300">0</div>
+            </div>
+            <div class="bg-white/5 rounded-xl p-2 border border-white/5">
+                <div class="text-white/50 text-[10px] uppercase tracking-wider">HIGH</div>
+                <div id="highScoreDisplay" class="text-xl font-bold text-yellow-300">0</div>
+            </div>
+        </div>
+
+        <!-- Main Game Area -->
+        <main id="gameArea" class="flex-1 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+            
+            <!-- VIEW: MENU -->
+            <div id="viewMenu" class="text-center w-full max-w-xs fade-in">
+                <div class="w-32 h-32 mx-auto bg-gradient-to-tr from-blue-400 to-indigo-500 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.4)] mb-8 animate-pop">
+                    <span class="text-6xl">▦</span>
+                </div>
+                <h2 class="text-3xl font-bold mb-2">ตาไว จำแม่น</h2>
+                <p class="text-white/70 mb-8">จำตำแหน่งภาพที่สว่างขึ้น แล้วกดตามให้ครบ</p>
+                <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white text-xl font-bold rounded-2xl shadow-lg transform active:scale-95 transition-all mb-4 border border-white/20">
+                    เริ่มเล่นเกม
+                </button>
+                <div class="text-xs text-white/40">เทศบาลเมืองเมืองพล</div>
+            </div>
+
+            <!-- VIEW: GAME GRID -->
+            <div id="viewGame" class="hidden w-full h-full flex flex-col items-center justify-center fade-in">
+                 <div id="gridContainer" class="grid gap-3 transition-all duration-300 p-4 bg-white/5 rounded-2xl border border-white/10 shadow-2xl">
+                    <!-- Tiles will be injected here -->
+                 </div>
+                 <div id="statusText" class="mt-8 text-xl text-blue-200 font-semibold h-8">จำตำแหน่ง...</div>
+            </div>
+
+            <!-- VIEW: FEEDBACK -->
+            <div id="viewFeedback" class="hidden text-center fade-in absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
+                <div class="p-8 rounded-3xl bg-white/10 border border-white/20 max-w-xs w-full mx-4">
+                    <div id="feedbackIcon" class="text-6xl mb-4 animate-pop"></div>
+                    <h2 id="feedbackTitle" class="text-3xl font-bold mb-2"></h2>
+                    <p id="feedbackMessage" class="text-white/70 mb-6"></p>
+                    <button id="feedbackAction" onclick="nextAction()" class="w-full py-3 bg-white text-blue-900 font-bold rounded-xl hover:bg-gray-100 transition"></button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+<script>
+    // --- STATE ---
+    let gameState = {
+        level: 1,
+        score: 0,
+        highScore: localStorage.getItem('memoryGridHiScore') || 0,
+        gridSize: 3, // 3x3
+        patternLength: 3,
+        pattern: [],
+        userInput: [],
+        canInput: false
+    };
+
+    let audioEnabled = true;
+
+    // --- DOM ---
+    const gridContainer = document.getElementById('gridContainer');
+    const statusText = document.getElementById('statusText');
+    const views = {
+        menu: document.getElementById('viewMenu'),
+        game: document.getElementById('viewGame'),
+        feedback: document.getElementById('viewFeedback')
+    };
+    const display = {
+        level: document.getElementById('levelDisplay'),
+        score: document.getElementById('scoreDisplay'),
+        highScore: document.getElementById('highScoreDisplay')
+    };
+
+    // --- INIT ---
+    updateDisplay();
+
+    // --- LOGIC ---
+    function toggleSound() {
+        audioEnabled = !audioEnabled;
+        document.getElementById('soundOnIcon').classList.toggle('hidden');
+        document.getElementById('soundOffIcon').classList.toggle('hidden');
+    }
+
+    function switchView(viewName) {
+        Object.values(views).forEach(el => el.classList.add('hidden'));
+        views[viewName].classList.remove('hidden');
+    }
+
+    function startGame() {
+        gameState.level = 1;
+        gameState.score = 0;
+        updateDisplay();
+        startLevel();
+    }
+
+    function startLevel() {
+        // Calculate Difficulty
+        // Level 1-2: 3x3, 3 items
+        // Level 3-5: 4x4, 4-5 items
+        // Level 6+: 5x5, 5+ items
+        if(gameState.level <= 2) {
+            gameState.gridSize = 3;
+            gameState.patternLength = 3 + (gameState.level - 1); // 3, 4
+        } else if (gameState.level <= 5) {
+            gameState.gridSize = 4;
+            gameState.patternLength = 4 + (gameState.level - 3); // 4, 5, 6
+        } else {
+            gameState.gridSize = 5;
+            gameState.patternLength = 5 + Math.floor((gameState.level - 6)/2); // 5, 5, 6, 6...
+        }
+
+        gameState.pattern = [];
+        gameState.userInput = [];
+        gameState.canInput = false;
+        
+        // Generate Grid
+        renderGrid();
+        
+        switchView('game');
+        statusText.textContent = "จำตำแหน่ง...";
+        statusText.className = "mt-8 text-xl text-blue-200 font-semibold h-8";
+
+        // Generate Pattern
+        const totalTiles = gameState.gridSize * gameState.gridSize;
+        const available = Array.from({length: totalTiles}, (_, i) => i);
+        
+        // Shuffle and pick
+        for(let i=0; i<gameState.patternLength; i++) {
+            const idx = Math.floor(Math.random() * available.length);
+            gameState.pattern.push(available[idx]);
+            available.splice(idx, 1);
+        }
+
+        // Play sequence
+        setTimeout(() => showPattern(), 1000);
+    }
+
+    function renderGrid() {
+        gridContainer.style.gridTemplateColumns = `repeat(${gameState.gridSize}, 1fr)`;
+        gridContainer.innerHTML = '';
+        
+        const totalTiles = gameState.gridSize * gameState.gridSize;
+        for(let i=0; i<totalTiles; i++) {
+            const tile = document.createElement('div');
+            // Size adjustments based on grid size
+            const size = gameState.gridSize === 3 ? 'w-20 h-20' : (gameState.gridSize === 4 ? 'w-16 h-16' : 'w-12 h-12');
+            
+            tile.className = `${size} bg-white/10 rounded-lg cursor-pointer transition-all duration-200 active:scale-95 border border-white/5 hover:bg-white/20`;
+            tile.dataset.index = i;
+            tile.onclick = () => handleTileClick(i, tile);
+            gridContainer.appendChild(tile);
+        }
+    }
+
+    function showPattern() {
+        let tiles = gridContainer.children;
+        // Blink all correct tiles simultaneously
+        gameState.pattern.forEach(idx => {
+            tiles[idx].classList.add('tile-active');
+        });
+
+        setTimeout(() => {
+            gameState.pattern.forEach(idx => {
+                tiles[idx].classList.remove('tile-active');
+            });
+            startInputPhase();
+        }, 1500 + (gameState.level * 100)); // Show longer for higher levels or fixed? Let's do 1.5s base
+    }
+
+    function startInputPhase() {
+        gameState.canInput = true;
+        statusText.textContent = "กดตามตำแหน่ง";
+        statusText.className = "mt-8 text-xl text-green-300 font-bold h-8 animate-pulse";
+    }
+
+    function handleTileClick(index, tileEl) {
+        if (!gameState.canInput) return;
+        
+        // Prevent double matching
+        if (gameState.userInput.includes(index)) return;
+
+        // Check if correct
+        if (gameState.pattern.includes(index)) {
+            // Correct
+            tileEl.classList.add('tile-active');
+            gameState.userInput.push(index);
+            
+            // Check win
+            if (gameState.userInput.length === gameState.pattern.length) {
+                gameState.canInput = false;
+                setTimeout(handleWin, 500);
+            }
+        } else {
+            // Incorrect
+            tileEl.classList.add('tile-error');
+            gameState.canInput = false;
+            // Reveal missed tiles
+            gameState.pattern.forEach(idx => {
+                if(!gameState.userInput.includes(idx)) {
+                     gridContainer.children[idx].classList.add('tile-success'); // Show what was missed
+                }
+            });
+            setTimeout(handleLoss, 1000);
+        }
+    }
+
+    function handleWin() {
+        const bonus = 10 * gameState.level;
+        gameState.score += 100 + bonus;
+        gameState.level++;
+        updateDisplay();
+        
+        showFeedback(true);
+    }
+
+    function handleLoss() {
+        if (gameState.score > gameState.highScore) {
+            gameState.highScore = gameState.score;
+            localStorage.setItem('memoryGridHiScore', gameState.highScore);
+        }
+        updateDisplay();
+        showFeedback(false);
+    }
+
+    function showFeedback(isWin) {
+        const fb = views.feedback;
+        const icon = document.getElementById('feedbackIcon');
+        const title = document.getElementById('feedbackTitle');
+        const msg = document.getElementById('feedbackMessage');
+        const btn = document.getElementById('feedbackAction');
+
+        icon.textContent = isWin ? '🌟' : '❌';
+        title.textContent = isWin ? 'เก่งมาก!' : 'พลาดแล้ว!';
+        title.className = isWin ? 'text-3xl font-bold mb-2 text-green-400' : 'text-3xl font-bold mb-2 text-red-400';
+        msg.textContent = isWin ? 'ความจำดีเยี่ยม ไปต่อกันเลย' : `จบเกมที่ด่าน ${gameState.level} คะแนน ${gameState.score}`;
+        
+        btn.textContent = isWin ? 'ด่านต่อไป' : 'เล่นใหม่';
+        btn.onclick = () => {
+            fb.classList.add('hidden');
+            if (isWin) startLevel();
+            else startGame();
+        };
+
+        fb.classList.remove('hidden');
+    }
+
+    function updateDisplay() {
+        display.level.textContent = gameState.level;
+        display.score.textContent = gameState.score;
+        display.highScore.textContent = gameState.highScore;
+    }
+</script>
+</body>
+</html>
