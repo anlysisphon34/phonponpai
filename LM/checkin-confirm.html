@@ -126,7 +126,7 @@ html,body{height:100%;font-family:'Sarabun',sans-serif;overflow:hidden}
     <div class="points-divider"></div>
     <div class="points-total-row">
       <span class="points-total-label">คะแนนสะสมทั้งหมด</span>
-      <span class="points-total-val" id="totalPoints">317 คะแนน</span>
+      <span class="points-total-val" id="totalPoints">— คะแนน</span>
     </div>
   </div>
 
@@ -190,6 +190,9 @@ liff.init({ liffId: LIFF_ID })
       } else if (result.error === 'already_checkin') {
         document.getElementById('stationTag').textContent = '⚠️ เช็คอินไปแล้ววันนี้';
         document.getElementById('pointsEarned').textContent = '+0';
+        if (result.totalPoints !== undefined) {
+          document.getElementById('totalPoints').textContent = result.totalPoints + ' คะแนน';
+        }
       }
     } catch (err) {
       console.error('checkin error:', err);
