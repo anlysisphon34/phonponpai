@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>บันทึกประจำสัปดาห์</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --terra:#C86B3A;--terra-light:#F2DDD0;--terra-dark:#A0522A;
+  --forest:#2D5A3D;--forest-light:#EAF3EE;
+  --amber:#E8A830;--amber-light:#FEF3D5;
+  --cream:#F9F5EE;--warm-white:#FFFDF9;
+  --bark:#2A1F1A;--stone:#6B5347;--mist:#C8B9B0;--border:#EDE4D8;
+}
+html,body{height:100%;background:var(--cream);font-family:'Sarabun',sans-serif;color:var(--bark)}
+.app{max-width:430px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
+
+/* Top bar */
+.topbar{
+  padding:calc(env(safe-area-inset-top,0px) + 16px) 20px 16px;
+  background:var(--warm-white);
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:10;
+}
+.week-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--terra-light);border-radius:100px;
+  padding:6px 14px;margin-bottom:8px;
+}
+.week-badge span{font-size:12px;font-weight:700;color:var(--terra);letter-spacing:.05em}
+.topbar h1{font-size:20px;font-weight:700;color:var(--bark)}
+.topbar p{font-size:13px;color:var(--stone);margin-top:2px}
+
+/* Scrollable content */
+.content{flex:1;overflow-y:auto;padding:20px 20px 140px}
+.content::-webkit-scrollbar{display:none}
+
+/* Section card */
+.card{
+  background:var(--warm-white);border-radius:20px;
+  padding:20px;margin-bottom:16px;
+  box-shadow:0 2px 8px rgba(42,31,26,.06);
+}
+.card-head{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.card-icon{
+  width:40px;height:40px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.card-head h2{font-size:17px;font-weight:700;color:var(--bark)}
+.card-head p{font-size:13px;color:var(--stone)}
+
+/* Stepper */
+.stepper{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.step-label-txt{font-size:14px;color:var(--stone);flex:1}
+.step-controls{display:flex;align-items:center;gap:0}
+.step-btn{
+  width:40px;height:40px;border-radius:50%;border:2px solid var(--border);
+  background:var(--cream);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;color:var(--stone);transition:all .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.step-btn:active{transform:scale(.9)}
+.step-btn.inc{border-color:var(--terra);background:var(--terra);color:#fff}
+.step-val{
+  min-width:52px;text-align:center;font-size:22px;font-weight:700;
+  color:var(--bark);
+}
+.step-unit{font-size:12px;color:var(--stone);text-align:center;margin-top:2px}
+
+/* Toggle row */
+.toggle-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 0;border-bottom:1px solid var(--border);
+}
+.toggle-row:last-child{border-bottom:none;padding-bottom:0}
+.toggle-row:first-child{padding-top:0}
+.toggle-info{flex:1}
+.toggle-info span{font-size:15px;color:var(--bark)}
+.toggle-info small{display:block;font-size:12px;color:var(--stone);margin-top:2px}
+.toggle{
+  position:relative;width:48px;height:28px;flex-shrink:0;margin-left:16px;
+}
+.toggle input{opacity:0;width:0;height:0}
+.slider{
+  position:absolute;inset:0;border-radius:28px;
+  background:var(--border);cursor:pointer;
+  transition:background .25s;
+}
+.slider::before{
+  content:'';position:absolute;width:20px;height:20px;
+  border-radius:50%;background:white;
+  left:4px;top:4px;transition:transform .25s;
+  box-shadow:0 1px 4px rgba(0,0,0,.2);
+}
+input:checked+.slider{background:var(--forest)}
+input:checked+.slider::before{transform:translateX(20px)}
+
+/* Sleep slider */
+.sleep-wrap{padding:8px 0 4px}
+.sleep-val-row{display:flex;align-items:baseline;gap:6px;margin-bottom:14px}
+.sleep-big{font-size:40px;font-weight:700;color:var(--bark);line-height:1}
+.sleep-unit{font-size:15px;color:var(--stone)}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  width:100%;height:6px;border-radius:6px;
+  background:var(--border);outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:24px;height:24px;
+  border-radius:50%;background:var(--terra);
+  box-shadow:0 2px 8px rgba(200,107,58,.4);
+  cursor:pointer;
+}
+
+/* Stress emoji */
+.stress-row{display:flex;justify-content:space-between;gap:8px}
+.stress-btn{
+  flex:1;aspect-ratio:1;border-radius:14px;border:2px solid var(--border);
+  background:var(--cream);cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  font-size:26px;transition:all .2s;-webkit-tap-highlight-color:transparent;
+}
+.stress-btn .lbl{font-size:10px;color:var(--stone);font-weight:500}
+.stress-btn.active{border-color:var(--terra);background:var(--terra-light);}
+.stress-btn.active .lbl{color:var(--terra)}
+
+/* Weight input */
+.weight-wrap{display:flex;align-items:center;gap:0}
+.weight-input{
+  flex:1;padding:16px 20px;border-radius:16px 0 0 16px;
+  border:2px solid var(--border);border-right:none;
+  font-family:'Sarabun',sans-serif;font-size:28px;font-weight:700;color:var(--bark);
+  background:var(--cream);outline:none;text-align:center;
+}
+.weight-input:focus{border-color:var(--terra)}
+.weight-unit-box{
+  padding:16px 18px;border-radius:0 16px 16px 0;
+  background:var(--terra);color:white;font-size:16px;font-weight:700;
+  border:2px solid var(--terra);
+}
+
+/* Goal textarea */
+.goal-input{
+  width:100%;padding:14px 16px;border-radius:14px;
+  border:2px solid var(--border);background:var(--cream);
+  font-family:'Sarabun',sans-serif;font-size:15px;color:var(--bark);
+  outline:none;resize:none;min-height:80px;line-height:1.6;
+}
+.goal-input:focus{border-color:var(--terra);background:var(--warm-white)}
+
+/* Score preview */
+.score-preview{
+  background:linear-gradient(135deg,var(--terra),var(--terra-dark));
+  border-radius:20px;padding:20px;color:white;
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;
+}
+.score-preview .num{font-size:36px;font-weight:700}
+.score-preview .lbl{font-size:13px;opacity:.8;margin-top:2px}
+.score-preview .badge{
+  background:rgba(255,255,255,.2);border-radius:12px;padding:8px 14px;
+  font-size:13px;font-weight:600;
+}
+
+/* Footer */
+.footer{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:430px;
+  padding:16px 20px calc(env(safe-area-inset-bottom,0px) + 16px);
+  background:linear-gradient(to top,var(--cream) 80%,transparent);
+}
+.btn-primary{
+  width:100%;padding:16px;border-radius:100px;border:none;cursor:pointer;
+  background:var(--terra);color:#fff;
+  font-family:'Sarabun',sans-serif;font-size:17px;font-weight:700;
+  box-shadow:0 4px 16px rgba(200,107,58,.35);
+  transition:transform .15s;-webkit-tap-highlight-color:transparent;
+}
+.btn-primary:active{transform:scale(.97)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="week-badge"><span>สัปดาห์ที่ 7 / 12</span></div>
+    <h1>บันทึกประจำสัปดาห์</h1>
+    <p>9–15 มิ.ย. 2567</p>
+  </div>
+
+  <div class="content">
+    <!-- Score preview -->
+    <div class="score-preview">
+      <div>
+        <div class="num" id="liveScore">0</div>
+        <div class="lbl">คะแนนสัปดาห์นี้ (ประมาณ)</div>
+      </div>
+      <div class="badge">🔥 กรอกให้ครบได้ +5</div>
+    </div>
+
+    <!-- Exercise -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:#EAF3EE">🏃</div>
+        <div>
+          <h2>กิจกรรมทางกาย</h2>
+          <p>เป้าหมาย 150 นาที/สัปดาห์</p>
+        </div>
+      </div>
+      <div class="stepper" style="margin-bottom:18px">
+        <div>
+          <div class="step-label-txt">จำนวนวันที่ออกกำลังกาย</div>
+          <div class="step-unit">วัน / สัปดาห์</div>
+        </div>
+        <div class="step-controls">
+          <button class="step-btn" onclick="adj('exDays',-1)">−</button>
+          <div class="step-val" id="exDays">0</div>
+          <button class="step-btn inc" onclick="adj('exDays',1)">+</button>
+        </div>
+      </div>
+      <div class="stepper">
+        <div>
+          <div class="step-label-txt">นาทีรวมทั้งสัปดาห์</div>
+          <div class="step-unit" id="exMinsTarget" style="color:var(--forest)">เป้า 150 นาที</div>
+        </div>
+        <div class="step-controls">
+          <button class="step-btn" onclick="adj('exMins',-10)">−</button>
+          <div class="step-val" id="exMins">0</div>
+          <button class="step-btn inc" onclick="adj('exMins',10)">+</button>
+        </div>
+      </div>
+      <div style="height:6px;background:var(--border);border-radius:6px;margin-top:16px;overflow:hidden">
+        <div id="exBar" style="height:100%;background:var(--forest);border-radius:6px;width:0%;transition:width .4s"></div>
+      </div>
+    </div>
+
+    <!-- Food -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:#FEF3D5">🥦</div>
+        <div>
+          <h2>โภชนาการ</h2>
+          <p>บันทึกพฤติกรรมการกิน</p>
+        </div>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <span>ไม่ดื่มน้ำหวานวันนี้</span>
+          <small>น้ำอัดลม ชานม กาแฟหวาน</small>
+        </div>
+        <label class="toggle"><input type="checkbox" id="noSugar" onchange="calcScore()"><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <span>กินผักอย่างน้อย 1 มื้อ</span>
+          <small>ผักสด หรือผักในอาหาร</small>
+        </div>
+        <label class="toggle"><input type="checkbox" id="veggie" onchange="calcScore()"><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <span>หลีกเลี่ยงอาหารเค็ม</span>
+          <small>บะหมี่กึ่ง ไส้กรอก อาหารแปรรูป</small>
+        </div>
+        <label class="toggle"><input type="checkbox" id="noSalt" onchange="calcScore()"><span class="slider"></span></label>
+      </div>
+    </div>
+
+    <!-- Sleep -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:#EEE8F6">🌙</div>
+        <div><h2>การนอนหลับ</h2><p>เฉลี่ยต่อคืนในสัปดาห์นี้</p></div>
+      </div>
+      <div class="sleep-wrap">
+        <div class="sleep-val-row">
+          <span class="sleep-big" id="sleepVal">7</span>
+          <span class="sleep-unit">ชั่วโมง / คืน</span>
+        </div>
+        <input type="range" id="sleepRange" min="3" max="12" step=".5" value="7" oninput="updateSleep(this.value)" onchange="calcScore()">
+        <div style="display:flex;justify-content:space-between;margin-top:6px">
+          <span style="font-size:12px;color:var(--mist)">3 ชม.</span>
+          <span style="font-size:12px;color:var(--forest);font-weight:600">เป้า ≥ 7 ชม.</span>
+          <span style="font-size:12px;color:var(--mist)">12 ชม.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stress -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:#FEE8E8">🧘</div>
+        <div><h2>ระดับความเครียด</h2><p>ในสัปดาห์ที่ผ่านมา</p></div>
+      </div>
+      <div class="stress-row" id="stressRow">
+        <button class="stress-btn" data-v="1" onclick="setStress(1)"><span>😌</span><span class="lbl">น้อยมาก</span></button>
+        <button class="stress-btn" data-v="2" onclick="setStress(2)"><span>🙂</span><span class="lbl">น้อย</span></button>
+        <button class="stress-btn" data-v="3" onclick="setStress(3)"><span>😐</span><span class="lbl">ปานกลาง</span></button>
+        <button class="stress-btn" data-v="4" onclick="setStress(4)"><span>😟</span><span class="lbl">มาก</span></button>
+        <button class="stress-btn" data-v="5" onclick="setStress(5)"><span>😩</span><span class="lbl">มากมาก</span></button>
+      </div>
+    </div>
+
+    <!-- Weight -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:#F0EBE3">⚖️</div>
+        <div><h2>น้ำหนัก</h2><p>ชั่งเช้าก่อนอาหาร (ไม่บังคับ)</p></div>
+      </div>
+      <div class="weight-wrap">
+        <input class="weight-input" type="number" id="weight" placeholder="–" step=".1" min="30" max="200">
+        <div class="weight-unit-box">กก.</div>
+      </div>
+    </div>
+
+    <!-- Goal -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:var(--amber-light)">🎯</div>
+        <div><h2>เป้าหมายสัปดาห์หน้า</h2><p>เขียนสิ่งที่อยากทำ 1–2 อย่าง</p></div>
+      </div>
+      <textarea class="goal-input" id="goal" placeholder="เช่น เดินทุกเย็น 30 นาที หลีกเลี่ยงชานมหวาน..."></textarea>
+    </div>
+  </div>
+
+  <div class="footer">
+    <button class="btn-primary" onclick="submit()">บันทึกสัปดาห์นี้ ✓</button>
+  </div>
+</div>
+
+<script>
+const vals = {exDays:0, exMins:0};
+const limits = {exDays:[0,7], exMins:[0,600]};
+let stressVal = 0;
+
+function adj(k, d) {
+  vals[k] = Math.max(limits[k][0], Math.min(limits[k][1], vals[k] + d));
+  document.getElementById(k).textContent = vals[k];
+  if(k === 'exMins') {
+    const pct = Math.min(100, (vals[k]/150)*100);
+    document.getElementById('exBar').style.width = pct+'%';
+    document.getElementById('exMinsTarget').textContent = vals[k] >= 150 ? '✓ ถึงเป้า 150 นาที!' : `เป้า 150 นาที (${vals[k]}/150)`;
+    document.getElementById('exMinsTarget').style.color = vals[k] >= 150 ? 'var(--forest)' : 'var(--stone)';
+  }
+  calcScore();
+}
+
+function updateSleep(v) {
+  document.getElementById('sleepVal').textContent = parseFloat(v) % 1 === 0 ? v : v;
+}
+function setStress(v) {
+  stressVal = v;
+  document.querySelectorAll('.stress-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.v) === v));
+  calcScore();
+}
+function calcScore() {
+  let s = 0;
+  if(vals.exDays > 0) s += vals.exDays * 2;
+  if(vals.exMins >= 150) s += 5;
+  if(document.getElementById('noSugar').checked) s += 1;
+  if(document.getElementById('veggie').checked) s += 1;
+  if(document.getElementById('noSalt').checked) s += 1;
+  const sleep = parseFloat(document.getElementById('sleepRange').value);
+  if(sleep >= 7) s += 1;
+  if(stressVal > 0 && stressVal <= 2) s += 2;
+  document.getElementById('liveScore').textContent = s;
+}
+/*######################### Editable Start #########################*/
+const LIFF_ID    = '2006915175-42T9BO4a';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyz7zegkAeUyTwu7AYvvMflFjWLVpF8mAmsvomyCfSnPFaFyFUEh-PbWjf7GPmzEGie/exec';
+/*#########################  Editable End  #########################*/
+
+let lineUserId = '';
+
+liff.init({ liffId: LIFF_ID })
+  .then(() => {
+    if (!liff.isLoggedIn()) { liff.login(); return; }
+    return liff.getProfile();
+  })
+  .then(profile => { if (profile) lineUserId = profile.userId; })
+  .catch(() => { lineUserId = 'dev_' + Date.now(); });
+
+// อ่าน week จาก URL params (ส่งมาจาก push message)
+const _wp = new URLSearchParams(location.search);
+const currentWeek = _wp.get('week') || '1';
+
+async function submit() {
+  const btn = document.querySelector('.btn-primary');
+  btn.textContent = 'กำลังบันทึก...';
+  btn.disabled = true;
+
+  const params = new URLSearchParams({
+    action   : 'weeklyLog',
+    lineUserId,
+    week     : currentWeek,
+    exDays   : document.getElementById('exDays').textContent,
+    exMins   : document.getElementById('exMins').textContent,
+    noSugar  : document.getElementById('noSugar').checked,
+    veggie   : document.getElementById('veggie').checked,
+    noSalt   : document.getElementById('noSalt').checked,
+    sleepHrs : document.getElementById('sleepRange').value,
+    stress   : stressVal,
+    weight   : document.getElementById('weight').value || '',
+    goal     : document.getElementById('goal').value || '',
+  }).toString();
+
+  try {
+    const res    = await fetch(`${SCRIPT_URL}?${params}`);
+    const result = await res.json();
+    if (result.ok) {
+      // ส่ง event ปิด LIFF หรือ redirect
+      alert(`✅ บันทึกสำเร็จ! +${result.points} คะแนน (รวม ${result.totalPoints} คะแนน)`);
+      if (liff.isInClient()) liff.closeWindow();
+      else window.location.href = 'my-health.html';
+    } else {
+      throw new Error(result.error);
+    }
+  } catch (err) {
+    btn.textContent = 'บันทึก';
+    btn.disabled = false;
+    alert('บันทึกไม่สำเร็จ: ' + err.message);
+  }
+}
+</script>
+</body>
+</html>
