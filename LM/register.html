@@ -427,7 +427,7 @@ async function submitForm() {
     const res    = await fetch(`${SCRIPT_URL}?${params}`);
     const result = await res.json();
     if (result.ok) {
-      showSuccess(result.participantId);
+      showSuccess(result.participantId, result.status === 'updated');
     } else {
       throw new Error(result.error || 'เกิดข้อผิดพลาด');
     }
@@ -438,15 +438,18 @@ async function submitForm() {
   }
 }
 
-function showSuccess(participantId) {
+function showSuccess(participantId, isUpdate) {
+  const icon   = isUpdate ? '🔄' : '✅';
+  const title  = isUpdate ? 'อัปเดตข้อมูลแล้ว' : 'ลงทะเบียนสำเร็จ!';
+  const msg    = isUpdate
+    ? '<p style="color:#6B5347;font-size:15px;line-height:1.6">ข้อมูลของท่านได้รับการอัปเดตแล้ว<br>ท่านลงทะเบียนในโครงการนี้เรียบร้อยแล้ว</p>'
+    : `<p style="color:#6B5347;font-size:15px;line-height:1.6">กรุณาเดินไปที่ <strong style="color:#2D5A3D">📍 โต๊ะ อสม.</strong> เพื่อวัดน้ำหนัก ส่วนสูง และความดันโลหิตได้เลยนะครับ/ค่ะ</p>
+      <p style="color:#9B8B83;font-size:13px;margin-top:4px">อย่าเพิ่งกลับบ้านนะครับ/ค่ะ 😊</p>`;
   document.querySelector('.app').innerHTML = `
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100dvh;padding:40px;text-align:center;gap:20px;background:#F9F5EE">
-      <div style="width:80px;height:80px;background:#EAF3EE;border-radius:50%;display:flex;align-items:center;justify-content:center">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2D5A3D" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-      </div>
-      <h2 style="font-size:26px;font-weight:700;color:#2A1F1A">ลงทะเบียนสำเร็จ!</h2>
-      <p style="color:#6B5347;font-size:15px;line-height:1.6">กรุณาเดินไปที่ <strong style="color:#2D5A3D">📍 โต๊ะ อสม.</strong> เพื่อวัดน้ำหนัก ส่วนสูง และความดันโลหิตได้เลยนะครับ/ค่ะ</p>
-      <p style="color:#9B8B83;font-size:13px;margin-top:4px">อย่าเพิ่งกลับบ้านนะครับ/ค่ะ 😊</p>
+      <div style="width:80px;height:80px;background:#EAF3EE;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:40px">${icon}</div>
+      <h2 style="font-size:26px;font-weight:700;color:#2A1F1A">${title}</h2>
+      ${msg}
       <div style="background:white;border-radius:16px;padding:20px;width:100%;margin-top:10px;border:1px solid #EAD9CF">
         <p style="font-size:13px;color:#6B5347">หมายเลขผู้เข้าร่วม</p>
         <p style="font-size:28px;font-weight:700;color:#C86B3A;letter-spacing:.1em">${participantId || '#2569-????'}</p>
