@@ -1,1 +1,458 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ลงทะเบียน — โครงการประชาชนคนรักสุขภาพ</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --terra:#C86B3A;--terra-dark:#A0522A;--terra-light:#F2DDD0;
+  --forest:#2D5A3D;--forest-light:#EAF3EE;
+  --amber:#E8A830;
+  --cream:#F9F5EE;--warm-white:#FFFDF9;
+  --bark:#2A1F1A;--stone:#6B5347;--mist:#C8B9B0;
+  --r:16px;--rr:24px;
+}
+html,body{height:100%;background:var(--cream);font-family:'Sarabun',sans-serif;color:var(--bark)}
 
+.app{
+  max-width:430px;margin:0 auto;min-height:100dvh;
+  display:flex;flex-direction:column;
+  background:var(--cream);position:relative;overflow:hidden;
+}
+/* Grain texture */
+.app::before{
+  content:'';position:fixed;inset:0;max-width:430px;margin:0 auto;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:100;opacity:.6;
+}
+
+/* Header */
+.hdr{
+  padding:env(safe-area-inset-top,20px) 24px 0;
+  padding-top:calc(env(safe-area-inset-top,0px) + 20px);
+}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.logo-mark{
+  width:36px;height:36px;background:var(--terra);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+}
+.logo-mark svg{width:20px;height:20px}
+.step-label{font-size:12px;color:var(--stone);font-weight:500;letter-spacing:.05em}
+
+/* Progress bar */
+.progress-wrap{display:flex;gap:6px;margin-bottom:28px}
+.progress-seg{
+  height:4px;flex:1;border-radius:4px;background:var(--terra-light);
+  overflow:hidden;
+}
+.progress-seg .fill{height:100%;border-radius:4px;background:var(--terra);transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+/* Title */
+.step-title{
+  font-size:24px;font-weight:700;color:var(--bark);line-height:1.25;margin-bottom:6px
+}
+.step-sub{font-size:14px;color:var(--stone);margin-bottom:28px;line-height:1.5}
+
+/* Scroll content */
+.content{flex:1;overflow-y:auto;padding:0 24px;padding-bottom:120px}
+.content::-webkit-scrollbar{display:none}
+
+/* Form elements */
+.field{margin-bottom:20px}
+.field label{
+  display:block;font-size:13px;font-weight:600;color:var(--stone);
+  margin-bottom:8px;letter-spacing:.03em
+}
+.field label span{color:var(--terra);margin-left:2px}
+.field input,.field select,.field textarea{
+  width:100%;padding:14px 16px;border-radius:14px;
+  border:2px solid transparent;background:var(--warm-white);
+  font-family:'Sarabun',sans-serif;font-size:16px;color:var(--bark);
+  box-shadow:0 1px 3px rgba(42,31,26,.08);
+  transition:border-color .2s,box-shadow .2s;outline:none;
+  -webkit-appearance:none;appearance:none;
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+  border-color:var(--terra);box-shadow:0 0 0 4px rgba(200,107,58,.12);
+}
+.field select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B5347' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;padding-right:44px;
+}
+.field textarea{min-height:80px;resize:vertical;line-height:1.5}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* Radio / Checkbox pill */
+.pill-group{display:flex;flex-wrap:wrap;gap:10px}
+.pill-group input{display:none}
+.pill-group label{
+  padding:10px 18px;border-radius:100px;border:2px solid var(--mist);
+  font-size:14px;font-weight:500;cursor:pointer;transition:all .15s;
+  background:var(--warm-white);color:var(--stone);user-select:none;
+}
+.pill-group input:checked+label{
+  background:var(--terra);border-color:var(--terra);color:#fff;
+}
+
+/* Checkbox list */
+.check-list{display:flex;flex-direction:column;gap:10px}
+.check-item{display:flex;align-items:center;gap:12px;cursor:pointer}
+.check-item input{display:none}
+.check-box{
+  width:22px;height:22px;border-radius:6px;border:2px solid var(--mist);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  background:var(--warm-white);transition:all .15s;
+}
+.check-item input:checked~.check-label .check-box,
+.check-item:has(input:checked) .check-box{
+  background:var(--terra);border-color:var(--terra);
+}
+.check-item:has(input:checked) .check-box::after{
+  content:'';width:12px;height:8px;border:2.5px solid #fff;border-top:none;border-right:none;
+  transform:rotate(-45deg) translateY(-1px);display:block;
+}
+.check-label-text{font-size:15px;color:var(--bark)}
+
+/* Consent box */
+.consent-box{
+  background:var(--warm-white);border-radius:16px;padding:18px;
+  height:200px;overflow-y:auto;border:2px solid var(--mist);
+  font-size:13px;color:var(--stone);line-height:1.7;margin-bottom:20px;
+}
+.consent-box h4{font-size:14px;font-weight:700;color:var(--bark);margin-bottom:10px}
+
+/* Sticky footer */
+.footer{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:430px;
+  padding:16px 24px calc(env(safe-area-inset-bottom,0px) + 16px);
+  background:linear-gradient(to top,var(--cream) 70%,transparent);
+}
+.btn-primary{
+  width:100%;padding:16px;border-radius:100px;border:none;cursor:pointer;
+  background:var(--terra);color:#fff;
+  font-family:'Sarabun',sans-serif;font-size:17px;font-weight:700;
+  box-shadow:0 4px 16px rgba(200,107,58,.35);
+  transition:transform .15s,box-shadow .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.btn-primary:active{transform:scale(.97);box-shadow:0 2px 8px rgba(200,107,58,.25)}
+.btn-back{
+  display:flex;align-items:center;gap:6px;background:none;border:none;
+  font-family:'Sarabun',sans-serif;font-size:15px;color:var(--stone);
+  cursor:pointer;padding:0;margin-bottom:16px;
+}
+
+/* Steps */
+.step{display:none;animation:slideIn .35s cubic-bezier(.4,0,.2,1)}
+.step.active{display:block}
+@keyframes slideIn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+
+/* Section divider */
+.sect{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mist);margin:24px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--terra-light)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hdr">
+    <div class="hdr-top">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="white" opacity=".9"/>
+          <circle cx="12" cy="9" r="2.5" fill="white"/>
+        </svg>
+      </div>
+      <span class="step-label" id="stepLabel">ขั้นตอน 1 จาก 3</span>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-seg"><div class="fill" id="p1" style="width:100%"></div></div>
+      <div class="progress-seg"><div class="fill" id="p2" style="width:0%"></div></div>
+      <div class="progress-seg"><div class="fill" id="p3" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- Step 1: Personal Info -->
+    <div class="step active" id="step1">
+      <div class="step-title">ยินดีต้อนรับ<br>สู่โครงการประชาชนคนรักสุขภาพ</div>
+      <div class="step-sub">กรอกข้อมูลส่วนตัวเพื่อเริ่มต้น</div>
+
+      <div class="field">
+        <label>ชื่อ–นามสกุล <span>*</span></label>
+        <input type="text" placeholder="เช่น สมชาย ใจดี" id="name">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>อายุ <span>*</span></label>
+          <input type="number" placeholder="ปี" id="age" min="15" max="100">
+        </div>
+        <div class="field">
+          <label>เพศ <span>*</span></label>
+          <select id="gender">
+            <option value="">เลือก</option>
+            <option value="male">ชาย</option>
+            <option value="female">หญิง</option>
+            <option value="other">อื่น ๆ</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>เบอร์โทรศัพท์ <span>*</span></label>
+        <input type="tel" placeholder="08x–xxx–xxxx" id="phone" maxlength="12">
+      </div>
+      <div class="field">
+        <label>ชุมชน / หมู่บ้าน <span>*</span></label>
+        <select id="community">
+          <option value="" disabled selected>-- กรุณาเลือกชุมชน --</option>
+          <option value="ชุมชนหนองแวง 1">ชุมชนหนองแวง 1</option>
+          <option value="ชุมชนหนองแวง 2">ชุมชนหนองแวง 2</option>
+          <option value="ชุมชนหนองแวง 3">ชุมชนหนองแวง 3</option>
+          <option value="ชุมชนหนองแวง 4">ชุมชนหนองแวง 4</option>
+          <option value="ชุมชนตลาดเก่า">ชุมชนตลาดเก่า</option>
+          <option value="ชุมชนทุ่งรวงทอง">ชุมชนทุ่งรวงทอง</option>
+          <option value="ชุมชนเมืองเก่า">ชุมชนเมืองเก่า</option>
+          <option value="ชุมชนเมืองพล">ชุมชนเมืองพล</option>
+          <option value="ชุมชนเมืองใหม่">ชุมชนเมืองใหม่</option>
+          <option value="ชุมชนศรีเมือง">ชุมชนศรีเมือง</option>
+          <option value="ชุมชน บ.ข.ส.มิ่งเมือง">ชุมชน บ.ข.ส.มิ่งเมือง</option>
+          <option value="ชุมชนพลประชานุกูล">ชุมชนพลประชานุกูล</option>
+          <option value="ชุมชนพลประชากลางเมือง">ชุมชนพลประชากลางเมือง</option>
+          <option value="ชุมชนพลประชาพัฒนา">ชุมชนพลประชาพัฒนา</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>ผู้ติดต่อฉุกเฉิน</label>
+        <input type="text" placeholder="ชื่อ และเบอร์โทร" id="emergency">
+      </div>
+    </div>
+
+    <!-- Step 2: Health History -->
+    <div class="step" id="step2">
+      <div class="step-title">ประวัติสุขภาพ</div>
+      <div class="step-sub">ข้อมูลนี้ช่วยให้เราดูแลคุณได้ตรงจุดมากขึ้น</div>
+
+      <div class="sect">โรคประจำตัว</div>
+      <div class="check-list">
+        <label class="check-item">
+          <input type="checkbox" value="diabetes"><div class="check-box"></div>
+          <span class="check-label-text">เบาหวาน</span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" value="hypertension"><div class="check-box"></div>
+          <span class="check-label-text">ความดันโลหิตสูง</span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" value="heart"><div class="check-box"></div>
+          <span class="check-label-text">โรคหัวใจ</span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" value="kidney"><div class="check-box"></div>
+          <span class="check-label-text">โรคไต</span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" value="other_disease"><div class="check-box"></div>
+          <span class="check-label-text">อื่น ๆ</span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" value="none" id="noDiseases"><div class="check-box"></div>
+          <span class="check-label-text">ไม่มีโรคประจำตัว</span>
+        </label>
+      </div>
+
+      <div class="sect">พฤติกรรมเสี่ยง</div>
+      <div class="field">
+        <label>สูบบุหรี่</label>
+        <div class="pill-group">
+          <input type="radio" name="smoke" id="s0" value="no"><label for="s0">ไม่สูบ</label>
+          <input type="radio" name="smoke" id="s1" value="quit"><label for="s1">เลิกแล้ว</label>
+          <input type="radio" name="smoke" id="s2" value="yes"><label for="s2">สูบอยู่</label>
+        </div>
+      </div>
+      <div class="field">
+        <label>ดื่มแอลกอฮอล์</label>
+        <div class="pill-group">
+          <input type="radio" name="alcohol" id="a0" value="no"><label for="a0">ไม่ดื่ม</label>
+          <input type="radio" name="alcohol" id="a1" value="sometimes"><label for="a1">บางครั้ง</label>
+          <input type="radio" name="alcohol" id="a2" value="regular"><label for="a2">เป็นประจำ</label>
+        </div>
+      </div>
+
+      <div class="sect">ประวัติครอบครัว</div>
+      <div class="check-list">
+        <label class="check-item">
+          <input type="checkbox" value="fam_diabetes"><div class="check-box"></div>
+          <span class="check-label-text">มีพ่อ/แม่/พี่น้องเป็นเบาหวาน</span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" value="fam_hypertension"><div class="check-box"></div>
+          <span class="check-label-text">มีพ่อ/แม่/พี่น้องเป็นความดัน</span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" value="fam_heart"><div class="check-box"></div>
+          <span class="check-label-text">มีประวัติโรคหัวใจในครอบครัว</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Step 3: Consent -->
+    <div class="step" id="step3">
+      <div class="step-title">ยืนยันและ<br>ยินยอมข้อมูล</div>
+      <div class="step-sub">กรุณาอ่านข้อกำหนดก่อนสมัครเข้าร่วม</div>
+
+      <div class="consent-box">
+        <h4>การยินยอมให้เก็บข้อมูล</h4>
+        <p>โครงการประชาชนคนรักสุขภาพ ปรับพฤติกรรม ลดเสี่ยง NCDs จะจัดเก็บข้อมูลส่วนบุคคลและข้อมูลสุขภาพของท่าน เพื่อวัตถุประสงค์ดังต่อไปนี้</p><br>
+        <p><strong>1. การใช้ข้อมูล</strong><br>ข้อมูลของท่านจะถูกใช้เพื่อการคัดกรองความเสี่ยง การวางแผนปรับพฤติกรรม การติดตามผล และการประเมินผลโครงการเท่านั้น</p><br>
+        <p><strong>2. การเก็บรักษาข้อมูล</strong><br>ข้อมูลจะถูกจัดเก็บในระบบที่มีความปลอดภัย และจะไม่เปิดเผยข้อมูลส่วนบุคคลแก่บุคคลภายนอกโดยไม่ได้รับอนุญาต</p><br>
+        <p><strong>3. สิทธิ์ของท่าน</strong><br>ท่านมีสิทธิ์ขอดู แก้ไข หรือลบข้อมูลของตนเองได้ตลอดเวลา โดยติดต่อเจ้าหน้าที่โครงการ</p><br>
+        <p><strong>4. การถอนความยินยอม</strong><br>ท่านสามารถถอนความยินยอมและออกจากโครงการได้ทุกเมื่อ โดยไม่มีผลกระทบใด ๆ</p>
+      </div>
+
+      <label class="check-item" style="margin-bottom:24px">
+        <input type="checkbox" id="consentCheck"><div class="check-box"></div>
+        <span class="check-label-text" style="font-size:14px;line-height:1.5">ข้าพเจ้าได้อ่านและยินยอมให้โครงการเก็บข้อมูลส่วนบุคคลและข้อมูลสุขภาพ</span>
+      </label>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <button class="btn-back" id="backBtn" style="display:none" onclick="prevStep()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      ย้อนกลับ
+    </button>
+    <button class="btn-primary" id="nextBtn" onclick="nextStep()">ถัดไป</button>
+  </div>
+</div>
+
+<script>
+/*######################### Editable Start #########################*/
+const LIFF_ID    = '2006915175-42T9BO4a';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyz7zegkAeUyTwu7AYvvMflFjWLVpF8mAmsvomyCfSnPFaFyFUEh-PbWjf7GPmzEGie/exec';
+/*#########################  Editable End  #########################*/
+
+let lineUserId   = '';
+let displayName  = '';
+let currentStep  = 1;
+const totalSteps = 3;
+
+// ── LIFF init ──────────────────────────────────────────────────────────────
+liff.init({ liffId: LIFF_ID })
+  .then(() => {
+    if (!liff.isLoggedIn()) { liff.login(); return; }
+    return liff.getProfile();
+  })
+  .then(profile => {
+    if (!profile) return;
+    lineUserId  = profile.userId;
+    displayName = profile.displayName;
+    // แสดงชื่อจาก LINE ในฟอร์ม (ถ้ายังว่าง)
+    const nameField = document.getElementById('name');
+    if (nameField && !nameField.value) nameField.placeholder = displayName;
+  })
+  .catch(err => {
+    // นอก LIFF environment (ทดสอบบน browser) — ใช้ mock userId
+    console.warn('LIFF not available, using dev mode');
+    lineUserId  = 'dev_' + Date.now();
+    displayName = 'Test User';
+  });
+
+// ── Step navigation ────────────────────────────────────────────────────────
+function updateUI() {
+  document.querySelectorAll('.step').forEach((s,i) => {
+    s.classList.toggle('active', i+1 === currentStep);
+  });
+  document.getElementById('stepLabel').textContent = `ขั้นตอน ${currentStep} จาก ${totalSteps}`;
+  document.getElementById('backBtn').style.display = currentStep > 1 ? 'flex' : 'none';
+  document.getElementById('nextBtn').textContent = currentStep === totalSteps ? 'ลงทะเบียน ✓' : 'ถัดไป';
+  [1,2,3].forEach(i => {
+    document.getElementById(`p${i}`).style.width = i <= currentStep ? '100%' : '0%';
+  });
+  document.querySelector('.content').scrollTo({top:0,behavior:'smooth'});
+}
+
+function nextStep() {
+  if (currentStep === totalSteps) { submitForm(); return; }
+  currentStep++;
+  updateUI();
+}
+function prevStep() {
+  if (currentStep > 1) { currentStep--; updateUI(); }
+}
+
+// ── Collect form data ──────────────────────────────────────────────────────
+function collectFormData() {
+  const diseases = [...document.querySelectorAll('#step2 input[type=checkbox]:checked')]
+    .map(cb => cb.value).join(',');
+  return {
+    action     : 'register',
+    lineUserId,
+    displayName,
+    name       : document.getElementById('name').value.trim(),
+    phone      : document.getElementById('phone').value.trim(),
+    community  : document.getElementById('community').value,
+    age        : document.getElementById('age').value,
+    gender     : document.getElementById('gender').value,
+    emergency  : document.getElementById('emergency').value.trim(),
+    diseases,
+    smoke      : document.querySelector('[name=smoke]:checked')?.value  || 'no',
+    alcohol    : document.querySelector('[name=alcohol]:checked')?.value || 'no',
+  };
+}
+
+// ── Submit ─────────────────────────────────────────────────────────────────
+async function submitForm() {
+  const btn = document.getElementById('nextBtn');
+
+  // ตรวจ consent
+  if (!document.getElementById('consentCheck').checked) {
+    alert('กรุณายินยอมการเก็บข้อมูลก่อนลงทะเบียน');
+    return;
+  }
+
+  btn.textContent = 'กำลังบันทึก...';
+  btn.disabled = true;
+
+  const data   = collectFormData();
+  const params = new URLSearchParams(data).toString();
+
+  try {
+    const res    = await fetch(`${SCRIPT_URL}?${params}`);
+    const result = await res.json();
+    if (result.ok) {
+      showSuccess(result.participantId);
+    } else {
+      throw new Error(result.error || 'เกิดข้อผิดพลาด');
+    }
+  } catch (err) {
+    btn.textContent = 'ลองอีกครั้ง';
+    btn.disabled = false;
+    alert('บันทึกไม่สำเร็จ: ' + err.message + '\n\nกรุณาแจ้งเจ้าหน้าที่');
+  }
+}
+
+function showSuccess(participantId) {
+  document.querySelector('.app').innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100dvh;padding:40px;text-align:center;gap:20px;background:#F9F5EE">
+      <div style="width:80px;height:80px;background:#EAF3EE;border-radius:50%;display:flex;align-items:center;justify-content:center">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2D5A3D" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h2 style="font-size:26px;font-weight:700;color:#2A1F1A">ลงทะเบียนสำเร็จ!</h2>
+      <p style="color:#6B5347;font-size:15px;line-height:1.6">เจ้าหน้าที่จะติดต่อเพื่อนัดวัดสุขภาพภายใน 2–3 วัน<br>และจะส่งข้อความแจ้งทาง LINE นะครับ/ค่ะ</p>
+      <div style="background:white;border-radius:16px;padding:20px;width:100%;margin-top:10px;border:1px solid #EAD9CF">
+        <p style="font-size:13px;color:#6B5347">หมายเลขผู้เข้าร่วม</p>
+        <p style="font-size:28px;font-weight:700;color:#C86B3A;letter-spacing:.1em">${participantId || '#2569-????'}</p>
+      </div>
+      <p style="font-size:12px;color:#9B8B83;margin-top:8px">สามารถปิดหน้านี้ได้เลย</p>
+    </div>`;
+}
+</script>
+</body>
+</html>
