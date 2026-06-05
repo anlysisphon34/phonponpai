@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>คัดกรองสุขภาพ</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --forest:#2D5A3D;--forest-light:#EAF3EE;--forest-mid:#3D7A53;
+  --terra:#C86B3A;--terra-light:#F2DDD0;
+  --amber:#E8A830;--amber-light:#FEF3DC;
+  --cream:#F9F5EE;--bark:#2A1F1A;--stone:#6B5347;--mist:#C8B9B0;
+  --red:#D32F2F;--red-light:#FFEBEE;
+  --orange:#E64A19;--orange-light:#FBE9E7;
+  --yellow:#F9A825;--yellow-light:#FFFDE7;
+  --green:#2E7D32;--green-light:#E8F5E9;
+  --border:#EAE0D8;
+}
+html,body{height:100%;background:var(--cream);font-family:'Sarabun',sans-serif;color:var(--bark)}
+.app{max-width:430px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
+
+/* Header */
+.hdr{background:var(--forest);padding:calc(env(safe-area-inset-top,0px) + 16px) 20px 16px;color:white}
+.hdr-top{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+.hdr-icon{width:36px;height:36px;background:rgba(255,255,255,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.hdr h1{font-size:18px;font-weight:700}
+.hdr p{font-size:13px;opacity:.7;margin-top:2px}
+
+/* Search */
+.search-wrap{padding:16px 20px;background:white;border-bottom:1px solid var(--border)}
+.search-box{display:flex;gap:8px}
+.search-box input{
+  flex:1;height:44px;border:1.5px solid var(--border);border-radius:12px;
+  padding:0 14px;font-family:'Sarabun',sans-serif;font-size:15px;color:var(--bark);
+  background:var(--cream);outline:none;transition:border .2s;
+}
+.search-box input:focus{border-color:var(--forest)}
+.btn-search{
+  height:44px;padding:0 16px;background:var(--forest);color:white;border:none;
+  border-radius:12px;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:600;cursor:pointer;
+}
+
+/* Results list */
+.results{padding:0 20px;margin-top:8px;display:none}
+.result-item{
+  background:white;border-radius:14px;padding:14px 16px;margin-bottom:8px;
+  border:1.5px solid var(--border);cursor:pointer;transition:border-color .2s,background .2s;
+}
+.result-item:hover,.result-item:active{border-color:var(--forest);background:var(--forest-light)}
+.result-name{font-size:15px;font-weight:600;color:var(--bark)}
+.result-sub{font-size:12px;color:var(--stone);margin-top:2px}
+
+/* Selected person */
+.selected-card{
+  margin:12px 20px;background:var(--forest-light);border:1.5px solid var(--forest);
+  border-radius:14px;padding:14px 16px;display:none;
+}
+.selected-name{font-size:15px;font-weight:700;color:var(--forest)}
+.selected-sub{font-size:12px;color:var(--stone);margin-top:2px}
+.btn-change{font-size:12px;color:var(--terra);font-weight:600;margin-top:6px;cursor:pointer;border:none;background:none;padding:0}
+
+/* Form */
+.form-wrap{padding:16px 20px 100px;display:none}
+.section-title{font-size:13px;font-weight:700;color:var(--stone);letter-spacing:.06em;text-transform:uppercase;margin:20px 0 12px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;font-weight:600;color:var(--stone);margin-bottom:6px}
+.field input{
+  width:100%;height:48px;border:1.5px solid var(--border);border-radius:12px;
+  padding:0 14px;font-family:'Sarabun',sans-serif;font-size:16px;color:var(--bark);
+  background:white;outline:none;transition:border .2s;
+}
+.field input:focus{border-color:var(--forest)}
+.field input[readonly]{background:var(--cream);color:var(--stone)}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* Auto calc badge */
+.calc-badge{
+  display:flex;align-items:center;gap:10px;background:white;border:1.5px solid var(--border);
+  border-radius:14px;padding:14px 16px;margin-bottom:16px;
+}
+.badge-val{font-size:24px;font-weight:700}
+.badge-label{font-size:12px;color:var(--stone)}
+.badge-risk{font-size:13px;font-weight:700;margin-top:2px}
+
+/* Risk colors */
+.risk-green {color:var(--green)}
+.risk-yellow{color:var(--yellow)}
+.risk-orange{color:var(--orange)}
+.risk-red   {color:var(--red)}
+.bg-green   {background:var(--green-light);border-color:#A5D6A7}
+.bg-yellow  {background:var(--yellow-light);border-color:#FFE082}
+.bg-orange  {background:var(--orange-light);border-color:#FFAB91}
+.bg-red     {background:var(--red-light);border-color:#EF9A9A}
+
+/* Footer */
+.footer{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;
+  padding:12px 20px calc(env(safe-area-inset-bottom,0px) + 12px);
+  background:white;border-top:1px solid var(--border);
+}
+.btn-save{
+  width:100%;height:52px;background:var(--forest);color:white;border:none;
+  border-radius:14px;font-family:'Sarabun',sans-serif;font-size:16px;font-weight:700;cursor:pointer;
+}
+.btn-save:disabled{opacity:.5;cursor:not-allowed}
+
+/* Success */
+.success-view{display:none;flex-direction:column;align-items:center;justify-content:center;height:100dvh;padding:40px;text-align:center;gap:16px}
+.success-icon{width:80px;height:80px;background:var(--forest-light);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.success-icon svg{width:40px;height:40px}
+.success-risk{
+  width:100%;border-radius:16px;padding:20px;margin-top:8px;
+}
+.btn-next{
+  width:100%;height:48px;border:none;border-radius:12px;font-family:'Sarabun',sans-serif;
+  font-size:15px;font-weight:700;cursor:pointer;color:white;background:var(--forest);
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="hdr">
+    <div class="hdr-top">
+      <div class="hdr-icon">🩺</div>
+      <div>
+        <h1>คัดกรองสุขภาพ</h1>
+        <p>ตลาดนัดประชาชนคนรักสุขภาพ ครั้งที่ 1</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search -->
+  <div class="search-wrap">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="ค้นหาชื่อ หรือ เบอร์โทร..." autocomplete="off">
+      <button class="btn-search" onclick="search()">ค้นหา</button>
+    </div>
+  </div>
+
+  <!-- Search results -->
+  <div class="results" id="results"></div>
+
+  <!-- Selected person -->
+  <div class="selected-card" id="selectedCard">
+    <div class="selected-name" id="selName">–</div>
+    <div class="selected-sub" id="selSub">–</div>
+    <button class="btn-change" onclick="clearSelected()">เปลี่ยนชื่อ</button>
+  </div>
+
+  <!-- Form -->
+  <div class="form-wrap" id="formWrap">
+
+    <div class="section-title">น้ำหนัก & ส่วนสูง</div>
+    <div class="row-2">
+      <div class="field">
+        <label>น้ำหนัก (กก.)</label>
+        <input type="number" id="weight" placeholder="เช่น 68.5" step=".1" min="20" max="200" oninput="calcBMI()">
+      </div>
+      <div class="field">
+        <label>ส่วนสูง (ซม.)</label>
+        <input type="number" id="height" placeholder="เช่น 165" min="100" max="220" oninput="calcBMI()">
+      </div>
+    </div>
+    <div class="field">
+      <label>รอบเอว (ซม.)</label>
+      <input type="number" id="waist" placeholder="เช่น 88" step=".5" min="40" max="180" oninput="calcRisk()">
+    </div>
+
+    <div class="calc-badge" id="bmiBadge">
+      <div>
+        <div class="badge-label">BMI</div>
+        <div class="badge-val" id="bmiVal">–</div>
+      </div>
+      <div style="flex:1">
+        <div class="badge-risk" id="bmiLabel">กรอกน้ำหนักและส่วนสูง</div>
+      </div>
+    </div>
+
+    <div class="section-title">ความดันโลหิต</div>
+    <div class="row-2">
+      <div class="field">
+        <label>ค่าบน (mmHg)</label>
+        <input type="number" id="bpSys" placeholder="เช่น 120" min="60" max="250" oninput="calcRisk()">
+      </div>
+      <div class="field">
+        <label>ค่าล่าง (mmHg)</label>
+        <input type="number" id="bpDia" placeholder="เช่น 80" min="40" max="150" oninput="calcRisk()">
+      </div>
+    </div>
+
+    <div class="section-title">ผลประเมินกลุ่มเสี่ยง</div>
+    <div class="calc-badge" id="riskBadge">
+      <div style="font-size:28px" id="riskEmoji">⬜</div>
+      <div style="flex:1">
+        <div class="badge-label">กลุ่มเสี่ยง</div>
+        <div class="badge-risk" id="riskLabel">กรอกข้อมูลเพื่อประเมิน</div>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:4px">
+      <label>หมายเหตุ (ถ้ามี)</label>
+      <input type="text" id="note" placeholder="เช่น มาคนเดียว, ผู้ดูแลพา...">
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="footer" id="footer" style="display:none">
+    <button class="btn-save" id="btnSave" onclick="saveScreening()">บันทึกผลคัดกรอง</button>
+  </div>
+
+  <!-- Success -->
+  <div class="success-view" id="successView">
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#2D5A3D" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h2 style="font-size:22px;font-weight:700">บันทึกแล้ว!</h2>
+    <p style="color:var(--stone);font-size:14px" id="successName">–</p>
+    <div class="success-risk" id="successRisk">
+      <div style="font-size:36px;margin-bottom:8px" id="successEmoji">⬜</div>
+      <div style="font-size:18px;font-weight:700" id="successRiskText">–</div>
+      <div style="font-size:13px;color:var(--stone);margin-top:4px" id="successBMI">BMI –</div>
+    </div>
+    <button class="btn-next" onclick="nextPerson()">คัดกรองคนถัดไป</button>
+  </div>
+
+</div>
+
+<script>
+/*######################### Editable Start #########################*/
+const LIFF_ID    = '2006915175-42T9BO4a';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyz7zegkAeUyTwu7AYvvMflFjWLVpF8mAmsvomyCfSnPFaFyFUEh-PbWjf7GPmzEGie/exec';
+/*#########################  Editable End  #########################*/
+
+const RISK = {
+  green : { emoji:'🟢', label:'กลุ่มเขียว — สุขภาพดี',   bg:'bg-green',  text:'risk-green'  },
+  yellow: { emoji:'🟡', label:'กลุ่มเสี่ยงเหลือง',        bg:'bg-yellow', text:'risk-yellow' },
+  orange: { emoji:'🟠', label:'กลุ่มเสี่ยงสูง',           bg:'bg-orange', text:'risk-orange' },
+  red   : { emoji:'🔴', label:'กลุ่มเสี่ยงสูงมาก',        bg:'bg-red',    text:'risk-red'    },
+};
+
+let selectedUser = null;
+let screenedBy   = 'อสม.';
+let currentRisk  = '';
+let currentBMI   = 0;
+
+// ── LIFF init ──────────────────────────────────────────────────────────────
+liff.init({ liffId: LIFF_ID })
+  .then(() => { if (liff.isLoggedIn()) return liff.getProfile(); })
+  .then(p => { if (p) screenedBy = p.displayName || 'อสม.'; })
+  .catch(() => {});
+
+// ── Search ──────────────────────────────────────────────────────────────────
+document.getElementById('searchInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') search();
+});
+
+async function search() {
+  const q = document.getElementById('searchInput').value.trim();
+  if (q.length < 2) { alert('กรุณาพิมพ์อย่างน้อย 2 ตัวอักษร'); return; }
+
+  const res  = await fetch(`${SCRIPT_URL}?action=searchParticipant&q=${encodeURIComponent(q)}`);
+  const data = await res.json();
+  const box  = document.getElementById('results');
+
+  if (!data.ok || data.results.length === 0) {
+    box.style.display = 'block';
+    box.innerHTML = '<div style="padding:16px;text-align:center;color:var(--stone);font-size:14px">ไม่พบชื่อในระบบ<br><span style="font-size:12px">ตรวจสอบว่าลงทะเบียนแล้ว</span></div>';
+    return;
+  }
+
+  box.style.display = 'block';
+  box.innerHTML = data.results.map(r => `
+    <div class="result-item" onclick="selectPerson(${JSON.stringify(r).replace(/"/g,'&quot;')})">
+      <div class="result-name">${r.name}</div>
+      <div class="result-sub">${r.community} • ${r.phone} • ${r.participantId}</div>
+    </div>`).join('');
+}
+
+function selectPerson(person) {
+  selectedUser = person;
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('searchInput').value = '';
+
+  const card = document.getElementById('selectedCard');
+  card.style.display = 'block';
+  document.getElementById('selName').textContent = person.name;
+  document.getElementById('selSub').textContent  = `${person.community} • ${person.phone}`;
+
+  document.getElementById('formWrap').style.display = 'block';
+  document.getElementById('footer').style.display   = 'block';
+  window.scrollTo({top: 0, behavior:'smooth'});
+}
+
+function clearSelected() {
+  selectedUser = null;
+  document.getElementById('selectedCard').style.display = 'none';
+  document.getElementById('formWrap').style.display     = 'none';
+  document.getElementById('footer').style.display       = 'none';
+  document.getElementById('searchInput').focus();
+}
+
+// ── Auto calc ───────────────────────────────────────────────────────────────
+function calcBMI() {
+  const w = parseFloat(document.getElementById('weight').value);
+  const h = parseFloat(document.getElementById('height').value);
+  if (!w || !h) return;
+
+  currentBMI = Math.round((w / Math.pow(h / 100, 2)) * 10) / 10;
+  let label, cls;
+  if (currentBMI < 18.5)      { label='น้ำหนักน้อย'; cls='risk-yellow'; }
+  else if (currentBMI < 23)   { label='ปกติ ✓';       cls='risk-green';  }
+  else if (currentBMI < 27.5) { label='เริ่มอ้วน';    cls='risk-yellow'; }
+  else if (currentBMI < 30)   { label='อ้วน';         cls='risk-orange'; }
+  else                         { label='อ้วนมาก';      cls='risk-red';    }
+
+  document.getElementById('bmiVal').textContent   = currentBMI;
+  document.getElementById('bmiLabel').textContent  = label;
+  document.getElementById('bmiLabel').className    = 'badge-risk ' + cls;
+  calcRisk();
+}
+
+function calcRisk() {
+  const bpSys = parseInt(document.getElementById('bpSys').value) || 0;
+  const bpDia = parseInt(document.getElementById('bpDia').value) || 0;
+  const waist = parseFloat(document.getElementById('waist').value) || 0;
+
+  let risk;
+  if (bpSys >= 140 || bpDia >= 90 || currentBMI >= 30)
+    risk = 'red';
+  else if (bpSys >= 130 || bpDia >= 80 || currentBMI >= 27.5)
+    risk = 'orange';
+  else if (bpSys >= 120 || currentBMI >= 23 || waist >= 90)
+    risk = 'yellow';
+  else
+    risk = 'green';
+
+  currentRisk = risk;
+  const r = RISK[risk];
+  const badge = document.getElementById('riskBadge');
+  // reset classes
+  badge.className = 'calc-badge ' + r.bg;
+  document.getElementById('riskEmoji').textContent            = r.emoji;
+  document.getElementById('riskLabel').textContent            = r.label;
+  document.getElementById('riskLabel').className              = 'badge-risk ' + r.text;
+}
+
+// ── Save ─────────────────────────────────────────────────────────────────────
+async function saveScreening() {
+  if (!selectedUser) { alert('กรุณาเลือกชื่อผู้เข้าร่วมก่อน'); return; }
+
+  const weight = document.getElementById('weight').value;
+  const height = document.getElementById('height').value;
+  const waist  = document.getElementById('waist').value;
+  const bpSys  = document.getElementById('bpSys').value;
+  const bpDia  = document.getElementById('bpDia').value;
+
+  if (!weight || !height || !bpSys || !bpDia) {
+    alert('กรุณากรอกค่าให้ครบ: น้ำหนัก, ส่วนสูง, ความดัน');
+    return;
+  }
+
+  const btn = document.getElementById('btnSave');
+  btn.textContent = 'กำลังบันทึก...';
+  btn.disabled = true;
+
+  const params = new URLSearchParams({
+    action    : 'saveScreening',
+    lineUserId: selectedUser.lineUserId,
+    weight, height, waist, bpSys, bpDia,
+    note      : document.getElementById('note').value || '',
+    screenedBy,
+  }).toString();
+
+  try {
+    const res    = await fetch(`${SCRIPT_URL}?${params}`);
+    const result = await res.json();
+    if (result.ok) showSuccess(result);
+    else throw new Error(result.error);
+  } catch (err) {
+    btn.textContent = 'บันทึกผลคัดกรอง';
+    btn.disabled = false;
+    alert('บันทึกไม่สำเร็จ: ' + err.message);
+  }
+}
+
+function showSuccess(result) {
+  document.querySelector('.app').querySelectorAll(':not(.success-view)').forEach(el => el.style.display='none');
+
+  const r = RISK[result.riskGroup] || RISK.green;
+  const sv = document.getElementById('successView');
+  sv.style.display = 'flex';
+  document.getElementById('successName').textContent     = selectedUser.name + ' • ' + selectedUser.community;
+  document.getElementById('successEmoji').textContent    = r.emoji;
+  document.getElementById('successRiskText').textContent = r.label;
+  document.getElementById('successBMI').textContent      = `BMI ${result.bmi}`;
+
+  const sr = document.getElementById('successRisk');
+  sr.className = 'success-risk ' + r.bg;
+  sr.style.borderRadius = '16px';
+  sr.style.border = '1.5px solid';
+}
+
+function nextPerson() {
+  // Reset form
+  selectedUser = null;
+  currentBMI = 0; currentRisk = '';
+  ['weight','height','waist','bpSys','bpDia','note'].forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('bmiVal').textContent   = '–';
+  document.getElementById('bmiLabel').textContent = 'กรอกน้ำหนักและส่วนสูง';
+  document.getElementById('riskEmoji').textContent = '⬜';
+  document.getElementById('riskLabel').textContent = 'กรอกข้อมูลเพื่อประเมิน';
+  document.getElementById('riskBadge').className   = 'calc-badge';
+
+  document.getElementById('successView').style.display = 'none';
+  document.getElementById('hdr') && (document.querySelector('.hdr').style.display='block');
+
+  // Show search again
+  document.querySelector('.search-wrap').style.display = 'block';
+  document.getElementById('selectedCard').style.display = 'none';
+  document.getElementById('formWrap').style.display     = 'none';
+  document.getElementById('footer').style.display       = 'none';
+  document.getElementById('btnSave').textContent = 'บันทึกผลคัดกรอง';
+  document.getElementById('btnSave').disabled = false;
+  document.querySelector('.hdr').style.display = 'block';
+  window.scrollTo({top:0});
+}
+</script>
+</body>
+</html>
