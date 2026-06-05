@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>กำลังโหลด...</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+  body { margin:0; display:flex; align-items:center; justify-content:center;
+         height:100vh; background:#F9F5EE; font-family:'Sarabun',sans-serif; }
+  .loader { text-align:center; color:#6B5347; }
+  .dot-wrap { display:flex; gap:6px; justify-content:center; margin-top:16px; }
+  .dot { width:8px; height:8px; border-radius:50%; background:#C86B3A;
+         animation: bounce .8s infinite alternate; }
+  .dot:nth-child(2){ animation-delay:.2s }
+  .dot:nth-child(3){ animation-delay:.4s }
+  @keyframes bounce { to { transform:translateY(-8px); opacity:.4 } }
+</style>
+</head>
+<body>
+<div class="loader">
+  <div>กำลังเข้าสู่ระบบ...</div>
+  <div class="dot-wrap">
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </div>
+</div>
+
+<script>
+const LIFF_ID = '2006915175-42T9BO4a';
+
+// liff.state คือ path ที่ผู้ใช้ต้องการ เช่น "/checkin-confirm.html?station=1&pts=5"
+const params    = new URLSearchParams(location.search);
+const liffState = params.get('liff.state') || '';
+
+liff.init({ liffId: LIFF_ID })
+  .then(() => redirect())
+  .catch(() => redirect()); // ถ้า init fail ก็ยัง redirect ได้
+
+function redirect() {
+  if (liffState) {
+    // liffState = "/checkin-confirm.html?station=1&pts=5"
+    location.replace('.' + liffState);
+  } else {
+    // ไม่มี state → หน้า default คือลงทะเบียน
+    location.replace('./register.html');
+  }
+}
+</script>
+</body>
+</html>
