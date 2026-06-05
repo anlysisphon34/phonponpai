@@ -156,6 +156,8 @@ html,body{height:100%;background:var(--cream);font-family:'Sarabun',sans-serif;c
 /* Section divider */
 .sect{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
   color:var(--mist);margin:24px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--terra-light)}
+
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
 </style>
 </head>
 <body>
@@ -353,9 +355,6 @@ liff.init({ liffId: LIFF_ID })
     if (!profile) return;
     lineUserId  = profile.userId;
     displayName = profile.displayName;
-    // แสดงชื่อจาก LINE ในฟอร์ม (ถ้ายังว่าง)
-    const nameField = document.getElementById('name');
-    if (nameField && !nameField.value) nameField.placeholder = displayName;
   })
   .catch(err => {
     // นอก LIFF environment (ทดสอบบน browser) — ใช้ mock userId
@@ -379,9 +378,31 @@ function updateUI() {
 }
 
 function nextStep() {
+  if (currentStep === 1) {
+    const name  = document.getElementById('name').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const comm  = document.getElementById('community').value;
+    const age   = document.getElementById('age').value;
+    const gen   = document.getElementById('gender').value;
+    if (!name)  { shake('name');      alert('กรุณากรอกชื่อ–นามสกุล');    return; }
+    if (!age)   { shake('age');       alert('กรุณากรอกอายุ');              return; }
+    if (!gen)   { shake('gender');    alert('กรุณาเลือกเพศ');              return; }
+    if (!phone) { shake('phone');     alert('กรุณากรอกเบอร์โทรศัพท์');    return; }
+    if (!comm)  { shake('community'); alert('กรุณาเลือกชุมชน');           return; }
+  }
   if (currentStep === totalSteps) { submitForm(); return; }
   currentStep++;
   updateUI();
+}
+
+function shake(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.borderColor = '#C86B3A';
+  el.style.animation = 'none';
+  el.offsetHeight;
+  el.style.animation = 'shake .3s ease';
+  setTimeout(() => { el.style.borderColor = ''; el.style.animation = ''; }, 600);
 }
 function prevStep() {
   if (currentStep > 1) { currentStep--; updateUI(); }
