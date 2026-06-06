@@ -233,11 +233,26 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('staffPwd').addEventListener('keydown', e => {
     if (e.key === 'Enter') submitAuth();
   });
+  updateSidebar();
   if (sessionStorage.getItem('staffVerified') === 'true') {
     document.getElementById('authOverlay').style.display = 'none';
     loadData();
   }
 });
+
+function updateSidebar() {
+  const start = new Date('2026-06-08T00:00:00+07:00');
+  const diff  = Math.floor((Date.now() - start.getTime()) / 86400000);
+  const week  = Math.min(Math.max(Math.floor(diff / 7) + 1, 1), 12);
+  const pct   = Math.round(week / 12 * 100);
+  const fill  = document.querySelector('.sb-week-fill');
+  const num   = document.querySelector('.sb-week-num');
+  if (fill) fill.style.width = pct + '%';
+  if (num)  num.textContent  = `สัปดาห์ที่ ${week} / 12`;
+  const cnt   = sessionStorage.getItem('followupCount');
+  const badge = document.querySelector('.sb-badge');
+  if (badge && cnt) badge.textContent = cnt;
+}
 
 async function submitAuth() {
   const pwd = document.getElementById('staffPwd').value.trim();
