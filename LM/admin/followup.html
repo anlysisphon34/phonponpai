@@ -46,16 +46,30 @@
   border-radius:10px;font-size:13px;
 }
 .issue-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px}
-.fu-actions{padding:14px 18px;border-top:1px solid var(--border);display:flex;gap:8px}
+.fu-actions{padding:14px 18px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+.fu-actions-row{display:flex;gap:8px}
 .action-btn{
   flex:1;padding:10px;border-radius:10px;border:none;
   font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;
   cursor:pointer;transition:all .15s;
 }
 .action-btn.primary{background:var(--terra);color:#fff}
+.action-btn.primary:hover{background:var(--terra-dark)}
 .action-btn.secondary{background:var(--cream);color:var(--stone);border:2px solid var(--border)}
-.action-btn:hover.primary{background:var(--terra-dark)}
-.action-btn:hover.secondary{border-color:var(--terra);color:var(--terra)}
+.action-btn.secondary:hover{border-color:var(--terra);color:var(--terra)}
+.action-btn.line-btn{background:#06C755;color:#fff}
+.action-btn.line-btn:hover{background:#05a847}
+
+/* LINE modal */
+.tpl-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.tpl-chip{
+  padding:6px 14px;border-radius:100px;
+  border:2px solid var(--border);background:var(--cream);
+  font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;
+  color:var(--stone);cursor:pointer;transition:all .15s;
+}
+.tpl-chip:hover{border-color:#06C755;color:#06C755}
+.tpl-chip.active{border-color:#06C755;background:#E8F9EE;color:#056E2E}
 
 /* Days overdue badge */
 .days-badge{
@@ -107,6 +121,24 @@
         <button class="tab-btn no-log" onclick="setTab('nolog',this)">📭 ไม่ส่ง log <span class="tab-count" id="cntNolog" style="background:var(--ry)">—</span></button>
       </div>
       <div class="cards-grid" id="cardsGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- LINE Modal -->
+<div class="modal-overlay" id="lineModal" onclick="closeLineModal(event)">
+  <div class="modal">
+    <h3>💬 ส่งข้อความผ่าน LINE</h3>
+    <p id="lineModalSub" style="margin-bottom:14px">—</p>
+    <div class="tpl-chips">
+      <button class="tpl-chip" onclick="useTemplate('greet',this)">👋 ทักทายทั่วไป</button>
+      <button class="tpl-chip" onclick="useTemplate('remind',this)">🔔 เตือนส่ง log</button>
+      <button class="tpl-chip" onclick="useTemplate('appt',this)">📅 นัดพบเจ้าหน้าที่</button>
+    </div>
+    <textarea id="lineMsg" placeholder="หรือพิมพ์ข้อความเอง..." style="width:100%;padding:14px;border-radius:14px;border:2px solid var(--border);background:var(--cream);font-family:'Sarabun',sans-serif;font-size:14px;outline:none;resize:none;min-height:120px;line-height:1.7" onfocus="this.style.borderColor='#06C755'"></textarea>
+    <div class="modal-btns">
+      <button class="modal-btn-cancel" onclick="document.getElementById('lineModal').classList.remove('open')">ยกเลิก</button>
+      <button class="modal-btn-save" id="lineSendBtn" style="background:#06C755" onclick="sendLineConfirm()">📤 ส่ง LINE</button>
     </div>
   </div>
 </div>
@@ -193,6 +225,7 @@ function renderCards() {
     card.style.borderLeftColor = rs.border;
     const safeName = (d.name || '').replace(/'/g, "\\'");
     const safeComm = (d.comm || '').replace(/'/g, "\\'");
+    const safeUid  = (d.lineUserId || '').replace(/'/g, "\\'");
     card.innerHTML = `
       <div class="fu-card-head">
         <div class="fu-av" style="background:${rs.av}">${(d.name||'?')[0]}</div>
@@ -216,12 +249,69 @@ function renderCards() {
       </div>
       <div class="fu-actions">
         <button class="action-btn primary" onclick="openModal('${safeName}','${safeComm}')">📝 บันทึกการติดตาม</button>
-        ${d.risk === 'red'
-          ? `<button class="action-btn secondary">🏥 ส่งต่อ</button>`
-          : `<button class="action-btn secondary">📞 โทรหา</button>`}
+        <div class="fu-actions-row">
+          <button class="action-btn line-btn" onclick="openLineModal('${safeUid}','${safeName}','${safeComm}')">💬 ส่ง LINE</button>
+          ${d.risk === 'red'
+            ? `<button class="action-btn secondary">🏥 ส่งต่อ</button>`
+            : `<button class="action-btn secondary">📞 โทรหา</button>`}
+        </div>
       </div>`;
     grid.appendChild(card);
   });
+}
+
+// ── LINE Push Message ─────────────────────────────────────────────────────────
+const _startDate = new Date('2026-06-08T00:00:00+07:00');
+const _curWeek   = Math.min(Math.max(Math.floor((Date.now() - _startDate) / (86400000 * 7)) + 1, 1), 12);
+
+const LINE_TEMPLATES = {
+  greet:  n => `สวัสดีครับ/ค่ะ ${n} 👋\n\nทีมงานโครงการ 90 วัน ขอทักทายและถามไถ่สุขภาพนะครับ/ค่ะ\nมีอะไรให้ช่วยเหลือหรืออยากปรึกษาไหมครับ/ค่ะ? 🌿`,
+  remind: n => `🔔 แจ้งเตือน ${n}\n\nสัปดาห์ที่ ${_curWeek} ยังไม่ได้บันทึกสุขภาพประจำสัปดาห์นะครับ/ค่ะ\nกรุณาบันทึกผ่าน LINE ด้วยนะครับ/ค่ะ 🙏\n\nขอบคุณครับ/ค่ะ`,
+  appt:   n => `สวัสดีครับ/ค่ะ ${n}\n\nเจ้าหน้าที่ขอนัดพบเพื่อตรวจสุขภาพและติดตามความคืบหน้า\n📅 วันที่: ________________\n⏰ เวลา: ________________\n📍 สถานที่: ________________\n\nกรุณาตอบรับนัดหมายด้วยนะครับ/ค่ะ 🙏`,
+};
+
+let _lineTarget = {};
+
+function openLineModal(lineUserId, name, comm) {
+  _lineTarget = { lineUserId, name, comm };
+  document.getElementById('lineModalSub').textContent = name + ' · ' + comm;
+  document.getElementById('lineMsg').value = '';
+  document.getElementById('lineMsg').style.borderColor = 'var(--border)';
+  document.querySelectorAll('.tpl-chip').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('lineSendBtn');
+  btn.disabled = false; btn.textContent = '📤 ส่ง LINE'; btn.style.background = '#06C755';
+  document.getElementById('lineModal').classList.add('open');
+}
+
+function useTemplate(key, el) {
+  document.getElementById('lineMsg').value = LINE_TEMPLATES[key](_lineTarget.name);
+  document.querySelectorAll('.tpl-chip').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function closeLineModal(e) {
+  if (!e || e.target.id === 'lineModal') document.getElementById('lineModal').classList.remove('open');
+}
+
+async function sendLineConfirm() {
+  const msg = document.getElementById('lineMsg').value.trim();
+  if (!msg) { document.getElementById('lineMsg').focus(); return; }
+  const btn = document.getElementById('lineSendBtn');
+  btn.disabled = true; btn.textContent = 'กำลังส่ง...';
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=sendLineMessage&lineUserId=${encodeURIComponent(_lineTarget.lineUserId)}&message=${encodeURIComponent(msg)}`);
+    const data = await res.json();
+    if (data.ok) {
+      btn.textContent = '✓ ส่งแล้ว'; btn.style.background = 'var(--forest)';
+      setTimeout(() => document.getElementById('lineModal').classList.remove('open'), 1200);
+    } else {
+      alert('ส่งไม่สำเร็จ: ' + (data.error || 'unknown'));
+      btn.disabled = false; btn.textContent = '📤 ส่ง LINE'; btn.style.background = '#06C755';
+    }
+  } catch {
+    alert('ไม่สามารถเชื่อมต่อได้');
+    btn.disabled = false; btn.textContent = '📤 ส่ง LINE'; btn.style.background = '#06C755';
+  }
 }
 
 function openModal(name, comm) {
