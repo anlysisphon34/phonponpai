@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ติดตามกลุ่มเสี่ยง</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --terra:#C86B3A;--terra-light:#F2DDD0;
+  --forest:#2D5A3D;--forest-light:#EAF3EE;
+  --amber:#E8A830;
+  --cream:#F9F5EE;--warm-white:#FFFDF9;
+  --sidebar:#1A3826;--bark:#2A1F1A;--stone:#6B5347;--mist:#C8B9B0;--border:#EDE4D8;
+  --rg:#2D8A55;--rg-bg:#EBF6EE;--ry:#C89B20;--ry-bg:#FEF6DC;
+  --ro:#C86B3A;--ro-bg:#FEF0E4;--rr:#B03030;--rr-bg:#FDEAEA;
+}
+html,body{height:100%;background:var(--cream);font-family:'Sarabun',sans-serif;color:var(--bark);font-size:14px}
+.layout{display:flex;height:100vh}
+.sidebar{width:220px;flex-shrink:0;background:var(--sidebar);display:flex;flex-direction:column}
+.sb-brand{padding:28px 20px 24px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-brand-mark{width:40px;height:40px;background:var(--terra);border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+.sb-brand-mark svg{width:22px;height:22px}
+.sb-name{font-size:15px;font-weight:700;color:#fff}.sb-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:4px}
+.sb-section{padding:20px 12px 8px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.3)}
+.sb-item{display:flex;align-items:center;gap:10px;padding:11px 20px;border-radius:10px;margin:2px 8px;cursor:pointer;transition:background .15s;text-decoration:none}
+.sb-item:hover{background:rgba(255,255,255,.06)}
+.sb-item.active{background:rgba(232,168,48,.15);border:1px solid rgba(232,168,48,.2)}
+.sb-item .ico{width:18px;height:18px;opacity:.5}.sb-item.active .ico{opacity:1}
+.sb-item span{font-size:14px;color:rgba(255,255,255,.6);font-weight:500}.sb-item.active span{color:#fff;font-weight:600}
+.sb-badge{margin-left:auto;background:var(--terra);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px}
+.sb-week{margin:auto 0 0;padding:20px;border-top:1px solid rgba(255,255,255,.08)}
+.sb-week-label{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:6px}
+.sb-week-bar{height:4px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden}
+.sb-week-fill{height:100%;background:#E8A830;border-radius:4px;width:58%}
+.sb-week-num{font-size:14px;font-weight:700;color:#fff;margin-top:6px}
+
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.topbar{padding:20px 28px;display:flex;align-items:center;justify-content:space-between;background:var(--warm-white);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+.topbar h1{font-size:20px;font-weight:800}.topbar p{font-size:13px;color:var(--stone);margin-top:2px}
+
+.body{padding:24px 28px;flex:1}
+
+/* Filter tabs */
+.filter-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.tab-btn{
+  padding:8px 18px;border-radius:100px;border:2px solid var(--border);
+  background:var(--warm-white);font-family:'Sarabun',sans-serif;font-size:13px;
+  font-weight:600;color:var(--stone);cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;gap:6px;
+}
+.tab-btn.active{border-color:currentColor}
+.tab-btn.all.active{border-color:var(--bark);color:var(--bark);background:var(--cream)}
+.tab-btn.red-tab.active{border-color:var(--rr);color:var(--rr);background:var(--rr-bg)}
+.tab-btn.orange-tab.active{border-color:var(--ro);color:var(--ro);background:var(--ro-bg)}
+.tab-btn.no-log.active{border-color:var(--ry);color:var(--ry);background:var(--ry-bg)}
+.tab-count{font-size:11px;padding:2px 7px;border-radius:100px;background:currentColor;color:#fff;opacity:.8}
+
+/* Cards grid */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+
+/* Follow-up card */
+.fu-card{
+  background:var(--warm-white);border-radius:18px;
+  box-shadow:0 2px 8px rgba(42,31,26,.06);
+  border-left:4px solid transparent;overflow:hidden;
+  transition:transform .15s,box-shadow .15s;cursor:pointer;
+}
+.fu-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(42,31,26,.1)}
+.fu-card-head{padding:18px 18px 14px;display:flex;gap:12px;align-items:flex-start}
+.fu-av{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;flex-shrink:0}
+.fu-info{flex:1;min-width:0}
+.fu-name{font-size:15px;font-weight:700;color:var(--bark)}
+.fu-meta{font-size:12px;color:var(--stone);margin-top:2px}
+.risk-pill-sm{padding:3px 9px;border-radius:100px;font-size:11px;font-weight:700}
+.fu-issues{padding:0 18px 14px;display:flex;flex-direction:column;gap:6px}
+.issue-item{
+  display:flex;align-items:flex-start;gap:8px;padding:10px 12px;
+  border-radius:10px;font-size:13px;
+}
+.issue-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.fu-actions{padding:14px 18px;border-top:1px solid var(--border);display:flex;gap:8px}
+.action-btn{
+  flex:1;padding:10px;border-radius:10px;border:none;
+  font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;
+  cursor:pointer;transition:all .15s;
+}
+.action-btn.primary{background:var(--terra);color:#fff}
+.action-btn.secondary{background:var(--cream);color:var(--stone);border:2px solid var(--border)}
+.action-btn:hover.primary{background:var(--terra-dark)}
+.action-btn:hover.secondary{border-color:var(--terra);color:var(--terra)}
+
+/* Days overdue badge */
+.days-badge{
+  padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;
+}
+
+/* Modal */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(42,31,26,.5);
+  display:flex;align-items:center;justify-content:center;z-index:100;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{
+  background:var(--warm-white);border-radius:24px;padding:28px;
+  width:460px;max-width:90vw;
+  transform:translateY(20px);transition:transform .2s;
+}
+.modal-overlay.open .modal{transform:none}
+.modal h3{font-size:18px;font-weight:800;margin-bottom:6px}
+.modal p{font-size:13px;color:var(--stone);margin-bottom:20px}
+.modal textarea{
+  width:100%;padding:14px;border-radius:14px;border:2px solid var(--border);
+  background:var(--cream);font-family:'Sarabun',sans-serif;font-size:14px;
+  outline:none;min-height:100px;resize:none;line-height:1.6;
+}
+.modal textarea:focus{border-color:var(--terra)}
+.modal-btns{display:flex;gap:10px;margin-top:16px;justify-content:flex-end}
+.modal-btn-cancel{padding:10px 20px;border-radius:100px;border:2px solid var(--border);background:transparent;font-family:'Sarabun',sans-serif;font-size:14px;color:var(--stone);cursor:pointer}
+.modal-btn-save{padding:10px 24px;border-radius:100px;border:none;background:var(--terra);color:#fff;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+
+.status-select{width:100%;padding:10px 14px;border-radius:12px;border:2px solid var(--border);background:var(--cream);font-family:'Sarabun',sans-serif;font-size:14px;outline:none;margin-bottom:14px;cursor:pointer}
+.status-select:focus{border-color:var(--terra)}
+/* Staff auth overlay */
+.auth-overlay{position:fixed;inset:0;background:rgba(26,56,38,.97);display:flex;align-items:center;justify-content:center;z-index:9999}
+.auth-card{background:var(--warm-white);border-radius:24px;padding:40px 36px;width:380px;max-width:90vw;text-align:center}
+.auth-logo{width:56px;height:56px;background:var(--terra);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+.auth-title{font-size:22px;font-weight:800;margin-bottom:6px}
+.auth-sub{font-size:13px;color:var(--stone);margin-bottom:24px;line-height:1.6}
+.auth-input{width:100%;padding:14px 16px;border-radius:14px;border:2px solid var(--border);background:var(--cream);font-family:'Sarabun',sans-serif;font-size:18px;outline:none;text-align:center;letter-spacing:6px;margin-bottom:8px}
+.auth-input:focus{border-color:var(--terra)}
+.auth-btn{width:100%;padding:14px;border-radius:14px;border:none;background:var(--terra);color:#fff;font-family:'Sarabun',sans-serif;font-size:16px;font-weight:700;cursor:pointer;margin-top:8px}
+.auth-btn:disabled{opacity:.6;cursor:not-allowed}
+.auth-error{color:var(--rr);font-size:13px;margin-bottom:8px;display:none}
+</style>
+</head>
+<body>
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="white"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+    </div>
+    <div class="auth-title">ระบบเจ้าหน้าที่</div>
+    <div class="auth-sub">โครงการประชาชนคนรักสุขภาพ 90 วัน<br>กรุณาใส่รหัสผ่านก่อนเข้าใช้งาน</div>
+    <div class="auth-error" id="authError">รหัสผ่านไม่ถูกต้อง</div>
+    <input class="auth-input" type="password" id="staffPwd" placeholder="••••••">
+    <button class="auth-btn" id="authBtn" onclick="submitAuth()">เข้าสู่ระบบ</button>
+  </div>
+</div>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sb-brand"><div class="sb-brand-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="white" opacity=".9"/><circle cx="12" cy="9" r="2.5" fill="white"/></svg></div><div class="sb-name">โครงการ 90 วัน</div><div class="sb-sub">ระบบเจ้าหน้าที่</div></div>
+    <div class="sb-section">หลัก</div>
+    <a class="sb-item" href="dashboard.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg><span>ภาพรวม</span></a>
+    <a class="sb-item" href="participants.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span>ผู้เข้าร่วม</span></a>
+    <a class="sb-item" href="screening.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg><span>คัดกรอง</span></a>
+    <a class="sb-item active" href="followup.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/></svg><span>ติดตาม</span><span class="sb-badge">12</span></a>
+    <div class="sb-section">รายงาน</div>
+    <a class="sb-item" href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/></svg><span>Export รายงาน</span></a>
+    <div class="sb-week"><div class="sb-week-label">ความคืบหน้า</div><div class="sb-week-bar"><div class="sb-week-fill"></div></div><div class="sb-week-num">สัปดาห์ที่ 7 / 12</div></div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div><h1>ติดตามกลุ่มเสี่ยง</h1><p>12 ราย ต้องดำเนินการ</p></div>
+    </div>
+    <div class="body">
+      <div class="filter-tabs">
+        <button class="tab-btn all active" onclick="setTab('all',this)">ทั้งหมด <span class="tab-count" id="cntAll" style="background:var(--bark)">—</span></button>
+        <button class="tab-btn red-tab" onclick="setTab('red',this)">🔴 กลุ่มแดง <span class="tab-count" id="cntRed" style="background:var(--rr)">—</span></button>
+        <button class="tab-btn orange-tab" onclick="setTab('orange',this)">🟠 กลุ่มส้ม <span class="tab-count" id="cntOrange" style="background:var(--ro)">—</span></button>
+        <button class="tab-btn no-log" onclick="setTab('nolog',this)">📭 ไม่ส่ง log <span class="tab-count" id="cntNolog" style="background:var(--ry)">—</span></button>
+      </div>
+      <div class="cards-grid" id="cardsGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal">
+    <h3 id="modalName">บันทึกการติดตาม</h3>
+    <p id="modalSub">เลือกสถานะและระบุรายละเอียด</p>
+    <select class="status-select" id="modalStatus">
+      <option value="called">โทรติดต่อแล้ว — รับสาย</option>
+      <option value="no_answer">โทรแล้ว — ไม่รับสาย</option>
+      <option value="visited">เยี่ยมบ้านแล้ว</option>
+      <option value="referred">ส่งต่อหน่วยบริการแล้ว</option>
+      <option value="returning">กลับเข้าโปรแกรมแล้ว</option>
+    </select>
+    <textarea id="modalNote" placeholder="รายละเอียดเพิ่มเติม เช่น สาเหตุที่ขาด เหตุผลที่ยังไม่พร้อม..."></textarea>
+    <div class="modal-btns">
+      <button class="modal-btn-cancel" onclick="document.getElementById('modal').classList.remove('open')">ยกเลิก</button>
+      <button class="modal-btn-save" onclick="saveLog()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyz7zegkAeUyTwu7AYvvMflFjWLVpF8mAmsvomyCfSnPFaFyFUEh-PbWjf7GPmzEGie/exec';
+
+const riskStyle = {
+  red:    {border:'var(--rr)',bg:'var(--rr-bg)',av:'#B03030',pill:'var(--rr-bg)',pillTxt:'var(--rr)',label:'แดง'},
+  orange: {border:'var(--ro)',bg:'var(--ro-bg)',av:'#C86B3A',pill:'var(--ro-bg)',pillTxt:'var(--ro)',label:'ส้ม'},
+  yellow: {border:'var(--ry)',bg:'var(--ry-bg)',av:'#C89B20',pill:'var(--ry-bg)',pillTxt:'var(--ry)',label:'เหลือง'},
+};
+const issueColors = {red:'var(--rr)',orange:'var(--ro)',yellow:'var(--ry)'};
+const issueBg     = {red:'var(--rr-bg)',orange:'var(--ro-bg)',yellow:'var(--ry-bg)'};
+
+let allData    = [];
+let currentTab = 'all';
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('staffPwd').addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitAuth();
+  });
+  if (sessionStorage.getItem('staffVerified') === 'true') {
+    document.getElementById('authOverlay').style.display = 'none';
+    loadData();
+  }
+});
+
+async function submitAuth() {
+  const pwd = document.getElementById('staffPwd').value.trim();
+  if (!pwd) return;
+  const btn = document.getElementById('authBtn');
+  const err = document.getElementById('authError');
+  btn.disabled = true; btn.textContent = 'กำลังตรวจสอบ...';
+  err.style.display = 'none';
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=verifyStaff&password=${encodeURIComponent(pwd)}`);
+    const data = await res.json();
+    if (data.ok) {
+      sessionStorage.setItem('staffVerified', 'true');
+      document.getElementById('authOverlay').style.display = 'none';
+      loadData();
+    } else {
+      err.textContent = 'รหัสผ่านไม่ถูกต้อง';
+      err.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
+    }
+  } catch (e) {
+    err.textContent = 'ไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่';
+    err.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
+  }
+}
+
+async function loadData() {
+  document.getElementById('cardsGrid').innerHTML = '<div style="text-align:center;padding:40px;color:var(--stone)">กำลังโหลดข้อมูล...</div>';
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=getFollowups`);
+    const data = await res.json();
+    if (!data.ok) return;
+    allData = data.items;
+    document.getElementById('cntAll').textContent    = data.counts.total;
+    document.getElementById('cntRed').textContent    = data.counts.red;
+    document.getElementById('cntOrange').textContent = data.counts.orange;
+    document.getElementById('cntNolog').textContent  = data.counts.nolog;
+    document.querySelector('.topbar p').textContent  = `${data.counts.total} ราย ต้องดำเนินการ`;
+    renderCards();
+  } catch (e) {
+    document.getElementById('cardsGrid').innerHTML = '<div style="text-align:center;padding:40px;color:var(--stone)">ไม่สามารถเชื่อมต่อได้</div>';
+  }
+}
+
+function setTab(t, btn) {
+  currentTab = t;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCards();
+}
+
+function renderCards() {
+  const grid = document.getElementById('cardsGrid');
+  grid.innerHTML = '';
+  let filtered = allData;
+  if (currentTab === 'red')    filtered = allData.filter(d => d.risk === 'red');
+  if (currentTab === 'orange') filtered = allData.filter(d => d.risk === 'orange');
+  if (currentTab === 'nolog')  filtered = allData.filter(d => d.days >= 14);
+  if (!filtered.length) {
+    grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--stone)">ไม่มีรายการในกลุ่มนี้ 👍</div>';
+    return;
+  }
+  filtered.forEach(d => {
+    const rs      = riskStyle[d.risk] || riskStyle.yellow;
+    const daysBg  = d.days >= 14 ? 'var(--rr-bg)' : d.days >= 7 ? 'var(--ro-bg)' : 'var(--ry-bg)';
+    const daysTxt = d.days >= 14 ? 'var(--rr)'    : d.days >= 7 ? 'var(--ro)'    : 'var(--ry)';
+    const card = document.createElement('div');
+    card.className = 'fu-card';
+    card.style.borderLeftColor = rs.border;
+    const safeName = (d.name || '').replace(/'/g, "\\'");
+    const safeComm = (d.comm || '').replace(/'/g, "\\'");
+    card.innerHTML = `
+      <div class="fu-card-head">
+        <div class="fu-av" style="background:${rs.av}">${(d.name||'?')[0]}</div>
+        <div class="fu-info">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+            <div class="fu-name">${d.name||'—'}</div>
+            <span class="days-badge" style="background:${daysBg};color:${daysTxt}">${d.days > 0 ? d.days+' วัน' : 'วันนี้'}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+            <span class="fu-meta">${d.comm||'—'}</span>
+            <span class="risk-pill-sm" style="background:${rs.pill};color:${rs.pillTxt}">กลุ่ม${rs.label}</span>
+          </div>
+        </div>
+      </div>
+      <div class="fu-issues">
+        ${(d.issues||[]).map(iss => `
+          <div class="issue-item" style="background:${issueBg[iss.c]||'var(--ry-bg)'};color:${issueColors[iss.c]||'var(--ry)'}">
+            <div class="issue-dot" style="background:${issueColors[iss.c]||'var(--ry)'}"></div>
+            <span>${iss.t}</span>
+          </div>`).join('')}
+      </div>
+      <div class="fu-actions">
+        <button class="action-btn primary" onclick="openModal('${safeName}','${safeComm}')">📝 บันทึกการติดตาม</button>
+        ${d.risk === 'red'
+          ? `<button class="action-btn secondary">🏥 ส่งต่อ</button>`
+          : `<button class="action-btn secondary">📞 โทรหา</button>`}
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+function openModal(name, comm) {
+  document.getElementById('modalName').textContent = name;
+  document.getElementById('modalSub').textContent  = comm + ' · บันทึกวันที่ ' + new Date().toLocaleDateString('th-TH', {day:'numeric', month:'long'});
+  document.getElementById('modalNote').value = '';
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(e) {
+  if (e.target.id === 'modal') document.getElementById('modal').classList.remove('open');
+}
+function saveLog() {
+  document.getElementById('modal').classList.remove('open');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ผู้เข้าร่วม — โครงการ 90 วัน</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --terra:#C86B3A;--terra-light:#F2DDD0;
+  --forest:#2D5A3D;--forest-light:#EAF3EE;
+  --cream:#F9F5EE;--warm-white:#FFFDF9;
+  --sidebar:#1A3826;--bark:#2A1F1A;--stone:#6B5347;--mist:#C8B9B0;--border:#EDE4D8;
+  --rg:#2D8A55;--rg-bg:#EBF6EE;--ry:#C89B20;--ry-bg:#FEF6DC;
+  --ro:#C86B3A;--ro-bg:#FEF0E4;--rr:#B03030;--rr-bg:#FDEAEA;
+}
+html,body{height:100%;background:var(--cream);font-family:'Sarabun',sans-serif;color:var(--bark);font-size:14px}
+.layout{display:flex;height:100vh}
+/* Sidebar — same as dashboard */
+.sidebar{width:220px;flex-shrink:0;background:var(--sidebar);display:flex;flex-direction:column}
+.sb-brand{padding:28px 20px 24px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-brand-mark{width:40px;height:40px;background:var(--terra);border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+.sb-brand-mark svg{width:22px;height:22px}
+.sb-name{font-size:15px;font-weight:700;color:#fff;line-height:1.2}
+.sb-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:4px}
+.sb-section{padding:20px 12px 8px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.3)}
+.sb-item{display:flex;align-items:center;gap:10px;padding:11px 20px;border-radius:10px;margin:2px 8px;cursor:pointer;transition:background .15s;text-decoration:none}
+.sb-item:hover{background:rgba(255,255,255,.06)}
+.sb-item.active{background:rgba(232,168,48,.15);border:1px solid rgba(232,168,48,.2)}
+.sb-item .ico{width:18px;height:18px;opacity:.5;flex-shrink:0}
+.sb-item.active .ico{opacity:1}
+.sb-item span{font-size:14px;color:rgba(255,255,255,.6);font-weight:500}
+.sb-item.active span{color:#fff;font-weight:600}
+.sb-badge{margin-left:auto;background:var(--terra);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px}
+.sb-week{margin:auto 0 0;padding:20px;border-top:1px solid rgba(255,255,255,.08)}
+.sb-week-label{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:6px}
+.sb-week-bar{height:4px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden}
+.sb-week-fill{height:100%;background:#E8A830;border-radius:4px;width:58%}
+.sb-week-num{font-size:14px;font-weight:700;color:#fff;margin-top:6px}
+
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.topbar{padding:20px 28px;display:flex;align-items:center;justify-content:space-between;background:var(--warm-white);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+.topbar h1{font-size:20px;font-weight:800}
+.topbar p{font-size:13px;color:var(--stone);margin-top:2px}
+.btn-primary-sm{padding:10px 20px;border-radius:100px;border:none;background:var(--terra);color:#fff;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+
+.body{padding:24px 28px;flex:1}
+
+/* Filter bar */
+.filter-bar{
+  display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center;
+}
+.search-wrap{
+  position:relative;flex:1;min-width:200px;
+}
+.search-wrap svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--mist)}
+.search-input{
+  width:100%;padding:10px 14px 10px 40px;border-radius:100px;
+  border:2px solid var(--border);background:var(--warm-white);
+  font-family:'Sarabun',sans-serif;font-size:14px;color:var(--bark);outline:none;
+}
+.search-input:focus{border-color:var(--terra)}
+.filter-select{
+  padding:10px 36px 10px 14px;border-radius:100px;
+  border:2px solid var(--border);background:var(--warm-white);
+  font-family:'Sarabun',sans-serif;font-size:14px;color:var(--stone);
+  outline:none;cursor:pointer;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23C8B9B0' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+}
+.filter-select:focus{border-color:var(--terra)}
+
+/* Table */
+.table-card{background:var(--warm-white);border-radius:18px;box-shadow:0 2px 8px rgba(42,31,26,.06);overflow:hidden}
+.table-head{
+  display:grid;grid-template-columns:2fr 1.2fr 1fr 1fr 1fr 1fr auto;
+  padding:12px 20px;background:var(--cream);border-bottom:1px solid var(--border);
+  gap:8px;
+}
+.th{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mist)}
+.table-body .row{
+  display:grid;grid-template-columns:2fr 1.2fr 1fr 1fr 1fr 1fr auto;
+  padding:14px 20px;border-bottom:1px solid var(--border);gap:8px;
+  align-items:center;transition:background .12s;cursor:pointer;
+}
+.table-body .row:last-child{border-bottom:none}
+.table-body .row:hover{background:var(--cream)}
+.name-cell{display:flex;align-items:center;gap:10px}
+.av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.name-txt{font-size:14px;font-weight:600;color:var(--bark)}
+.comm-txt{font-size:12px;color:var(--stone)}
+.risk-pill{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700}
+.cell{font-size:13px;color:var(--bark)}
+.cell.muted{color:var(--stone)}
+.streak-dots{display:flex;gap:3px}
+.sdot{width:8px;height:8px;border-radius:2px}
+.sdot.on{background:var(--forest)}
+.sdot.cur{background:var(--terra)}
+.sdot.off{background:var(--border)}
+.act-btn{
+  padding:6px 14px;border-radius:100px;border:2px solid var(--border);
+  background:transparent;font-family:'Sarabun',sans-serif;font-size:12px;
+  color:var(--stone);cursor:pointer;font-weight:600;white-space:nowrap;
+}
+.act-btn:hover{border-color:var(--terra);color:var(--terra)}
+
+/* Pagination */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:16px 20px}
+.page-info{font-size:13px;color:var(--stone)}
+.page-btns{display:flex;gap:6px}
+.page-btn{
+  width:32px;height:32px;border-radius:8px;border:2px solid var(--border);
+  background:transparent;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:13px;
+  color:var(--stone);display:flex;align-items:center;justify-content:center;
+}
+.page-btn.active{background:var(--terra);border-color:var(--terra);color:#fff;font-weight:700}
+.page-btn:hover:not(.active){border-color:var(--terra);color:var(--terra)}
+/* Staff auth overlay */
+.auth-overlay{position:fixed;inset:0;background:rgba(26,56,38,.97);display:flex;align-items:center;justify-content:center;z-index:9999}
+.auth-card{background:var(--warm-white);border-radius:24px;padding:40px 36px;width:380px;max-width:90vw;text-align:center}
+.auth-logo{width:56px;height:56px;background:var(--terra);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+.auth-title{font-size:22px;font-weight:800;margin-bottom:6px}
+.auth-sub{font-size:13px;color:var(--stone);margin-bottom:24px;line-height:1.6}
+.auth-input{width:100%;padding:14px 16px;border-radius:14px;border:2px solid var(--border);background:var(--cream);font-family:'Sarabun',sans-serif;font-size:18px;outline:none;text-align:center;letter-spacing:6px;margin-bottom:8px}
+.auth-input:focus{border-color:var(--terra)}
+.auth-btn{width:100%;padding:14px;border-radius:14px;border:none;background:var(--terra);color:#fff;font-family:'Sarabun',sans-serif;font-size:16px;font-weight:700;cursor:pointer;margin-top:8px}
+.auth-btn:disabled{opacity:.6;cursor:not-allowed}
+.auth-error{color:var(--rr);font-size:13px;margin-bottom:8px;display:none}
+.loading-row{text-align:center;padding:40px;color:var(--stone);font-size:14px;grid-column:1/-1}
+</style>
+</head>
+<body>
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="white"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+    </div>
+    <div class="auth-title">ระบบเจ้าหน้าที่</div>
+    <div class="auth-sub">โครงการประชาชนคนรักสุขภาพ 90 วัน<br>กรุณาใส่รหัสผ่านก่อนเข้าใช้งาน</div>
+    <div class="auth-error" id="authError">รหัสผ่านไม่ถูกต้อง</div>
+    <input class="auth-input" type="password" id="staffPwd" placeholder="••••••">
+    <button class="auth-btn" id="authBtn" onclick="submitAuth()">เข้าสู่ระบบ</button>
+  </div>
+</div>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sb-brand">
+      <div class="sb-brand-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="white" opacity=".9"/><circle cx="12" cy="9" r="2.5" fill="white"/></svg></div>
+      <div class="sb-name">โครงการ 90 วัน</div>
+      <div class="sb-sub">ระบบเจ้าหน้าที่</div>
+    </div>
+    <div class="sb-section">หลัก</div>
+    <a class="sb-item" href="dashboard.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg><span>ภาพรวม</span></a>
+    <a class="sb-item active" href="participants.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>ผู้เข้าร่วม</span></a>
+    <a class="sb-item" href="screening.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><span>คัดกรอง</span></a>
+    <a class="sb-item" href="followup.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg><span>ติดตาม</span><span class="sb-badge">12</span></a>
+    <div class="sb-section">รายงาน</div>
+    <a class="sb-item" href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="15" y2="11"/></svg><span>Export รายงาน</span></a>
+    <div class="sb-week"><div class="sb-week-label">ความคืบหน้าโครงการ</div><div class="sb-week-bar"><div class="sb-week-fill"></div></div><div class="sb-week-num">สัปดาห์ที่ 7 / 12</div></div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div><h1>ผู้เข้าร่วมทั้งหมด</h1><p>412 คน · คัดกรองแล้ว 348 คน</p></div>
+      <button class="btn-primary-sm" onclick="location.href='screening.html'">+ เพิ่มผู้เข้าร่วม</button>
+    </div>
+    <div class="body">
+      <div class="filter-bar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input class="search-input" type="search" placeholder="ค้นหาชื่อ เบอร์โทร..." id="searchInput" oninput="filterTable()">
+        </div>
+        <select class="filter-select" id="riskFilter" onchange="filterTable()">
+          <option value="">ทุกกลุ่มเสี่ยง</option>
+          <option value="green">เขียว</option>
+          <option value="yellow">เหลือง</option>
+          <option value="orange">ส้ม</option>
+          <option value="red">แดง</option>
+        </select>
+        <select class="filter-select" id="commFilter" onchange="filterTable()">
+          <option value="">ทุกชุมชน</option>
+          <option>หมู่ 1</option><option>หมู่ 2</option><option>หมู่ 3</option><option>หมู่ 4</option><option>หมู่ 5</option>
+        </select>
+        <select class="filter-select" id="statusFilter" onchange="filterTable()">
+          <option value="">ทุกสถานะ</option>
+          <option value="active">กำลังติดตาม</option>
+          <option value="dropout">หลุดติดตาม</option>
+          <option value="complete">จบโครงการ</option>
+        </select>
+      </div>
+
+      <div class="table-card">
+        <div class="table-head">
+          <div class="th">ชื่อ–ชุมชน</div>
+          <div class="th">กลุ่มเสี่ยง</div>
+          <div class="th">บันทึกล่าสุด</div>
+          <div class="th">สัปดาห์ที่ครบ</div>
+          <div class="th">น้ำหนัก (ก่อน→ปัจจุบัน)</div>
+          <div class="th">Streak</div>
+          <div class="th"></div>
+        </div>
+        <div class="table-body" id="tableBody"></div>
+        <div class="pagination">
+          <span class="page-info" id="pageInfo">แสดง 1–10 จาก 412 คน</span>
+          <div class="page-btns">
+            <button class="page-btn">‹</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">›</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyz7zegkAeUyTwu7AYvvMflFjWLVpF8mAmsvomyCfSnPFaFyFUEh-PbWjf7GPmzEGie/exec';
+const LIMIT = 20;
+let currentPage = 1, currentQ = '', currentRisk = '', currentComm = '', currentStatus = '';
+let debounceTimer = null;
+
+const riskStyles = {
+  green:  ['#2D8A55','#EBF6EE','เขียว'],
+  yellow: ['#C89B20','#FEF6DC','เหลือง'],
+  orange: ['#C86B3A','#FEF0E4','ส้ม'],
+  red:    ['#B03030','#FDEAEA','แดง'],
+};
+const avColors = ['#2D5A3D','#C86B3A','#8A4220','#1A3826','#6B5347'];
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('staffPwd').addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitAuth();
+  });
+  if (sessionStorage.getItem('staffVerified') === 'true') {
+    document.getElementById('authOverlay').style.display = 'none';
+    loadData();
+  }
+});
+
+async function submitAuth() {
+  const pwd = document.getElementById('staffPwd').value.trim();
+  if (!pwd) return;
+  const btn = document.getElementById('authBtn');
+  const err = document.getElementById('authError');
+  btn.disabled = true; btn.textContent = 'กำลังตรวจสอบ...';
+  err.style.display = 'none';
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=verifyStaff&password=${encodeURIComponent(pwd)}`);
+    const data = await res.json();
+    if (data.ok) {
+      sessionStorage.setItem('staffVerified', 'true');
+      document.getElementById('authOverlay').style.display = 'none';
+      loadData();
+    } else {
+      err.textContent = 'รหัสผ่านไม่ถูกต้อง';
+      err.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
+    }
+  } catch (e) {
+    err.textContent = 'ไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่';
+    err.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
+  }
+}
+
+async function loadData() {
+  document.getElementById('tableBody').innerHTML = '<div class="loading-row">กำลังโหลดข้อมูล...</div>';
+  const params = new URLSearchParams({
+    action: 'getParticipants', page: currentPage, limit: LIMIT,
+    q: currentQ, risk: currentRisk, comm: currentComm, status: currentStatus,
+  });
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?${params}`);
+    const data = await res.json();
+    if (!data.ok) { document.getElementById('tableBody').innerHTML = '<div class="loading-row">เกิดข้อผิดพลาด</div>'; return; }
+    renderTable(data.items);
+    renderPagination(data.total, data.page, data.limit);
+    updateCommFilter(data.communities);
+    document.querySelector('.topbar p').textContent = `${data.total} คน · โหลดจาก Google Sheets`;
+  } catch (e) {
+    document.getElementById('tableBody').innerHTML = '<div class="loading-row">ไม่สามารถเชื่อมต่อได้</div>';
+  }
+}
+
+function filterTable() {
+  currentQ      = document.getElementById('searchInput').value.toLowerCase();
+  currentRisk   = document.getElementById('riskFilter').value;
+  currentComm   = document.getElementById('commFilter').value;
+  currentStatus = document.getElementById('statusFilter').value;
+  currentPage   = 1;
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(loadData, 500);
+}
+
+function updateCommFilter(communities) {
+  const sel = document.getElementById('commFilter');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">ทุกชุมชน</option>';
+  communities.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    if (c === cur) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function renderTable(data) {
+  const body = document.getElementById('tableBody');
+  body.innerHTML = '';
+  if (!data.length) { body.innerHTML = '<div class="loading-row">ไม่พบข้อมูล</div>'; return; }
+  data.forEach((d, i) => {
+    const [rc, bg, label] = riskStyles[d.risk] || ['#999','#eee','—'];
+    const hasWeight = d.wtBefore && d.wtNow;
+    const delta     = hasWeight ? +(d.wtNow - d.wtBefore).toFixed(1) : null;
+    const wtCell    = hasWeight
+      ? `${d.wtBefore} → <strong style="color:${delta<0?'var(--forest)':'var(--terra)'}">${d.wtNow}</strong><span style="font-size:11px;color:${delta<0?'var(--forest)':'var(--terra)'};margin-left:4px">(${delta<0?delta:'+'+delta})</span>`
+      : (d.wtBefore ? `${d.wtBefore} กก.` : '—');
+    const streak = (d.streak || []).map((v, si) =>
+      `<div class="sdot ${v===1?(si===6?'cur':'on'):'off'}"></div>`).join('');
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML = `
+      <div class="name-cell">
+        <div class="av" style="background:${avColors[i%5]}">${(d.name||'?')[0]}</div>
+        <div><div class="name-txt">${d.name||'—'}</div><div class="comm-txt">${d.comm||'—'}</div></div>
+      </div>
+      <div><span class="risk-pill" style="background:${bg};color:${rc}">${label}</span></div>
+      <div class="cell">${d.lastLog}</div>
+      <div class="cell">${d.weeks}/12 <span style="color:var(--mist)">สัปดาห์</span></div>
+      <div class="cell">${wtCell}</div>
+      <div><div class="streak-dots">${streak}</div></div>
+      <div><button class="act-btn">ดูข้อมูล</button></div>`;
+    body.appendChild(row);
+  });
+}
+
+function renderPagination(total, page, limit) {
+  const totalPages = Math.ceil(total / limit) || 1;
+  const from = (page - 1) * limit + 1;
+  const to   = Math.min(page * limit, total);
+  document.getElementById('pageInfo').textContent = `แสดง ${from}–${to} จาก ${total} คน`;
+  const btns = document.querySelector('.page-btns');
+  btns.innerHTML = '';
+  const addBtn = (label, pg, active) => {
+    const b = document.createElement('button');
+    b.className = 'page-btn' + (active ? ' active' : '');
+    b.textContent = label;
+    if (!active && pg >= 1 && pg <= totalPages) b.onclick = () => { currentPage = pg; loadData(); };
+    btns.appendChild(b);
+  };
+  addBtn('‹', page - 1);
+  const start = Math.max(1, page - 2);
+  const end   = Math.min(totalPages, start + 4);
+  for (let pg = start; pg <= end; pg++) addBtn(pg, pg, pg === page);
+  addBtn('›', page + 1);
+}
+</script>
+</body>
+</html>
