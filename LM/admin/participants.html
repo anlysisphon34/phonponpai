@@ -135,8 +135,7 @@
           <option value="red">แดง</option>
         </select>
         <select class="filter-select" id="commFilter" onchange="filterTable()">
-          <option value="">ทุกชุมชน</option>
-          <option>หมู่ 1</option><option>หมู่ 2</option><option>หมู่ 3</option><option>หมู่ 4</option><option>หมู่ 5</option>
+          <option value="">ทุกพื้นที่</option>
         </select>
         <select class="filter-select" id="statusFilter" onchange="filterTable()">
           <option value="">ทุกสถานะ</option>
@@ -258,13 +257,28 @@ function filterTable() {
 function updateCommFilter(communities) {
   const sel = document.getElementById('commFilter');
   const cur = sel.value;
-  sel.innerHTML = '<option value="">ทุกชุมชน</option>';
-  communities.forEach(c => {
+  sel.innerHTML = '<option value="">ทุกพื้นที่</option>';
+
+  const inArea  = communities.filter(c => c !== 'นอกพื้นที่').sort((a, b) => a.localeCompare(b, 'th'));
+  const outside = communities.filter(c => c === 'นอกพื้นที่');
+
+  inArea.forEach(c => {
     const opt = document.createElement('option');
     opt.value = c; opt.textContent = c;
     if (c === cur) opt.selected = true;
     sel.appendChild(opt);
   });
+
+  if (outside.length) {
+    const sep = document.createElement('option');
+    sep.disabled = true; sep.textContent = '──────────';
+    sel.appendChild(sep);
+
+    const opt = document.createElement('option');
+    opt.value = 'นอกพื้นที่'; opt.textContent = 'นอกพื้นที่';
+    if (cur === 'นอกพื้นที่') opt.selected = true;
+    sel.appendChild(opt);
+  }
 }
 
 function renderTable(data) {
