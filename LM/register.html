@@ -210,24 +210,35 @@ html,body{height:100%;background:var(--cream);font-family:'Sarabun',sans-serif;c
         <input type="tel" placeholder="08x–xxx–xxxx" id="phone" maxlength="12">
       </div>
       <div class="field">
-        <label>ชุมชน / หมู่บ้าน <span>*</span></label>
-        <select id="community">
-          <option value="" disabled selected>-- กรุณาเลือกชุมชน --</option>
-          <option value="ชุมชนหนองแวง 1">ชุมชนหนองแวง 1</option>
-          <option value="ชุมชนหนองแวง 2">ชุมชนหนองแวง 2</option>
-          <option value="ชุมชนหนองแวง 3">ชุมชนหนองแวง 3</option>
-          <option value="ชุมชนหนองแวง 4">ชุมชนหนองแวง 4</option>
-          <option value="ชุมชนตลาดเก่า">ชุมชนตลาดเก่า</option>
-          <option value="ชุมชนทุ่งรวงทอง">ชุมชนทุ่งรวงทอง</option>
-          <option value="ชุมชนเมืองเก่า">ชุมชนเมืองเก่า</option>
-          <option value="ชุมชนเมืองพล">ชุมชนเมืองพล</option>
-          <option value="ชุมชนเมืองใหม่">ชุมชนเมืองใหม่</option>
-          <option value="ชุมชนศรีเมือง">ชุมชนศรีเมือง</option>
-          <option value="ชุมชน บ.ข.ส.มิ่งเมือง">ชุมชน บ.ข.ส.มิ่งเมือง</option>
-          <option value="ชุมชนพลประชานุกูล">ชุมชนพลประชานุกูล</option>
-          <option value="ชุมชนพลประชากลางเมือง">ชุมชนพลประชากลางเมือง</option>
-          <option value="ชุมชนพลประชาพัฒนา">ชุมชนพลประชาพัฒนา</option>
+        <label>ชุมชน / หน่วยงาน <span>*</span></label>
+        <select id="community" onchange="onCommunityChange()">
+          <option value="" disabled selected>-- กรุณาเลือก --</option>
+          <optgroup label="ชุมชนในเขตเทศบาล">
+            <option value="ชุมชนหนองแวง 1">ชุมชนหนองแวง 1</option>
+            <option value="ชุมชนหนองแวง 2">ชุมชนหนองแวง 2</option>
+            <option value="ชุมชนหนองแวง 3">ชุมชนหนองแวง 3</option>
+            <option value="ชุมชนหนองแวง 4">ชุมชนหนองแวง 4</option>
+            <option value="ชุมชนตลาดเก่า">ชุมชนตลาดเก่า</option>
+            <option value="ชุมชนทุ่งรวงทอง">ชุมชนทุ่งรวงทอง</option>
+            <option value="ชุมชนเมืองเก่า">ชุมชนเมืองเก่า</option>
+            <option value="ชุมชนเมืองพล">ชุมชนเมืองพล</option>
+            <option value="ชุมชนเมืองใหม่">ชุมชนเมืองใหม่</option>
+            <option value="ชุมชนศรีเมือง">ชุมชนศรีเมือง</option>
+            <option value="ชุมชน บ.ข.ส.มิ่งเมือง">ชุมชน บ.ข.ส.มิ่งเมือง</option>
+            <option value="ชุมชนพลประชานุกูล">ชุมชนพลประชานุกูล</option>
+            <option value="ชุมชนพลประชากลางเมือง">ชุมชนพลประชากลางเมือง</option>
+            <option value="ชุมชนพลประชาพัฒนา">ชุมชนพลประชาพัฒนา</option>
+          </optgroup>
+          <optgroup label="บุคคลภายนอกเขตเทศบาล">
+            <option value="ร.ร.เทศบาลพลประชานุกูล">ร.ร.เทศบาลพลประชานุกูล</option>
+            <option value="ร.ร.เทศบาลหนองแวงประชาอุปถัมภ์">ร.ร.เทศบาลหนองแวงประชาอุปถัมภ์</option>
+            <option value="ร.ร.เทศบาลศรีเมืองพลประชานุเคราะห์">ร.ร.เทศบาลศรีเมืองพลประชานุเคราะห์</option>
+            <option value="ร.พ.พล">ร.พ.พล</option>
+            <option value="__other__">อื่นๆ (ระบุ)</option>
+          </optgroup>
         </select>
+        <input type="text" id="communityOther" placeholder="ระบุชื่อหน่วยงาน / ที่มา"
+          style="display:none;margin-top:10px">
       </div>
       <div class="field">
         <label>ผู้ติดต่อฉุกเฉิน</label>
@@ -388,11 +399,21 @@ function nextStep() {
     if (!age)   { shake('age');       alert('กรุณากรอกอายุ');              return; }
     if (!gen)   { shake('gender');    alert('กรุณาเลือกเพศ');              return; }
     if (!phone) { shake('phone');     alert('กรุณากรอกเบอร์โทรศัพท์');    return; }
-    if (!comm)  { shake('community'); alert('กรุณาเลือกชุมชน');           return; }
+    if (!comm)  { shake('community'); alert('กรุณาเลือกชุมชน / หน่วยงาน'); return; }
+    if (comm === '__other__' && !document.getElementById('communityOther').value.trim()) {
+      shake('communityOther'); alert('กรุณาระบุชื่อหน่วยงาน'); return;
+    }
   }
   if (currentStep === totalSteps) { submitForm(); return; }
   currentStep++;
   updateUI();
+}
+
+function onCommunityChange() {
+  const sel   = document.getElementById('community');
+  const other = document.getElementById('communityOther');
+  other.style.display = sel.value === '__other__' ? 'block' : 'none';
+  if (sel.value !== '__other__') other.value = '';
 }
 
 function shake(id) {
@@ -418,7 +439,9 @@ function collectFormData() {
     displayName,
     name       : document.getElementById('name').value.trim(),
     phone      : document.getElementById('phone').value.trim(),
-    community  : document.getElementById('community').value,
+    community  : document.getElementById('community').value === '__other__'
+                   ? document.getElementById('communityOther').value.trim()
+                   : document.getElementById('community').value,
     age        : document.getElementById('age').value,
     gender     : document.getElementById('gender').value,
     emergency  : document.getElementById('emergency').value.trim(),
