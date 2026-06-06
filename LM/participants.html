@@ -128,6 +128,13 @@ html,body{height:100%;background:var(--cream);font-family:'Sarabun',sans-serif;c
 .auth-btn:disabled{opacity:.6;cursor:not-allowed}
 .auth-error{color:var(--rr);font-size:13px;margin-bottom:8px;display:none}
 .loading-row{text-align:center;padding:40px;color:var(--stone);font-size:14px;grid-column:1/-1}
+/* Sort headers */
+.th.sortable{cursor:pointer;user-select:none;display:flex;align-items:center;gap:4px}
+.th.sortable:hover{color:var(--stone)}
+.sort-arrow{font-size:10px;opacity:.4;transition:opacity .15s}
+.th.sort-asc .sort-arrow::after{content:'▲';opacity:1}
+.th.sort-desc .sort-arrow::after{content:'▼';opacity:1}
+.th.sort-asc,.th.sort-desc{color:var(--terra)}
 /* Detail modal */
 .modal-bg{position:fixed;inset:0;background:rgba(42,31,26,.5);display:flex;align-items:center;justify-content:center;z-index:2000;opacity:0;pointer-events:none;transition:opacity .2s}
 .modal-bg.open{opacity:1;pointer-events:all}
@@ -177,6 +184,7 @@ html,body{height:100%;background:var(--cream);font-family:'Sarabun',sans-serif;c
     <a class="sb-item active" href="participants.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>ผู้เข้าร่วม</span></a>
     <a class="sb-item" href="screening.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><span>คัดกรอง</span></a>
     <a class="sb-item" href="followup.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg><span>ติดตาม</span><span class="sb-badge">12</span></a>
+    <a class="sb-item" href="leaderboard.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M8 6v12M12 3v15M16 9v9"/><path d="M3 20h18"/></svg><span>ผู้ชนะ</span></a>
     <div class="sb-section">รายงาน</div>
     <a class="sb-item" href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="15" y2="11"/></svg><span>Export รายงาน</span></a>
     <div class="sb-week"><div class="sb-week-label">ความคืบหน้าโครงการ</div><div class="sb-week-bar"><div class="sb-week-fill"></div></div><div class="sb-week-num">สัปดาห์ที่ 7 / 12</div></div>
@@ -214,12 +222,12 @@ html,body{height:100%;background:var(--cream);font-family:'Sarabun',sans-serif;c
 
       <div class="table-card">
         <div class="table-head">
-          <div class="th">ชื่อ–ชุมชน</div>
+          <div class="th sortable" onclick="setSort('name')" id="th-name">ชื่อ–ชุมชน<span class="sort-arrow"></span></div>
           <div class="th">กลุ่มเสี่ยง</div>
           <div class="th">บันทึกล่าสุด</div>
-          <div class="th">สัปดาห์ที่ครบ</div>
-          <div class="th">น้ำหนัก (ก่อน→ปัจจุบัน)</div>
-          <div class="th">Streak</div>
+          <div class="th sortable" onclick="setSort('weeks')" id="th-weeks">สัปดาห์ที่ครบ<span class="sort-arrow"></span></div>
+          <div class="th sortable" onclick="setSort('wtDelta')" id="th-wtDelta">น้ำหนัก (ก่อน→ปัจจุบัน)<span class="sort-arrow"></span></div>
+          <div class="th sortable" onclick="setSort('points')" id="th-points">คะแนน<span class="sort-arrow"></span></div>
           <div class="th"></div>
         </div>
         <div class="table-body" id="tableBody"></div>
@@ -262,6 +270,7 @@ html,body{height:100%;background:var(--cream);font-family:'Sarabun',sans-serif;c
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyz7zegkAeUyTwu7AYvvMflFjWLVpF8mAmsvomyCfSnPFaFyFUEh-PbWjf7GPmzEGie/exec';
 const LIMIT = 20;
 let currentPage = 1, currentQ = '', currentRisk = '', currentComm = '', currentStatus = '';
+let currentSortBy = '', currentSortDir = 'desc';
 let debounceTimer = null;
 
 const riskStyles = {
@@ -323,11 +332,28 @@ async function submitAuth() {
   }
 }
 
+function setSort(col) {
+  if (currentSortBy === col) {
+    currentSortDir = currentSortDir === 'desc' ? 'asc' : 'desc';
+  } else {
+    currentSortBy  = col;
+    currentSortDir = 'desc';
+  }
+  document.querySelectorAll('.th.sortable').forEach(el => {
+    el.classList.remove('sort-asc','sort-desc');
+  });
+  const th = document.getElementById('th-' + col);
+  if (th) th.classList.add('sort-' + currentSortDir);
+  currentPage = 1;
+  loadData();
+}
+
 async function loadData() {
   document.getElementById('tableBody').innerHTML = '<div class="loading-row">กำลังโหลดข้อมูล...</div>';
   const params = new URLSearchParams({
     action: 'getParticipants', page: currentPage, limit: LIMIT,
     q: currentQ, risk: currentRisk, comm: currentComm, status: currentStatus,
+    sortBy: currentSortBy, sortDir: currentSortDir,
   });
   try {
     const res  = await fetch(`${SCRIPT_URL}?${params}`);
@@ -388,7 +414,7 @@ function renderTable(data) {
       <div class="cell">${d.lastLog}</div>
       <div class="cell">${d.weeks}/12 <span style="color:var(--mist)">สัปดาห์</span></div>
       <div class="cell">${wtCell}</div>
-      <div><div class="streak-dots">${streak}</div></div>
+      <div class="cell"><strong style="color:var(--terra)">${d.points||0}</strong> <span style="font-size:11px;color:var(--stone)">pts</span></div>
       <div><button class="act-btn" onclick="viewParticipant('${d.lineUserId}')">ดูข้อมูล</button></div>`;
     body.appendChild(row);
   });
