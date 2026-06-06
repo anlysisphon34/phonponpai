@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>คัดกรองสุขภาพ</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="sidebar.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -18,25 +19,6 @@
 }
 html,body{height:100%;background:var(--cream);font-family:'Sarabun',sans-serif;color:var(--bark);font-size:14px}
 .layout{display:flex;height:100vh}
-/* Minimal sidebar */
-.sidebar{width:220px;flex-shrink:0;background:var(--sidebar);display:flex;flex-direction:column}
-.sb-brand{padding:28px 20px 24px;border-bottom:1px solid rgba(255,255,255,.08)}
-.sb-brand-mark{width:40px;height:40px;background:var(--terra);border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:12px}
-.sb-brand-mark svg{width:22px;height:22px}
-.sb-name{font-size:15px;font-weight:700;color:#fff}.sb-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:4px}
-.sb-section{padding:20px 12px 8px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.3)}
-.sb-item{display:flex;align-items:center;gap:10px;padding:11px 20px;border-radius:10px;margin:2px 8px;cursor:pointer;transition:background .15s;text-decoration:none}
-.sb-item:hover{background:rgba(255,255,255,.06)}
-.sb-item.active{background:rgba(232,168,48,.15);border:1px solid rgba(232,168,48,.2)}
-.sb-item .ico{width:18px;height:18px;opacity:.5;flex-shrink:0}.sb-item.active .ico{opacity:1}
-.sb-item span{font-size:14px;color:rgba(255,255,255,.6);font-weight:500}.sb-item.active span{color:#fff;font-weight:600}
-.sb-badge{margin-left:auto;background:var(--terra);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px}
-.sb-week{margin:auto 0 0;padding:20px;border-top:1px solid rgba(255,255,255,.08)}
-.sb-week-label{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:6px}
-.sb-week-bar{height:4px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden}
-.sb-week-fill{height:100%;background:#E8A830;border-radius:4px;width:58%}
-.sb-week-num{font-size:14px;font-weight:700;color:#fff;margin-top:6px}
-
 .main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
 .topbar{padding:20px 28px;display:flex;align-items:center;justify-content:space-between;background:var(--warm-white);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
 .topbar h1{font-size:20px;font-weight:800}.topbar p{font-size:13px;color:var(--stone);margin-top:2px}
@@ -141,20 +123,7 @@ html,body{height:100%;background:var(--cream);font-family:'Sarabun',sans-serif;c
   </div>
 </div>
 <div class="layout">
-  <div class="sidebar">
-    <div class="sb-brand">
-      <div class="sb-brand-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="white" opacity=".9"/><circle cx="12" cy="9" r="2.5" fill="white"/></svg></div>
-      <div class="sb-name">โครงการ 90 วัน</div><div class="sb-sub">ระบบเจ้าหน้าที่</div>
-    </div>
-    <div class="sb-section">หลัก</div>
-    <a class="sb-item" href="dashboard.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg><span>ภาพรวม</span></a>
-    <a class="sb-item" href="participants.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span>ผู้เข้าร่วม</span></a>
-    <a class="sb-item active" href="screening.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><span>คัดกรอง</span></a>
-    <a class="sb-item" href="followup.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/></svg><span>ติดตาม</span><span class="sb-badge">12</span></a>
-    <div class="sb-section">รายงาน</div>
-    <a class="sb-item" href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="7" x2="15" y2="7"/></svg><span>Export รายงาน</span></a>
-    <div class="sb-week"><div class="sb-week-label">ความคืบหน้า</div><div class="sb-week-bar"><div class="sb-week-fill"></div></div><div class="sb-week-num">สัปดาห์ที่ 7 / 12</div></div>
-  </div>
+  <div id="sidebar"></div>
 
   <div class="main">
     <div class="topbar">
@@ -287,7 +256,6 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('staffPwd').addEventListener('keydown', e => {
     if (e.key === 'Enter') submitAuth();
   });
-  updateSidebar();
   if (sessionStorage.getItem('staffVerified') === 'true') {
     document.getElementById('authOverlay').style.display = 'none';
   }
@@ -297,17 +265,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
-
-function updateSidebar() {
-  const start = new Date('2026-06-08T00:00:00+07:00');
-  const diff  = Math.floor((Date.now() - start.getTime()) / 86400000);
-  const week  = Math.min(Math.max(Math.floor(diff / 7) + 1, 1), 12);
-  const pct   = Math.round(week / 12 * 100);
-  const fill  = document.querySelector('.sb-week-fill');
-  const num   = document.querySelector('.sb-week-num');
-  if (fill) fill.style.width = pct + '%';
-  if (num)  num.textContent  = `สัปดาห์ที่ ${week} / 12`;
-}
 
 async function submitAuth() {
   const pwd = document.getElementById('staffPwd').value.trim();
