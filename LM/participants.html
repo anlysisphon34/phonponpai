@@ -128,6 +128,28 @@ html,body{height:100%;background:var(--cream);font-family:'Sarabun',sans-serif;c
 .auth-btn:disabled{opacity:.6;cursor:not-allowed}
 .auth-error{color:var(--rr);font-size:13px;margin-bottom:8px;display:none}
 .loading-row{text-align:center;padding:40px;color:var(--stone);font-size:14px;grid-column:1/-1}
+/* Detail modal */
+.modal-bg{position:fixed;inset:0;background:rgba(42,31,26,.5);display:flex;align-items:center;justify-content:center;z-index:2000;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-bg.open{opacity:1;pointer-events:all}
+.modal-box{background:var(--warm-white);border-radius:24px;width:540px;max-width:92vw;max-height:82vh;overflow-y:auto;transform:translateY(24px);transition:transform .2s;box-shadow:0 20px 60px rgba(42,31,26,.2)}
+.modal-bg.open .modal-box{transform:none}
+.modal-header{padding:24px 28px 20px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--warm-white);z-index:1}
+.modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--stone);line-height:1;padding:4px 8px;border-radius:8px}
+.modal-close:hover{background:var(--cream);color:var(--bark)}
+.modal-body{padding:24px 28px}
+.modal-sec{margin-bottom:24px}
+.modal-sec-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mist);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat-box{background:var(--cream);border-radius:14px;padding:14px 10px;text-align:center}
+.stat-val{font-size:20px;font-weight:800;color:var(--bark)}
+.stat-lbl{font-size:11px;color:var(--stone);margin-top:2px}
+.pts-big{font-size:40px;font-weight:800;color:var(--terra);line-height:1}
+.log-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)}
+.log-row:last-child{border-bottom:none}
+.log-wk{font-size:12px;font-weight:700;color:var(--stone);min-width:62px}
+.log-bar{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.log-fill{height:100%;background:var(--forest);border-radius:3px;transition:width .4s}
+.log-pts{font-size:12px;font-weight:600;color:var(--bark);min-width:44px;text-align:right}
 </style>
 </head>
 <body>
@@ -215,6 +237,27 @@ html,body{height:100%;background:var(--cream);font-family:'Sarabun',sans-serif;c
     </div>
   </div>
 </div>
+
+<!-- Detail modal -->
+<div class="modal-bg" id="detailModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="av" id="modalAv" style="width:48px;height:48px;font-size:20px;background:#2D5A3D;flex-shrink:0">?</div>
+        <div>
+          <div id="modalName" style="font-size:19px;font-weight:800;color:var(--bark)">—</div>
+          <div id="modalMeta" style="font-size:12px;color:var(--stone);margin-top:2px">—</div>
+          <span id="modalRisk" class="risk-pill" style="margin-top:6px;display:inline-flex">—</span>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <div style="text-align:center;padding:40px;color:var(--stone)">กำลังโหลด...</div>
+    </div>
+  </div>
+</div>
+
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyz7zegkAeUyTwu7AYvvMflFjWLVpF8mAmsvomyCfSnPFaFyFUEh-PbWjf7GPmzEGie/exec';
 const LIMIT = 20;
@@ -346,9 +389,93 @@ function renderTable(data) {
       <div class="cell">${d.weeks}/12 <span style="color:var(--mist)">สัปดาห์</span></div>
       <div class="cell">${wtCell}</div>
       <div><div class="streak-dots">${streak}</div></div>
-      <div><button class="act-btn">ดูข้อมูล</button></div>`;
+      <div><button class="act-btn" onclick="viewParticipant('${d.lineUserId}')">ดูข้อมูล</button></div>`;
     body.appendChild(row);
   });
+}
+
+// ── Detail modal ──────────────────────────────────────────────────────────────
+const riskDefs = {
+  green:  ['#2D8A55','#EBF6EE','กลุ่มเขียว'],
+  yellow: ['#C89B20','#FEF6DC','กลุ่มเหลือง'],
+  orange: ['#C86B3A','#FEF0E4','กลุ่มส้ม'],
+  red:    ['#B03030','#FDEAEA','กลุ่มแดง'],
+};
+
+async function viewParticipant(lineUserId) {
+  const modal = document.getElementById('detailModal');
+  modal.classList.add('open');
+  document.getElementById('modalName').textContent = 'กำลังโหลด...';
+  document.getElementById('modalMeta').textContent = '';
+  document.getElementById('modalAv').textContent   = '…';
+  document.getElementById('modalRisk').textContent = '';
+  document.getElementById('modalBody').innerHTML   = '<div style="text-align:center;padding:40px;color:var(--stone)">กำลังโหลด...</div>';
+
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=health&lineUserId=${encodeURIComponent(lineUserId)}`);
+    const data = await res.json();
+    if (!data.ok) {
+      document.getElementById('modalBody').innerHTML = '<div style="text-align:center;padding:30px;color:var(--stone)">ไม่พบข้อมูล</div>';
+      return;
+    }
+    // Header
+    const firstName = (data.name || '?')[0];
+    document.getElementById('modalAv').textContent   = firstName;
+    document.getElementById('modalName').textContent = data.name || '—';
+    document.getElementById('modalMeta').textContent = `${data.community || '—'} · ${data.participantId || '—'}`;
+    const pill = document.getElementById('modalRisk');
+    const [rc, bg, label] = riskDefs[data.riskGroup] || ['#999','#eee','ยังไม่คัดกรอง'];
+    pill.textContent = label;
+    pill.style.background = bg;
+    pill.style.color = rc;
+
+    // Screening
+    const s    = data.screening;
+    const logs = data.weeklyLogs || [];
+
+    document.getElementById('modalBody').innerHTML = `
+      <div class="modal-sec">
+        <div class="modal-sec-title">ผลการคัดกรอง</div>
+        <div class="stat-grid">
+          <div class="stat-box">
+            <div class="stat-val">${s ? s.bmi : '—'}</div>
+            <div class="stat-lbl">BMI</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val">${s ? s.bpSys+'/'+s.bpDia : '—'}</div>
+            <div class="stat-lbl">ความดัน (mmHg)</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val">${s ? s.weight+' กก.' : '—'}</div>
+            <div class="stat-lbl">น้ำหนักเริ่มต้น</div>
+          </div>
+        </div>
+        ${s && s.waist ? `<div style="margin-top:10px;font-size:13px;color:var(--stone)">รอบเอว <strong style="color:var(--bark)">${s.waist} ซม.</strong></div>` : ''}
+      </div>
+
+      <div class="modal-sec">
+        <div class="modal-sec-title">คะแนนสะสม</div>
+        <div class="pts-big">${data.totalPoints} <span style="font-size:16px;font-weight:400;color:var(--stone)">คะแนน</span></div>
+      </div>
+
+      <div class="modal-sec">
+        <div class="modal-sec-title">บันทึกรายสัปดาห์ ${logs.length ? `(${logs.length} สัปดาห์)` : '— ยังไม่มีข้อมูล'}</div>
+        ${logs.length
+          ? logs.map(l => `
+              <div class="log-row">
+                <div class="log-wk">สัปดาห์ ${l.week}</div>
+                <div class="log-bar"><div class="log-fill" style="width:${Math.round(Math.min((l.points||0)/60,1)*100)}%"></div></div>
+                <div class="log-pts">${l.points||0} pts</div>
+              </div>`).join('')
+          : '<div style="color:var(--stone);font-size:13px">ยังไม่มีการบันทึก</div>'}
+      </div>`;
+  } catch (e) {
+    document.getElementById('modalBody').innerHTML = '<div style="text-align:center;padding:30px;color:var(--stone)">เกิดข้อผิดพลาด กรุณาลองใหม่</div>';
+  }
+}
+
+function closeModal() {
+  document.getElementById('detailModal').classList.remove('open');
 }
 
 function renderPagination(total, page, limit) {
