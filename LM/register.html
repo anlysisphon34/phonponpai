@@ -158,9 +158,26 @@ html,body{height:100%;background:var(--cream);font-family:'Sarabun',sans-serif;c
   color:var(--mist);margin:24px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--terra-light)}
 
 @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+
+/* Loading overlay */
+.loading-overlay{
+  position:fixed;inset:0;background:var(--cream);z-index:200;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+}
+.loading-spinner{
+  width:44px;height:44px;border:4px solid var(--terra-light);border-top-color:var(--terra);
+  border-radius:50%;animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <p style="color:var(--stone);font-size:14px">กำลังตรวจสอบ...</p>
+</div>
+
 <div class="app">
   <div class="hdr">
     <div class="hdr-top">
@@ -356,23 +373,58 @@ let displayName  = '';
 let currentStep  = 1;
 const totalSteps = 3;
 
-// ── LIFF init ──────────────────────────────────────────────────────────────
+// ── LIFF init + ตรวจสอบการลงทะเบียน ──────────────────────────────────────
 liff.init({ liffId: LIFF_ID })
   .then(() => {
     if (!liff.isLoggedIn()) { liff.login(); return; }
     return liff.getProfile();
   })
-  .then(profile => {
+  .then(async profile => {
     if (!profile) return;
     lineUserId  = profile.userId;
     displayName = profile.displayName;
+
+    // ตรวจว่าลงทะเบียนแล้วหรือยัง
+    const res    = await fetch(`${SCRIPT_URL}?action=health&lineUserId=${lineUserId}`);
+    const result = await res.json();
+
+    document.getElementById('loadingOverlay').style.display = 'none';
+
+    if (result.ok) {
+      // ลงทะเบียนแล้ว → แสดงหน้ายืนยัน
+      showAlreadyRegistered(result);
+    }
+    // ยังไม่ลงทะเบียน → ฟอร์มแสดงตามปกติ (ไม่ต้องทำอะไร)
   })
-  .catch(err => {
-    // นอก LIFF environment (ทดสอบบน browser) — ใช้ mock userId
-    console.warn('LIFF not available, using dev mode');
+  .catch(() => {
+    // dev mode (ทดสอบนอก LINE)
     lineUserId  = 'dev_' + Date.now();
     displayName = 'Test User';
+    document.getElementById('loadingOverlay').style.display = 'none';
   });
+
+function showAlreadyRegistered(data) {
+  document.querySelector('.app').innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
+                height:100dvh;padding:40px;text-align:center;gap:20px;background:#F9F5EE">
+      <div style="width:80px;height:80px;background:#EAF3EE;border-radius:50%;
+                  display:flex;align-items:center;justify-content:center;font-size:40px">✅</div>
+      <h2 style="font-size:24px;font-weight:700;color:#2A1F1A">ลงทะเบียนแล้ว</h2>
+      <p style="color:#6B5347;font-size:15px;line-height:1.6">
+        <strong>${data.name || displayName}</strong><br>
+        ${data.community || ''}
+      </p>
+      <div style="background:white;border-radius:16px;padding:20px;width:100%;border:1px solid #EAD9CF">
+        <p style="font-size:13px;color:#6B5347">หมายเลขผู้เข้าร่วม</p>
+        <p style="font-size:28px;font-weight:700;color:#C86B3A;letter-spacing:.1em">
+          ${data.participantId || '—'}
+        </p>
+      </div>
+      <p style="font-size:13px;color:#9B8B83;line-height:1.7">
+        หากต้องการแก้ไขข้อมูล<br>กรุณาติดต่อเจ้าหน้าที่
+      </p>
+    </div>`;
+}
 
 // ── Step navigation ────────────────────────────────────────────────────────
 function updateUI() {
