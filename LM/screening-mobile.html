@@ -107,6 +107,18 @@ html,body{height:100%;background:var(--cream);font-family:'Sarabun',sans-serif;c
 }
 .btn-save:disabled{opacity:.5;cursor:not-allowed}
 
+/* Auth overlay */
+.auth-overlay{
+  position:fixed;inset:0;background:var(--cream);z-index:999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:40px;text-align:center;
+}
+.auth-spinner{
+  width:48px;height:48px;border:4px solid var(--border);border-top-color:var(--forest);
+  border-radius:50%;animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.auth-denied{background:var(--cream);border-radius:20px;padding:32px;width:100%}
+
 /* Success */
 .success-view{display:none;flex-direction:column;align-items:center;justify-content:center;height:100dvh;padding:40px;text-align:center;gap:16px}
 .success-icon{width:80px;height:80px;background:var(--forest-light);border-radius:50%;display:flex;align-items:center;justify-content:center}
@@ -121,7 +133,13 @@ html,body{height:100%;background:var(--cream);font-family:'Sarabun',sans-serif;c
 </style>
 </head>
 <body>
-<div class="app">
+<!-- Auth overlay (แสดงตอนโหลด / ไม่มีสิทธิ์) -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-spinner" id="authSpinner"></div>
+  <p style="color:var(--stone);font-size:14px" id="authMsg">กำลังตรวจสอบสิทธิ์...</p>
+</div>
+
+<div class="app" id="mainApp" style="display:none">
 
   <!-- Header -->
   <div class="hdr">
@@ -229,7 +247,7 @@ html,body{height:100%;background:var(--cream);font-family:'Sarabun',sans-serif;c
     <button class="btn-next" onclick="nextPerson()">คัดกรองคนถัดไป</button>
   </div>
 
-</div>
+</div><!-- /mainApp -->
 
 <script>
 /*######################### Editable Start #########################*/
@@ -249,11 +267,48 @@ let screenedBy   = 'อสม.';
 let currentRisk  = '';
 let currentBMI   = 0;
 
-// ── LIFF init ──────────────────────────────────────────────────────────────
+// ── LIFF init + Auth ───────────────────────────────────────────────────────
 liff.init({ liffId: LIFF_ID })
-  .then(() => { if (liff.isLoggedIn()) return liff.getProfile(); })
-  .then(p => { if (p) screenedBy = p.displayName || 'อสม.'; })
-  .catch(() => {});
+  .then(() => {
+    if (!liff.isLoggedIn()) { liff.login(); return; }
+    return liff.getProfile();
+  })
+  .then(profile => {
+    if (!profile) return;
+    return fetch(`${SCRIPT_URL}?action=verifyAosormor&lineUserId=${profile.userId}`)
+      .then(r => r.json())
+      .then(result => {
+        if (result.authorized) {
+          screenedBy = `${result.name} ${result.surname} (${result.status})`;
+          document.querySelector('.hdr p').textContent =
+            `${result.name} ${result.surname} · ${result.unit}`;
+          document.getElementById('authOverlay').style.display = 'none';
+          document.getElementById('mainApp').style.display     = 'flex';
+        } else {
+          showDenied(profile.displayName);
+        }
+      });
+  })
+  .catch(() => {
+    // dev mode — ไม่มี LIFF
+    document.getElementById('authOverlay').style.display = 'none';
+    document.getElementById('mainApp').style.display     = 'flex';
+  });
+
+function showDenied(displayName) {
+  const overlay = document.getElementById('authOverlay');
+  document.getElementById('authSpinner').style.display = 'none';
+  overlay.innerHTML = `
+    <div class="auth-denied">
+      <div style="font-size:48px;margin-bottom:12px">🔒</div>
+      <h2 style="font-size:20px;font-weight:700;color:var(--bark);margin-bottom:8px">ไม่มีสิทธิ์เข้าใช้งาน</h2>
+      <p style="font-size:14px;color:var(--stone);line-height:1.6">
+        <strong>${displayName || ''}</strong><br>
+        ไม่พบชื่อในทะเบียน อสม. / เจ้าหน้าที่<br><br>
+        กรุณาติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์
+      </p>
+    </div>`;
+}
 
 // ── Search ──────────────────────────────────────────────────────────────────
 document.getElementById('searchInput').addEventListener('keydown', e => {
