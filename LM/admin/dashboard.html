@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — โครงการ 90 วัน</title>
+<link rel="stylesheet" href="admin.css">
+<script src="sidebar.js"></script>
+<style>
+.topbar-right{display:flex;align-items:center;gap:12px}
+.export-btn{
+  padding:8px 18px;border-radius:100px;border:2px solid var(--border);
+  background:transparent;font-family:'Sarabun',sans-serif;font-size:13px;
+  color:var(--stone);cursor:pointer;font-weight:600;transition:all .15s;
+}
+.export-btn:hover{border-color:var(--terra);color:var(--terra)}
+.user-chip{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 14px 6px 6px;border-radius:100px;background:var(--cream);
+}
+.user-av{
+  width:28px;height:28px;border-radius:50%;
+  background:linear-gradient(135deg,var(--terra),var(--terra-dark));
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:white;
+}
+.user-chip span{font-size:13px;font-weight:600;color:var(--bark)}
+
+/* KPI Cards */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.kpi-card{
+  background:var(--warm-white);border-radius:18px;padding:20px;
+  box-shadow:0 2px 8px rgba(42,31,26,.06);
+  position:relative;overflow:hidden;
+}
+.kpi-card::before{
+  content:'';position:absolute;right:-16px;top:-16px;
+  width:72px;height:72px;border-radius:50%;opacity:.08;
+}
+.kpi-card:nth-child(1)::before{background:var(--forest)}
+.kpi-card:nth-child(2)::before{background:var(--terra)}
+.kpi-card:nth-child(3)::before{background:var(--amber)}
+.kpi-card:nth-child(4)::before{background:var(--forest)}
+.kpi-icon{font-size:20px;margin-bottom:12px}
+.kpi-val{font-size:32px;font-weight:800;color:var(--bark);line-height:1}
+.kpi-label{font-size:12px;color:var(--stone);margin-top:4px}
+.kpi-delta{
+  display:inline-flex;align-items:center;gap:4px;margin-top:8px;
+  font-size:11px;font-weight:600;padding:3px 8px;border-radius:100px;
+}
+.kpi-delta.up{background:var(--forest-light);color:var(--forest)}
+.kpi-delta.warn{background:var(--ry-bg);color:var(--ry)}
+
+/* Chart row */
+.chart-row{display:grid;grid-template-columns:1fr 380px;gap:16px;margin-bottom:24px}
+.chart-card{
+  background:var(--warm-white);border-radius:18px;padding:24px;
+  box-shadow:0 2px 8px rgba(42,31,26,.06);
+}
+.chart-card h3{font-size:15px;font-weight:700;color:var(--bark);margin-bottom:4px}
+.chart-card p{font-size:12px;color:var(--stone);margin-bottom:20px}
+
+/* Bar chart */
+.bar-chart{display:flex;align-items:flex-end;gap:10px;height:120px;margin-bottom:8px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar{border-radius:6px 6px 0 0;width:100%;transition:height .5s;min-height:4px}
+.bar-lbl{font-size:10px;color:var(--stone)}
+.bar-val{font-size:11px;font-weight:700;color:var(--bark)}
+
+/* Donut chart */
+.donut-wrap{display:flex;align-items:center;justify-content:center;gap:24px}
+.donut-svg{flex-shrink:0}
+.donut-legend{display:flex;flex-direction:column;gap:10px}
+.legend-item{display:flex;align-items:center;gap:8px}
+.legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.legend-name{font-size:13px;color:var(--stone)}
+.legend-val{font-size:14px;font-weight:700;color:var(--bark);margin-left:auto;padding-left:16px}
+
+/* Alert list */
+.alerts-card{
+  background:var(--warm-white);border-radius:18px;
+  box-shadow:0 2px 8px rgba(42,31,26,.06);overflow:hidden;
+}
+.alerts-head{
+  padding:20px 24px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.alerts-head h3{font-size:15px;font-weight:700}
+.alerts-head a{font-size:13px;color:var(--terra);font-weight:600;text-decoration:none}
+.alert-row{
+  display:flex;align-items:center;gap:14px;padding:14px 24px;
+  border-bottom:1px solid var(--border);transition:background .15s;cursor:pointer;
+}
+.alert-row:last-child{border-bottom:none}
+.alert-row:hover{background:var(--cream)}
+.alert-av{
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;color:#fff;
+}
+.alert-info{flex:1;min-width:0}
+.alert-name{font-size:14px;font-weight:600;color:var(--bark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.alert-desc{font-size:12px;color:var(--stone);margin-top:1px}
+.risk-pill{
+  padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;flex-shrink:0;
+}
+.days-badge{
+  font-size:11px;font-weight:600;color:var(--mist);flex-shrink:0;white-space:nowrap;
+}
+</style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar"></div>
+
+  <!-- Main content -->
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h1>ภาพรวมโครงการ</h1>
+        <p>อัปเดตล่าสุด: วันนี้ 09:42 น.</p>
+      </div>
+      <div class="topbar-right">
+        <button class="export-btn">↓ Export Excel</button>
+        <div class="user-chip">
+          <div class="user-av">น</div>
+          <span>นายแพทย์สมศักดิ์</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="body">
+      <!-- KPI row -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon">👥</div>
+          <div class="kpi-val" id="kpiTotal">—</div>
+          <div class="kpi-label">ผู้ลงทะเบียน</div>
+          <div class="kpi-delta up" id="kpiTotalDelta">↑ เป้า 300–500</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">🔍</div>
+          <div class="kpi-val" id="kpiScreened">—</div>
+          <div class="kpi-label">คัดกรองครบ</div>
+          <div class="kpi-delta up" id="kpiScreenedDelta">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">⚠️</div>
+          <div class="kpi-val" id="kpiAlert">—</div>
+          <div class="kpi-label">ต้องติดตาม</div>
+          <div class="kpi-delta warn" id="kpiAlertDelta">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">✅</div>
+          <div class="kpi-val" id="kpiLog">—</div>
+          <div class="kpi-label">ส่ง log สัปดาห์นี้</div>
+          <div class="kpi-delta up" id="kpiLogDelta">—</div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="chart-row">
+        <!-- Bar chart: weekly logs -->
+        <div class="chart-card">
+          <h3>จำนวนบันทึกรายสัปดาห์</h3>
+          <p>ผู้ส่ง weekly log ต่อสัปดาห์</p>
+          <div class="bar-chart" id="barChart"></div>
+          <div style="display:flex;justify-content:space-between;padding:0 4px">
+            <span style="font-size:11px;color:var(--mist)">สัปดาห์ 1</span>
+            <span style="font-size:11px;color:var(--mist)">สัปดาห์ 7</span>
+          </div>
+        </div>
+
+        <!-- Donut: risk groups -->
+        <div class="chart-card">
+          <h3>กลุ่มความเสี่ยง</h3>
+          <p id="donutTitle">โหลดข้อมูล...</p>
+          <div class="donut-wrap">
+            <svg class="donut-svg" id="donutSvg" width="130" height="130" viewBox="0 0 42 42">
+              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#EDE4D8" stroke-width="8"/>
+            </svg>
+            <div class="donut-legend" id="donutLegend"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alert list -->
+      <div class="alerts-card">
+        <div class="alerts-head">
+          <h3 id="alertsHead">⚠️ ต้องดำเนินการ</h3>
+          <a href="followup.html">ดูทั้งหมด →</a>
+        </div>
+        <div id="alertList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyz7zegkAeUyTwu7AYvvMflFjWLVpF8mAmsvomyCfSnPFaFyFUEh-PbWjf7GPmzEGie/exec';
+const riskMap = { red:['#B03030','#FDEAEA','แดง'], orange:['#C86B3A','#FEF0E4','ส้ม'], yellow:['#C89B20','#FEF6DC','เหลือง'] };
+
+window.addEventListener('DOMContentLoaded', loadData);
+
+async function loadData() {
+  const [dashRes, fuRes] = await Promise.all([
+    fetch(`${SCRIPT_URL}?action=getDashboard`).then(r => r.json()).catch(() => null),
+    fetch(`${SCRIPT_URL}?action=getFollowups`).then(r => r.json()).catch(() => null),
+  ]);
+  if (dashRes && dashRes.ok) renderDashboard(dashRes);
+  if (fuRes   && fuRes.ok)   renderAlerts(fuRes.items.slice(0, 5), fuRes.counts.total);
+}
+
+function renderDashboard(d) {
+  document.getElementById('kpiTotal').textContent        = d.totalParticipants;
+  document.getElementById('kpiScreened').textContent     = d.totalScreened;
+  const screenPct = d.totalParticipants > 0
+    ? Math.round(d.totalScreened / d.totalParticipants * 100) : 0;
+  document.getElementById('kpiScreenedDelta').textContent = `${screenPct}% คัดกรองแล้ว`;
+  document.getElementById('kpiLog').textContent          = `${d.logRate}%`;
+  document.getElementById('kpiLogDelta').textContent     = `สัปดาห์ที่ ${d.curWeek}`;
+  document.querySelector('.topbar p').textContent        = `อัปเดตล่าสุด: ${new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})} น.`;
+
+  renderBarChart(d.weekSeries, d.curWeek);
+  renderDonut(d.riskCounts, d.totalScreened);
+}
+
+function renderBarChart(series, curWeek) {
+  const bc  = document.getElementById('barChart');
+  bc.innerHTML = '';
+  if (!series.length) return;
+  const maxV = Math.max(...series, 1);
+  series.forEach((v, i) => {
+    const isCur = i === series.length - 1;
+    const col = document.createElement('div');
+    col.className = 'bar-col';
+    col.innerHTML = `
+      <div class="bar-val" style="font-size:10px;color:${isCur?'var(--terra)':'var(--stone)'}">${v}</div>
+      <div class="bar" style="height:${(v/maxV)*100}%;background:${isCur?'var(--terra)':'#2D5A3D'};border:${isCur?'2px solid var(--terra)':'none'};opacity:${isCur?1:0.7}"></div>
+      <div class="bar-lbl">${i+1}</div>`;
+    bc.appendChild(col);
+  });
+  document.querySelector('.chart-card p').textContent = `ผู้ส่ง weekly log ต่อสัปดาห์ (สัปดาห์ที่ 1–${curWeek})`;
+}
+
+function renderDonut(rc, total) {
+  const segments = [
+    { color:'#2D8A55', count: rc.green,  label:'กลุ่มเขียว'  },
+    { color:'#C89B20', count: rc.yellow, label:'กลุ่มเหลือง' },
+    { color:'#C86B3A', count: rc.orange, label:'กลุ่มส้ม'   },
+    { color:'#B03030', count: rc.red,    label:'กลุ่มแดง'   },
+  ];
+  const svg  = document.getElementById('donutSvg');
+  const leg  = document.getElementById('donutLegend');
+  document.getElementById('donutTitle').textContent = `จาก ${total} คนที่คัดกรองครบ`;
+  if (!total) { leg.innerHTML = '<span style="color:var(--stone);font-size:13px">ยังไม่มีข้อมูล</span>'; return; }
+  const C = 99.9; // ≈ 2π * 15.9
+  let offset = 25, svgHtml = '<circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#EDE4D8" stroke-width="8"/>';
+  segments.forEach(s => {
+    const pct = (s.count / total) * C;
+    svgHtml += `<circle cx="21" cy="21" r="15.9" fill="transparent" stroke="${s.color}" stroke-width="8" stroke-dasharray="${pct.toFixed(1)} ${(C-pct).toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}" stroke-linecap="butt"/>`;
+    offset -= pct;
+  });
+  svgHtml += `<text x="21" y="23" text-anchor="middle" font-size="6" font-weight="bold" fill="#2A1F1A">${total}</text>`;
+  svg.innerHTML = svgHtml;
+  leg.innerHTML = segments.map(s => `
+    <div class="legend-item">
+      <div class="legend-dot" style="background:${s.color}"></div>
+      <span class="legend-name">${s.label}</span>
+      <span class="legend-val">${s.count}</span>
+    </div>`).join('');
+}
+
+function renderAlerts(items, total) {
+  document.getElementById('alertsHead').textContent = `⚠️ ต้องดำเนินการ (${total} ราย)`;
+  document.getElementById('kpiAlert').textContent   = total;
+  sidebarSetBadge(total);
+  const redCnt = items.filter(i => i.risk === 'red').length;
+  document.getElementById('kpiAlertDelta').textContent = redCnt > 0 ? `🔴 กลุ่มแดง ${redCnt} ราย` : 'ตรวจสอบ followup.html';
+  const al = document.getElementById('alertList');
+  al.innerHTML = '';
+  if (!items.length) { al.innerHTML = '<div style="padding:24px;text-align:center;color:var(--stone)">ไม่มีรายการ 👍</div>'; return; }
+  items.forEach(a => {
+    const rm  = riskMap[a.risk] || riskMap.yellow;
+    const [rc, bg, label] = rm;
+    const issue = (a.issues && a.issues[0]) ? a.issues[0].t : '—';
+    const row = document.createElement('div');
+    row.className = 'alert-row';
+    row.onclick   = () => location.href = 'followup.html';
+    row.innerHTML = `
+      <div class="alert-av" style="background:${rc}">${(a.name||'?')[0]}</div>
+      <div class="alert-info">
+        <div class="alert-name">${a.name} <span style="font-weight:400;color:var(--stone);font-size:12px">• ${a.comm||'—'}</span></div>
+        <div class="alert-desc">${issue}</div>
+      </div>
+      <div class="days-badge">${a.days > 0 ? a.days+' วัน' : 'วันนี้'}</div>
+      <div class="risk-pill" style="background:${bg};color:${rc}">${label}</div>`;
+    al.appendChild(row);
+  });
+}
+</script>
+</body>
+</html>

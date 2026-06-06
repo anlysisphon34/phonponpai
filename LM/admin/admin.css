@@ -1,0 +1,62 @@
+/* admin.css — Shared styles for all admin pages */
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --terra:#C86B3A;--terra-light:#F2DDD0;--terra-dark:#8A4220;
+  --forest:#2D5A3D;--forest-light:#EAF3EE;
+  --amber:#E8A830;--amber-light:#FEF3D5;
+  --cream:#F9F5EE;--warm-white:#FFFDF9;
+  --sidebar:#1A3826;
+  --bark:#2A1F1A;--stone:#6B5347;--mist:#C8B9B0;--border:#EDE4D8;
+  --rg:#2D8A55;--rg-bg:#EBF6EE;
+  --ry:#C89B20;--ry-bg:#FEF6DC;
+  --ro:#C86B3A;--ro-bg:#FEF0E4;
+  --rr:#B03030;--rr-bg:#FDEAEA;
+}
+
+html,body{
+  height:100%;
+  background:var(--cream);
+  font-family:'Sarabun',sans-serif;
+  color:var(--bark);
+  font-size:14px;
+}
+
+/* Admin shell layout */
+.layout{display:flex;height:100vh}
+
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.main::-webkit-scrollbar{width:6px}
+.main::-webkit-scrollbar-track{background:transparent}
+.main::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* Topbar */
+.topbar{
+  padding:20px 28px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--warm-white);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:10;
+}
+.topbar h1{font-size:20px;font-weight:800;color:var(--bark)}
+.topbar p{font-size:13px;color:var(--stone);margin-top:2px}
+
+/* Content padding */
+.body{padding:24px 28px;flex:1}
+
+/* Shared components */
+.risk-pill{
+  display:inline-flex;align-items:center;
+  padding:4px 10px;border-radius:100px;
+  font-size:11px;font-weight:700;
+}
+
+/* Shimmer skeleton */
+.shimmer{
+  background:linear-gradient(90deg,var(--border) 25%,var(--cream) 50%,var(--border) 75%);
+  background-size:200%;
+  animation:shimmer 1.2s infinite;
+  border-radius:8px;color:transparent;min-height:1em;
+}
+@keyframes shimmer{to{background-position:-200%}}

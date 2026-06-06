@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ผู้ชนะ — โครงการ 90 วัน</title>
+<link rel="stylesheet" href="admin.css">
+<script src="sidebar.js"></script>
+<style>
+:root{
+  --gold:#D4A017;--gold-bg:#FEF8E3;--gold-border:#E8C547;
+  --silver:#8A9BA8;--silver-bg:#F0F4F6;--silver-border:#B0C0CC;
+  --bronze:#A0674A;--bronze-bg:#F6EDE8;--bronze-border:#C89070;
+}
+
+/* ── Tabs ── */
+.tab-bar{display:flex;gap:0;padding:20px 28px 0;border-bottom:2px solid var(--border);background:var(--warm-white)}
+.tab{padding:12px 24px;font-size:14px;font-weight:600;color:var(--stone);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s;display:flex;align-items:center;gap:8px}
+.tab:hover{color:var(--bark)}
+.tab.active{color:var(--terra);border-bottom-color:var(--terra)}
+.tab-emoji{font-size:18px}
+
+/* ── Body ── */
+.body{padding:28px;flex:1}
+
+/* ── Podium ── */
+.podium{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:16px;margin-bottom:28px;align-items:end}
+.podium-card{border-radius:20px;padding:24px 16px;text-align:center;position:relative;transition:transform .2s}
+.podium-card:hover{transform:translateY(-4px)}
+.podium-card.gold{background:var(--gold-bg);border:2px solid var(--gold-border)}
+.podium-card.silver{background:var(--silver-bg);border:2px solid var(--silver-border)}
+.podium-card.bronze{background:var(--bronze-bg);border:2px solid var(--bronze-border)}
+.podium-rank{position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.podium-rank.gold{background:var(--gold)}
+.podium-rank.silver{background:var(--silver)}
+.podium-rank.bronze{background:var(--bronze)}
+.podium-crown{font-size:28px;margin-bottom:8px;line-height:1}
+.podium-av{width:52px;height:52px;border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#fff}
+.podium-name{font-size:16px;font-weight:800;color:var(--bark);margin-bottom:4px}
+.podium-comm{font-size:12px;color:var(--stone);margin-bottom:12px}
+.podium-val{font-size:28px;font-weight:800;line-height:1}
+.podium-val.gold{color:var(--gold)}
+.podium-val.silver{color:var(--silver)}
+.podium-val.bronze{color:var(--bronze)}
+.podium-unit{font-size:12px;font-weight:400;color:var(--stone);margin-left:2px}
+.podium-sub{font-size:11px;color:var(--stone);margin-top:4px}
+.podium-empty{background:var(--cream);border:2px dashed var(--border);border-radius:20px;padding:24px 16px;text-align:center;color:var(--mist);font-size:13px;display:flex;align-items:center;justify-content:center;min-height:140px}
+
+/* ── Rank list ── */
+.rank-card{background:var(--warm-white);border-radius:18px;overflow:hidden;box-shadow:0 2px 8px rgba(42,31,26,.06)}
+.rank-row{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--border);transition:background .12s}
+.rank-row:last-child{border-bottom:none}
+.rank-row:hover{background:var(--cream)}
+.rank-num{width:28px;font-size:14px;font-weight:800;color:var(--mist);text-align:center;flex-shrink:0}
+.rank-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
+.rank-name{font-size:14px;font-weight:600;color:var(--bark);flex:1}
+.rank-comm{font-size:12px;color:var(--stone)}
+.rank-val{font-size:18px;font-weight:800;color:var(--terra);text-align:right}
+.rank-unit{font-size:11px;font-weight:400;color:var(--stone)}
+.rank-risk{margin-left:8px}
+.risk-pill{display:inline-flex;align-items:center;padding:3px 8px;border-radius:100px;font-size:11px;font-weight:700}
+
+/* ── Loading / empty ── */
+.lb-loading{text-align:center;padding:60px 20px;color:var(--stone);font-size:14px}
+.no-data{background:var(--warm-white);border-radius:18px;padding:40px;text-align:center;color:var(--stone)}
+
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <div id="sidebar"></div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h1>กระดานผู้ชนะ</h1>
+        <p id="topbarSub">กำลังโหลด...</p>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab active" onclick="switchTab('points')" id="tab-points"><span class="tab-emoji">🏆</span>คะแนนสะสม</div>
+      <div class="tab" onclick="switchTab('weight')" id="tab-weight"><span class="tab-emoji">⚖️</span>น้ำหนักลด</div>
+      <div class="tab" onclick="switchTab('streak')" id="tab-streak"><span class="tab-emoji">🔥</span>ความสม่ำเสมอ</div>
+    </div>
+
+    <div class="body">
+      <div id="lbContent"><div class="lb-loading">กำลังโหลดข้อมูล...</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyz7zegkAeUyTwu7AYvvMflFjWLVpF8mAmsvomyCfSnPFaFyFUEh-PbWjf7GPmzEGie/exec';
+const avColors = ['#2D5A3D','#C86B3A','#8A4220','#1A3826','#6B5347','#4A7A5A','#9A5030'];
+const riskStyles = {
+  green:  ['#2D8A55','#EBF6EE','เขียว'],
+  yellow: ['#C89B20','#FEF6DC','เหลือง'],
+  orange: ['#C86B3A','#FEF0E4','ส้ม'],
+  red:    ['#B03030','#FDEAEA','แดง'],
+};
+
+let currentTab = 'points';
+let lbData     = null;
+
+window.addEventListener('DOMContentLoaded', loadData);
+
+async function loadData() {
+  document.getElementById('lbContent').innerHTML = '<div class="lb-loading">กำลังโหลดข้อมูล...</div>';
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=getLeaderboard`);
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error);
+    lbData = data;
+    const total = Math.max(data.byPoints.length, data.byWeightLoss.length, data.byStreak.length);
+    document.getElementById('topbarSub').textContent = `ผู้เข้าร่วมที่มีพัฒนาการดีที่สุด · อัปเดตสด`;
+    renderTab(currentTab);
+  } catch (e) {
+    document.getElementById('lbContent').innerHTML = '<div class="no-data">ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่</div>';
+  }
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (lbData) renderTab(tab);
+}
+
+function renderTab(tab) {
+  const content = document.getElementById('lbContent');
+  if (!lbData) return;
+
+  let items, valueKey, unitLabel, tabLabel;
+  if (tab === 'points') {
+    items    = lbData.byPoints;
+    valueKey = 'points';
+    unitLabel = 'คะแนน';
+    tabLabel  = 'คะแนนสะสมสูงสุด';
+  } else if (tab === 'weight') {
+    items    = lbData.byWeightLoss;
+    valueKey = 'wtDelta';
+    unitLabel = 'กก.';
+    tabLabel  = 'น้ำหนักลดมากที่สุด';
+  } else {
+    items    = lbData.byStreak;
+    valueKey = 'weeks';
+    unitLabel = 'สัปดาห์';
+    tabLabel  = 'บันทึกสม่ำเสมอที่สุด';
+  }
+
+  if (!items || items.length === 0) {
+    content.innerHTML = `<div class="no-data">ยังไม่มีข้อมูลสำหรับ${tabLabel}</div>`;
+    return;
+  }
+
+  const top3    = items.slice(0, 3);
+  const rest    = items.slice(3);
+  const medalsEmoji = ['🥇','🥈','🥉'];
+  const podiumClass = ['gold','silver','bronze'];
+
+  // Podium — ลำดับที่แสดง: [rank2, rank1, rank3] เพื่อให้ rank1 สูงกว่า
+  const podiumOrder = [1, 0, 2]; // index ใน top3
+  const podiumHTML  = podiumOrder.map(idx => {
+    const d = top3[idx];
+    if (!d) return `<div class="podium-empty">—</div>`;
+    const cls  = podiumClass[idx];
+    const val  = d[valueKey];
+    const disp = (tab === 'weight' || tab === 'streak') ? val : val.toLocaleString();
+    const initial = (d.name || '?')[0];
+    const avBg    = avColors[idx % avColors.length];
+    const sub     = tab === 'weight'
+      ? `${d.wtBefore} → ${d.wtNow} กก.`
+      : tab === 'streak'
+      ? `ชุมชน ${d.comm}`
+      : `ชุมชน ${d.comm}`;
+    return `
+      <div class="podium-card ${cls}">
+        <div class="podium-rank ${cls}">${d.rank}</div>
+        <div class="podium-crown">${medalsEmoji[idx]}</div>
+        <div class="podium-av" style="background:${avBg}">${initial}</div>
+        <div class="podium-name">${d.name}</div>
+        <div class="podium-comm">${d.comm}</div>
+        <div class="podium-val ${cls}">${disp}<span class="podium-unit">${unitLabel}</span></div>
+        <div class="podium-sub">${sub}</div>
+      </div>`;
+  }).join('');
+
+  // Rank list 4–10
+  const listHTML = rest.length === 0 ? '' : `
+    <div class="rank-card">
+      ${rest.map(d => {
+        const val   = d[valueKey];
+        const disp  = (tab === 'weight' || tab === 'streak') ? val : val.toLocaleString();
+        const initial = (d.name || '?')[0];
+        const avBg    = avColors[d.rank % avColors.length];
+        const [rc, bg, rl] = riskStyles[d.risk] || ['#999','#eee','—'];
+        const sub   = tab === 'weight'
+          ? `${d.wtBefore} → ${d.wtNow} กก.`
+          : `ชุมชน ${d.comm}`;
+        return `
+          <div class="rank-row">
+            <div class="rank-num">${d.rank}</div>
+            <div class="rank-av" style="background:${avBg}">${initial}</div>
+            <div>
+              <div class="rank-name">${d.name}</div>
+              <div class="rank-comm">${sub}</div>
+            </div>
+            <span class="risk-pill rank-risk" style="background:${bg};color:${rc}">${rl}</span>
+            <div class="rank-val">${disp}<span class="rank-unit"> ${unitLabel}</span></div>
+          </div>`;
+      }).join('')}
+    </div>`;
+
+  content.innerHTML = `
+    <div class="podium">${podiumHTML}</div>
+    ${listHTML}`;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เข้าสู่ระบบ — โครงการ 90 วัน</title>
+<link rel="stylesheet" href="admin.css">
+<style>
+html,body{background:var(--sidebar);display:flex;align-items:center;justify-content:center;min-height:100vh}
+
+/* Background texture */
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse at 20% 50%,rgba(45,90,61,.4) 0%,transparent 60%),
+    radial-gradient(ellipse at 80% 20%,rgba(200,107,58,.15) 0%,transparent 50%);
+  pointer-events:none;
+}
+
+.login-wrap{
+  width:400px;max-width:92vw;
+  position:relative;z-index:1;
+  animation:fadeUp .4s ease both;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+
+.login-logo{
+  display:flex;align-items:center;justify-content:center;gap:14px;
+  margin-bottom:32px;
+}
+.logo-mark{
+  width:52px;height:52px;background:var(--terra);border-radius:16px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 24px rgba(200,107,58,.4);
+}
+.logo-mark svg{width:28px;height:28px}
+.logo-text .l1{font-size:22px;font-weight:800;color:#fff;line-height:1.1}
+.logo-text .l2{font-size:13px;color:rgba(255,255,255,.45);margin-top:2px}
+
+.login-card{
+  background:var(--warm-white);border-radius:24px;
+  padding:36px;
+  box-shadow:0 32px 64px rgba(0,0,0,.3),0 0 0 1px rgba(255,255,255,.06);
+}
+
+.login-title{font-size:20px;font-weight:800;color:var(--bark);margin-bottom:6px}
+.login-sub{font-size:13px;color:var(--stone);line-height:1.6;margin-bottom:28px}
+
+.field label{
+  display:block;font-size:12px;font-weight:700;
+  color:var(--stone);letter-spacing:.04em;margin-bottom:8px;
+}
+.pwd-wrap{position:relative}
+.pwd-input{
+  width:100%;padding:14px 48px 14px 16px;
+  border-radius:14px;border:2px solid var(--border);
+  background:var(--cream);
+  font-family:'Sarabun',sans-serif;font-size:16px;
+  color:var(--bark);outline:none;letter-spacing:4px;
+  transition:border-color .15s,box-shadow .15s;
+}
+.pwd-input:focus{border-color:var(--terra);box-shadow:0 0 0 4px rgba(200,107,58,.1)}
+.pwd-toggle{
+  position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;color:var(--mist);
+  padding:4px;font-size:18px;line-height:1;
+  transition:color .15s;
+}
+.pwd-toggle:hover{color:var(--stone)}
+
+.login-error{
+  display:none;align-items:center;gap:8px;
+  padding:10px 14px;border-radius:10px;
+  background:var(--rr-bg);color:var(--rr);
+  font-size:13px;font-weight:600;margin-top:12px;
+}
+.login-error.show{display:flex}
+
+.login-btn{
+  width:100%;margin-top:20px;padding:16px;
+  border-radius:14px;border:none;
+  background:var(--terra);color:#fff;
+  font-family:'Sarabun',sans-serif;font-size:16px;font-weight:700;
+  cursor:pointer;
+  box-shadow:0 4px 16px rgba(200,107,58,.35);
+  transition:background .15s,transform .1s,box-shadow .15s;
+}
+.login-btn:hover:not(:disabled){background:var(--terra-dark);box-shadow:0 6px 20px rgba(200,107,58,.45)}
+.login-btn:active:not(:disabled){transform:scale(.98)}
+.login-btn:disabled{opacity:.6;cursor:not-allowed}
+
+.login-footer{
+  margin-top:16px;text-align:center;
+  font-size:12px;color:rgba(255,255,255,.3);
+}
+</style>
+</head>
+<body>
+
+<div class="login-wrap">
+  <div class="login-logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="white" opacity=".9"/>
+        <circle cx="12" cy="9" r="2.5" fill="white"/>
+      </svg>
+    </div>
+    <div class="logo-text">
+      <div class="l1">โครงการ 90 วัน</div>
+      <div class="l2">ระบบเจ้าหน้าที่ · เทศบาลเมืองเมืองพล</div>
+    </div>
+  </div>
+
+  <div class="login-card">
+    <div class="login-title">เข้าสู่ระบบ</div>
+    <div class="login-sub">ระบบสำหรับเจ้าหน้าที่และผู้ดูแลโครงการเท่านั้น<br>กรุณาใส่รหัสผ่านเพื่อดำเนินการต่อ</div>
+
+    <div class="field">
+      <label>รหัสผ่าน</label>
+      <div class="pwd-wrap">
+        <input class="pwd-input" type="password" id="pwdInput" placeholder="••••••••"
+               autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="pwd-toggle" type="button" onclick="togglePwd()" id="pwdToggle" title="แสดง/ซ่อนรหัสผ่าน">👁</button>
+      </div>
+    </div>
+
+    <div class="login-error" id="loginError">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="loginErrorMsg">รหัสผ่านไม่ถูกต้อง</span>
+    </div>
+
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">เข้าสู่ระบบ</button>
+  </div>
+
+  <div class="login-footer">โครงการประชาชนคนรักสุขภาพ ป้องกัน NCDs ด้วย Lifestyle Medicine</div>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyz7zegkAeUyTwu7AYvvMflFjWLVpF8mAmsvomyCfSnPFaFyFUEh-PbWjf7GPmzEGie/exec';
+
+// ถ้า login อยู่แล้ว → ไปหน้า dashboard ทันที
+if (sessionStorage.getItem('staffVerified') === 'true') {
+  const ret = sessionStorage.getItem('sb_return') || 'dashboard.html';
+  sessionStorage.removeItem('sb_return');
+  location.replace(ret);
+}
+
+function togglePwd() {
+  const inp = document.getElementById('pwdInput');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+async function doLogin() {
+  const pwd = document.getElementById('pwdInput').value.trim();
+  if (!pwd) {
+    showError('กรุณาใส่รหัสผ่าน');
+    return;
+  }
+  const btn = document.getElementById('loginBtn');
+  const err = document.getElementById('loginError');
+  btn.disabled = true;
+  btn.textContent = 'กำลังตรวจสอบ...';
+  err.classList.remove('show');
+
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=verifyStaff&password=${encodeURIComponent(pwd)}`);
+    const data = await res.json();
+    if (data.ok) {
+      sessionStorage.setItem('staffVerified', 'true');
+      const ret = sessionStorage.getItem('sb_return') || 'dashboard.html';
+      sessionStorage.removeItem('sb_return');
+      location.href = ret;
+    } else {
+      showError('รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่');
+      btn.disabled = false;
+      btn.textContent = 'เข้าสู่ระบบ';
+      document.getElementById('pwdInput').select();
+    }
+  } catch (e) {
+    showError('ไม่สามารถเชื่อมต่อได้ กรุณาตรวจสอบการเชื่อมต่อ');
+    btn.disabled = false;
+    btn.textContent = 'เข้าสู่ระบบ';
+  }
+}
+
+function showError(msg) {
+  document.getElementById('loginErrorMsg').textContent = msg;
+  document.getElementById('loginError').classList.add('show');
+}
+</script>
+</body>
+</html>

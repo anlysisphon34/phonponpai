@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ผู้เข้าร่วม — โครงการ 90 วัน</title>
+<link rel="stylesheet" href="admin.css">
+<script src="sidebar.js"></script>
+<style>
+.btn-primary-sm{padding:10px 20px;border-radius:100px;border:none;background:var(--terra);color:#fff;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+
+.body{padding:24px 28px;flex:1}
+
+/* Filter bar */
+.filter-bar{
+  display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center;
+}
+.search-wrap{
+  position:relative;flex:1;min-width:200px;
+}
+.search-wrap svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--mist)}
+.search-input{
+  width:100%;padding:10px 14px 10px 40px;border-radius:100px;
+  border:2px solid var(--border);background:var(--warm-white);
+  font-family:'Sarabun',sans-serif;font-size:14px;color:var(--bark);outline:none;
+}
+.search-input:focus{border-color:var(--terra)}
+.filter-select{
+  padding:10px 36px 10px 14px;border-radius:100px;
+  border:2px solid var(--border);background:var(--warm-white);
+  font-family:'Sarabun',sans-serif;font-size:14px;color:var(--stone);
+  outline:none;cursor:pointer;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23C8B9B0' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+}
+.filter-select:focus{border-color:var(--terra)}
+
+/* Table */
+.table-card{background:var(--warm-white);border-radius:18px;box-shadow:0 2px 8px rgba(42,31,26,.06);overflow:hidden}
+.table-head{
+  display:grid;grid-template-columns:2fr 1.2fr 1fr 1fr 1fr 1fr auto;
+  padding:12px 20px;background:var(--cream);border-bottom:1px solid var(--border);
+  gap:8px;
+}
+.th{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mist)}
+.table-body .row{
+  display:grid;grid-template-columns:2fr 1.2fr 1fr 1fr 1fr 1fr auto;
+  padding:14px 20px;border-bottom:1px solid var(--border);gap:8px;
+  align-items:center;transition:background .12s;cursor:pointer;
+}
+.table-body .row:last-child{border-bottom:none}
+.table-body .row:hover{background:var(--cream)}
+.name-cell{display:flex;align-items:center;gap:10px}
+.av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.name-txt{font-size:14px;font-weight:600;color:var(--bark)}
+.comm-txt{font-size:12px;color:var(--stone)}
+.risk-pill{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700}
+.cell{font-size:13px;color:var(--bark)}
+.cell.muted{color:var(--stone)}
+.streak-dots{display:flex;gap:3px}
+.sdot{width:8px;height:8px;border-radius:2px}
+.sdot.on{background:var(--forest)}
+.sdot.cur{background:var(--terra)}
+.sdot.off{background:var(--border)}
+.act-btn{
+  padding:6px 14px;border-radius:100px;border:2px solid var(--border);
+  background:transparent;font-family:'Sarabun',sans-serif;font-size:12px;
+  color:var(--stone);cursor:pointer;font-weight:600;white-space:nowrap;
+}
+.act-btn:hover{border-color:var(--terra);color:var(--terra)}
+
+/* Pagination */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:16px 20px}
+.page-info{font-size:13px;color:var(--stone)}
+.page-btns{display:flex;gap:6px}
+.page-btn{
+  width:32px;height:32px;border-radius:8px;border:2px solid var(--border);
+  background:transparent;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:13px;
+  color:var(--stone);display:flex;align-items:center;justify-content:center;
+}
+.page-btn.active{background:var(--terra);border-color:var(--terra);color:#fff;font-weight:700}
+.page-btn:hover:not(.active){border-color:var(--terra);color:var(--terra)}
+.loading-row{text-align:center;padding:40px;color:var(--stone);font-size:14px;grid-column:1/-1}
+/* Sort headers */
+.th.sortable{cursor:pointer;user-select:none;display:flex;align-items:center;gap:4px}
+.th.sortable:hover{color:var(--stone)}
+.sort-arrow{font-size:10px;opacity:.4;transition:opacity .15s}
+.th.sort-asc .sort-arrow::after{content:'▲';opacity:1}
+.th.sort-desc .sort-arrow::after{content:'▼';opacity:1}
+.th.sort-asc,.th.sort-desc{color:var(--terra)}
+/* Detail modal */
+.modal-bg{position:fixed;inset:0;background:rgba(42,31,26,.5);display:flex;align-items:center;justify-content:center;z-index:2000;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-bg.open{opacity:1;pointer-events:all}
+.modal-box{background:var(--warm-white);border-radius:24px;width:540px;max-width:92vw;max-height:82vh;overflow-y:auto;transform:translateY(24px);transition:transform .2s;box-shadow:0 20px 60px rgba(42,31,26,.2)}
+.modal-bg.open .modal-box{transform:none}
+.modal-header{padding:24px 28px 20px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--warm-white);z-index:1}
+.modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--stone);line-height:1;padding:4px 8px;border-radius:8px}
+.modal-close:hover{background:var(--cream);color:var(--bark)}
+.modal-body{padding:24px 28px}
+.modal-sec{margin-bottom:24px}
+.modal-sec-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mist);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat-box{background:var(--cream);border-radius:14px;padding:14px 10px;text-align:center}
+.stat-val{font-size:20px;font-weight:800;color:var(--bark)}
+.stat-lbl{font-size:11px;color:var(--stone);margin-top:2px}
+.pts-big{font-size:40px;font-weight:800;color:var(--terra);line-height:1}
+.log-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)}
+.log-row:last-child{border-bottom:none}
+.log-wk{font-size:12px;font-weight:700;color:var(--stone);min-width:62px}
+.log-bar{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.log-fill{height:100%;background:var(--forest);border-radius:3px;transition:width .4s}
+.log-pts{font-size:12px;font-weight:600;color:var(--bark);min-width:44px;text-align:right}
+</style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar"></div>
+
+  <div class="main">
+    <div class="topbar">
+      <div><h1>ผู้เข้าร่วมทั้งหมด</h1><p>412 คน · คัดกรองแล้ว 348 คน</p></div>
+      <button class="btn-primary-sm" onclick="location.href='screening.html'">+ เพิ่มผู้เข้าร่วม</button>
+    </div>
+    <div class="body">
+      <div class="filter-bar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input class="search-input" type="search" placeholder="ค้นหาชื่อ เบอร์โทร..." id="searchInput" oninput="filterTable()">
+        </div>
+        <select class="filter-select" id="riskFilter" onchange="filterTable()">
+          <option value="">ทุกกลุ่มเสี่ยง</option>
+          <option value="green">เขียว</option>
+          <option value="yellow">เหลือง</option>
+          <option value="orange">ส้ม</option>
+          <option value="red">แดง</option>
+        </select>
+        <select class="filter-select" id="commFilter" onchange="filterTable()">
+          <option value="">ทุกชุมชน</option>
+          <option>หมู่ 1</option><option>หมู่ 2</option><option>หมู่ 3</option><option>หมู่ 4</option><option>หมู่ 5</option>
+        </select>
+        <select class="filter-select" id="statusFilter" onchange="filterTable()">
+          <option value="">ทุกสถานะ</option>
+          <option value="active">กำลังติดตาม</option>
+          <option value="dropout">หลุดติดตาม</option>
+          <option value="complete">จบโครงการ</option>
+        </select>
+      </div>
+
+      <div class="table-card">
+        <div class="table-head">
+          <div class="th sortable" onclick="setSort('name')" id="th-name">ชื่อ–ชุมชน<span class="sort-arrow"></span></div>
+          <div class="th">กลุ่มเสี่ยง</div>
+          <div class="th">บันทึกล่าสุด</div>
+          <div class="th sortable" onclick="setSort('weeks')" id="th-weeks">สัปดาห์ที่ครบ<span class="sort-arrow"></span></div>
+          <div class="th sortable" onclick="setSort('wtDelta')" id="th-wtDelta">น้ำหนัก (ก่อน→ปัจจุบัน)<span class="sort-arrow"></span></div>
+          <div class="th sortable" onclick="setSort('points')" id="th-points">คะแนน<span class="sort-arrow"></span></div>
+          <div class="th"></div>
+        </div>
+        <div class="table-body" id="tableBody"></div>
+        <div class="pagination">
+          <span class="page-info" id="pageInfo">แสดง 1–10 จาก 412 คน</span>
+          <div class="page-btns">
+            <button class="page-btn">‹</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">›</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail modal -->
+<div class="modal-bg" id="detailModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="av" id="modalAv" style="width:48px;height:48px;font-size:20px;background:#2D5A3D;flex-shrink:0">?</div>
+        <div>
+          <div id="modalName" style="font-size:19px;font-weight:800;color:var(--bark)">—</div>
+          <div id="modalMeta" style="font-size:12px;color:var(--stone);margin-top:2px">—</div>
+          <span id="modalRisk" class="risk-pill" style="margin-top:6px;display:inline-flex">—</span>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <div style="text-align:center;padding:40px;color:var(--stone)">กำลังโหลด...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyz7zegkAeUyTwu7AYvvMflFjWLVpF8mAmsvomyCfSnPFaFyFUEh-PbWjf7GPmzEGie/exec';
+const LIMIT = 20;
+let currentPage = 1, currentQ = '', currentRisk = '', currentComm = '', currentStatus = '';
+let currentSortBy = '', currentSortDir = 'desc';
+let debounceTimer = null;
+
+const riskStyles = {
+  green:  ['#2D8A55','#EBF6EE','เขียว'],
+  yellow: ['#C89B20','#FEF6DC','เหลือง'],
+  orange: ['#C86B3A','#FEF0E4','ส้ม'],
+  red:    ['#B03030','#FDEAEA','แดง'],
+};
+const avColors = ['#2D5A3D','#C86B3A','#8A4220','#1A3826','#6B5347'];
+
+window.addEventListener('DOMContentLoaded', loadData);
+
+function setSort(col) {
+  if (currentSortBy === col) {
+    currentSortDir = currentSortDir === 'desc' ? 'asc' : 'desc';
+  } else {
+    currentSortBy  = col;
+    currentSortDir = 'desc';
+  }
+  document.querySelectorAll('.th.sortable').forEach(el => {
+    el.classList.remove('sort-asc','sort-desc');
+  });
+  const th = document.getElementById('th-' + col);
+  if (th) th.classList.add('sort-' + currentSortDir);
+  currentPage = 1;
+  loadData();
+}
+
+async function loadData() {
+  document.getElementById('tableBody').innerHTML = '<div class="loading-row">กำลังโหลดข้อมูล...</div>';
+  const params = new URLSearchParams({
+    action: 'getParticipants', page: currentPage, limit: LIMIT,
+    q: currentQ, risk: currentRisk, comm: currentComm, status: currentStatus,
+    sortBy: currentSortBy, sortDir: currentSortDir,
+  });
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?${params}`);
+    const data = await res.json();
+    if (!data.ok) { document.getElementById('tableBody').innerHTML = '<div class="loading-row">เกิดข้อผิดพลาด</div>'; return; }
+    renderTable(data.items);
+    renderPagination(data.total, data.page, data.limit);
+    updateCommFilter(data.communities);
+    document.querySelector('.topbar p').textContent = `${data.total} คน · โหลดจาก Google Sheets`;
+  } catch (e) {
+    document.getElementById('tableBody').innerHTML = '<div class="loading-row">ไม่สามารถเชื่อมต่อได้</div>';
+  }
+}
+
+function filterTable() {
+  currentQ      = document.getElementById('searchInput').value.toLowerCase();
+  currentRisk   = document.getElementById('riskFilter').value;
+  currentComm   = document.getElementById('commFilter').value;
+  currentStatus = document.getElementById('statusFilter').value;
+  currentPage   = 1;
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(loadData, 500);
+}
+
+function updateCommFilter(communities) {
+  const sel = document.getElementById('commFilter');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">ทุกชุมชน</option>';
+  communities.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    if (c === cur) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function renderTable(data) {
+  const body = document.getElementById('tableBody');
+  body.innerHTML = '';
+  if (!data.length) { body.innerHTML = '<div class="loading-row">ไม่พบข้อมูล</div>'; return; }
+  data.forEach((d, i) => {
+    const [rc, bg, label] = riskStyles[d.risk] || ['#999','#eee','—'];
+    const hasWeight = d.wtBefore && d.wtNow;
+    const delta     = hasWeight ? +(d.wtNow - d.wtBefore).toFixed(1) : null;
+    const wtCell    = hasWeight
+      ? `${d.wtBefore} → <strong style="color:${delta<0?'var(--forest)':'var(--terra)'}">${d.wtNow}</strong><span style="font-size:11px;color:${delta<0?'var(--forest)':'var(--terra)'};margin-left:4px">(${delta<0?delta:'+'+delta})</span>`
+      : (d.wtBefore ? `${d.wtBefore} กก.` : '—');
+    const streak = (d.streak || []).map((v, si) =>
+      `<div class="sdot ${v===1?(si===6?'cur':'on'):'off'}"></div>`).join('');
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML = `
+      <div class="name-cell">
+        <div class="av" style="background:${avColors[i%5]}">${(d.name||'?')[0]}</div>
+        <div><div class="name-txt">${d.name||'—'}</div><div class="comm-txt">${d.comm||'—'}</div></div>
+      </div>
+      <div><span class="risk-pill" style="background:${bg};color:${rc}">${label}</span></div>
+      <div class="cell">${d.lastLog}</div>
+      <div class="cell">${d.weeks}/12 <span style="color:var(--mist)">สัปดาห์</span></div>
+      <div class="cell">${wtCell}</div>
+      <div class="cell"><strong style="color:var(--terra)">${d.points||0}</strong> <span style="font-size:11px;color:var(--stone)">pts</span></div>
+      <div><button class="act-btn" onclick="viewParticipant('${d.lineUserId}')">ดูข้อมูล</button></div>`;
+    body.appendChild(row);
+  });
+}
+
+// ── Detail modal ──────────────────────────────────────────────────────────────
+const riskDefs = {
+  green:  ['#2D8A55','#EBF6EE','กลุ่มเขียว'],
+  yellow: ['#C89B20','#FEF6DC','กลุ่มเหลือง'],
+  orange: ['#C86B3A','#FEF0E4','กลุ่มส้ม'],
+  red:    ['#B03030','#FDEAEA','กลุ่มแดง'],
+};
+
+async function viewParticipant(lineUserId) {
+  const modal = document.getElementById('detailModal');
+  modal.classList.add('open');
+  document.getElementById('modalName').textContent = 'กำลังโหลด...';
+  document.getElementById('modalMeta').textContent = '';
+  document.getElementById('modalAv').textContent   = '…';
+  document.getElementById('modalRisk').textContent = '';
+  document.getElementById('modalBody').innerHTML   = '<div style="text-align:center;padding:40px;color:var(--stone)">กำลังโหลด...</div>';
+
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=health&lineUserId=${encodeURIComponent(lineUserId)}`);
+    const data = await res.json();
+    if (!data.ok) {
+      document.getElementById('modalBody').innerHTML = '<div style="text-align:center;padding:30px;color:var(--stone)">ไม่พบข้อมูล</div>';
+      return;
+    }
+    // Header
+    const firstName = (data.name || '?')[0];
+    document.getElementById('modalAv').textContent   = firstName;
+    document.getElementById('modalName').textContent = data.name || '—';
+    document.getElementById('modalMeta').textContent = `${data.community || '—'} · ${data.participantId || '—'}`;
+    const pill = document.getElementById('modalRisk');
+    const [rc, bg, label] = riskDefs[data.riskGroup] || ['#999','#eee','ยังไม่คัดกรอง'];
+    pill.textContent = label;
+    pill.style.background = bg;
+    pill.style.color = rc;
+
+    // Screening
+    const s    = data.screening;
+    const logs = data.weeklyLogs || [];
+
+    document.getElementById('modalBody').innerHTML = `
+      <div class="modal-sec">
+        <div class="modal-sec-title">ผลการคัดกรอง</div>
+        <div class="stat-grid">
+          <div class="stat-box">
+            <div class="stat-val">${s ? s.bmi : '—'}</div>
+            <div class="stat-lbl">BMI</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val">${s ? s.bpSys+'/'+s.bpDia : '—'}</div>
+            <div class="stat-lbl">ความดัน (mmHg)</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val">${s ? s.weight+' กก.' : '—'}</div>
+            <div class="stat-lbl">น้ำหนักเริ่มต้น</div>
+          </div>
+        </div>
+        ${s && s.waist ? `<div style="margin-top:10px;font-size:13px;color:var(--stone)">รอบเอว <strong style="color:var(--bark)">${s.waist} ซม.</strong></div>` : ''}
+      </div>
+
+      <div class="modal-sec">
+        <div class="modal-sec-title">คะแนนสะสม</div>
+        <div class="pts-big">${data.totalPoints} <span style="font-size:16px;font-weight:400;color:var(--stone)">คะแนน</span></div>
+      </div>
+
+      <div class="modal-sec">
+        <div class="modal-sec-title">บันทึกรายสัปดาห์ ${logs.length ? `(${logs.length} สัปดาห์)` : '— ยังไม่มีข้อมูล'}</div>
+        ${logs.length
+          ? logs.map(l => `
+              <div class="log-row">
+                <div class="log-wk">สัปดาห์ ${l.week}</div>
+                <div class="log-bar"><div class="log-fill" style="width:${Math.round(Math.min((l.points||0)/60,1)*100)}%"></div></div>
+                <div class="log-pts">${l.points||0} pts</div>
+              </div>`).join('')
+          : '<div style="color:var(--stone);font-size:13px">ยังไม่มีการบันทึก</div>'}
+      </div>`;
+  } catch (e) {
+    document.getElementById('modalBody').innerHTML = '<div style="text-align:center;padding:30px;color:var(--stone)">เกิดข้อผิดพลาด กรุณาลองใหม่</div>';
+  }
+}
+
+function closeModal() {
+  document.getElementById('detailModal').classList.remove('open');
+}
+
+function renderPagination(total, page, limit) {
+  const totalPages = Math.ceil(total / limit) || 1;
+  const from = (page - 1) * limit + 1;
+  const to   = Math.min(page * limit, total);
+  document.getElementById('pageInfo').textContent = `แสดง ${from}–${to} จาก ${total} คน`;
+  const btns = document.querySelector('.page-btns');
+  btns.innerHTML = '';
+  const addBtn = (label, pg, active) => {
+    const b = document.createElement('button');
+    b.className = 'page-btn' + (active ? ' active' : '');
+    b.textContent = label;
+    if (!active && pg >= 1 && pg <= totalPages) b.onclick = () => { currentPage = pg; loadData(); };
+    btns.appendChild(b);
+  };
+  addBtn('‹', page - 1);
+  const start = Math.max(1, page - 2);
+  const end   = Math.min(totalPages, start + 4);
+  for (let pg = start; pg <= end; pg++) addBtn(pg, pg, pg === page);
+  addBtn('›', page + 1);
+}
+</script>
+</body>
+</html>
