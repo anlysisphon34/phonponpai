@@ -76,6 +76,19 @@
   padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;
 }
 
+/* Last contact strip */
+.last-contact{
+  padding:8px 18px;border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:6px;
+  font-size:11px;color:var(--stone);background:var(--cream);
+}
+.last-contact svg{width:12px;height:12px;flex-shrink:0;opacity:.5}
+.lc-action{font-weight:700;color:var(--bark)}
+.no-contact{
+  padding:8px 18px;border-top:1px solid var(--border);
+  font-size:11px;color:var(--mist);background:var(--cream);font-style:italic;
+}
+
 /* Modal */
 .modal-overlay{
   position:fixed;inset:0;background:rgba(42,31,26,.5);
@@ -158,7 +171,7 @@
     <textarea id="modalNote" placeholder="รายละเอียดเพิ่มเติม เช่น สาเหตุที่ขาด เหตุผลที่ยังไม่พร้อม..."></textarea>
     <div class="modal-btns">
       <button class="modal-btn-cancel" onclick="document.getElementById('modal').classList.remove('open')">ยกเลิก</button>
-      <button class="modal-btn-save" onclick="saveLog()">💾 บันทึก</button>
+      <button class="modal-btn-save" id="saveBtn" onclick="saveLog()">💾 บันทึก</button>
     </div>
   </div>
 </div>
@@ -247,8 +260,9 @@ function renderCards() {
             <span>${iss.t}</span>
           </div>`).join('')}
       </div>
+      ${buildLastContact(d.lastContact)}
       <div class="fu-actions">
-        <button class="action-btn primary" onclick="openModal('${safeName}','${safeComm}')">📝 บันทึกการติดตาม</button>
+        <button class="action-btn primary" onclick="openModal('${safeUid}','${safeName}','${safeComm}')">📝 บันทึกการติดตาม</button>
         <div class="fu-actions-row">
           <button class="action-btn line-btn" onclick="openLineModal('${safeUid}','${safeName}','${safeComm}')">💬 ส่ง LINE</button>
           ${d.risk === 'red'
@@ -258,6 +272,31 @@ function renderCards() {
       </div>`;
     grid.appendChild(card);
   });
+}
+
+// ── Last contact helper ───────────────────────────────────────────────────────
+const ACTION_LABEL = {
+  called    : 'โทรแล้ว — รับสาย',
+  no_answer : 'โทรแล้ว — ไม่รับสาย',
+  visited   : 'เยี่ยมบ้านแล้ว',
+  referred  : 'ส่งต่อหน่วยบริการ',
+  returning : 'กลับเข้าโปรแกรม',
+};
+
+function buildLastContact(lc) {
+  if (!lc || !lc.ts) {
+    return `<div class="no-contact">ยังไม่มีบันทึกการติดตาม</div>`;
+  }
+  const dt  = new Date(lc.ts).toLocaleDateString('th-TH', { day:'numeric', month:'short' });
+  const lbl = ACTION_LABEL[lc.action] || lc.action;
+  return `
+    <div class="last-contact">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+      ล่าสุด <span class="lc-action">${lbl}</span> · ${dt}
+      ${lc.note ? `<span style="color:var(--mist)">— ${lc.note}</span>` : ''}
+    </div>`;
 }
 
 // ── LINE Push Message ─────────────────────────────────────────────────────────
@@ -314,17 +353,42 @@ async function sendLineConfirm() {
   }
 }
 
-function openModal(name, comm) {
+let _modalTarget = {};
+
+function openModal(lineUserId, name, comm) {
+  _modalTarget = { lineUserId, name, comm };
   document.getElementById('modalName').textContent = name;
   document.getElementById('modalSub').textContent  = comm + ' · บันทึกวันที่ ' + new Date().toLocaleDateString('th-TH', {day:'numeric', month:'long'});
   document.getElementById('modalNote').value = '';
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = false; btn.textContent = '💾 บันทึก'; btn.style.background = '';
   document.getElementById('modal').classList.add('open');
 }
 function closeModal(e) {
   if (e.target.id === 'modal') document.getElementById('modal').classList.remove('open');
 }
-function saveLog() {
-  document.getElementById('modal').classList.remove('open');
+async function saveLog() {
+  const action = document.getElementById('modalStatus').value;
+  const note   = document.getElementById('modalNote').value.trim();
+  const btn    = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=saveFollowupLog&lineUserId=${encodeURIComponent(_modalTarget.lineUserId)}&logAction=${encodeURIComponent(action)}&note=${encodeURIComponent(note)}`);
+    const data = await res.json();
+    if (data.ok) {
+      btn.textContent = '✓ บันทึกแล้ว'; btn.style.background = 'var(--forest)';
+      setTimeout(() => {
+        document.getElementById('modal').classList.remove('open');
+        loadData();
+      }, 900);
+    } else {
+      alert('บันทึกไม่สำเร็จ: ' + (data.error || 'unknown'));
+      btn.disabled = false; btn.textContent = '💾 บันทึก'; btn.style.background = '';
+    }
+  } catch {
+    alert('ไม่สามารถเชื่อมต่อได้');
+    btn.disabled = false; btn.textContent = '💾 บันทึก'; btn.style.background = '';
+  }
 }
 </script>
 </body>
