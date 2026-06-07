@@ -66,6 +66,7 @@
 .risk-criteria{margin-top:16px;display:flex;flex-direction:column;gap:6px}
 .crit-item{display:flex;align-items:center;gap:8px;font-size:13px}
 .crit-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
 /* Participant search */
 .search-banner{background:var(--warm-white);border-bottom:1px solid var(--border);padding:16px 28px;display:flex;align-items:center;gap:12px}
 .search-banner-input{flex:1;padding:10px 16px;border-radius:12px;border:2px solid var(--border);background:var(--cream);font-family:'Sarabun',sans-serif;font-size:14px;outline:none}
@@ -79,6 +80,86 @@
 .search-wrap-rel{position:relative;flex:1}
 .selected-chip{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--forest-light);border:2px solid var(--forest);border-radius:12px;font-size:13px;font-weight:600;color:var(--forest)}
 .selected-clear{background:none;border:none;font-size:18px;cursor:pointer;color:var(--stone);padding:0;line-height:1}
+
+/* Weekly trend section */
+.weekly-section{margin-top:20px;display:none}
+.wt-empty{text-align:center;padding:24px;color:var(--mist);font-size:13px}
+.wt-table{width:100%;border-collapse:collapse}
+.wt-table th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--stone);padding:0 0 10px;text-align:left;border-bottom:2px solid var(--border)}
+.wt-table th:not(:first-child){text-align:right}
+.wt-table td{padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--bark);vertical-align:middle}
+.wt-table td:not(:first-child){text-align:right}
+.wt-table tr:last-child td{border-bottom:none}
+.wt-week-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:100px;background:var(--cream);color:var(--stone)}
+.wt-delta-pos{color:#2D8A55;font-weight:700}
+.wt-delta-neg{color:#C86B3A;font-weight:700}
+.wt-bar-cell{width:160px}
+.wt-bar-wrap{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.wt-bar-fill{height:100%;border-radius:3px;background:var(--terra)}
+.wt-loading{text-align:center;padding:20px;color:var(--mist)}
+
+/* ─── Print area (hidden on screen) ─── */
+#printArea{display:none}
+
+/* ─── A4 print styles ─── */
+@media print{
+  @page{size:A4 portrait;margin:15mm 18mm 18mm}
+  *{-webkit-print-color-adjust:exact!important;color-adjust:exact!important;print-color-adjust:exact!important}
+  #sidebar,.topbar,.search-banner,.topbar-btns,.weekly-section{display:none!important}
+  .main{margin:0!important;padding:0!important}
+  .body{padding:0!important}
+  .form-grid,.weekly-section{display:none!important}
+  #printArea{display:block!important}
+  body{background:#fff!important;color:#1a1a1a!important;font-family:'Sarabun',sans-serif;font-size:11pt}
+  .layout{display:block!important}
+}
+
+/* Print content styles */
+.p-wrap{font-family:'Sarabun',sans-serif;color:#1a1a1a;max-width:170mm;padding:4mm 0}
+.p-header{display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:12px;border-bottom:3px solid #2D8A55;margin-bottom:16px}
+.p-header-left .p-title{font-size:17pt;font-weight:800;color:#2D8A55;line-height:1.2;margin:0 0 4px}
+.p-header-left .p-sub{font-size:9pt;color:#666;margin:0}
+.p-header-right{text-align:right;font-size:9pt;color:#888;flex-shrink:0;padding-left:16px}
+.p-header-right strong{display:block;font-size:11pt;color:#1a1a1a;font-weight:700}
+
+.p-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-bottom:14px;border:1px solid #ddd;border-radius:6px;overflow:hidden}
+.p-info-item{padding:8px 12px;border-bottom:1px solid #eee}
+.p-info-item:nth-child(odd){border-right:1px solid #eee}
+.p-info-item:nth-last-child(-n+2){border-bottom:none}
+.p-info-label{font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#888;margin-bottom:2px}
+.p-info-value{font-size:12pt;font-weight:700;color:#1a1a1a}
+
+.p-section-title{font-size:9pt;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#666;margin:14px 0 8px;padding-bottom:4px;border-bottom:1.5px solid #e0e0e0}
+
+.p-meas-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.p-meas-box{border:1px solid #ddd;border-radius:6px;padding:10px 12px;text-align:center}
+.p-meas-label{font-size:8pt;color:#888;font-weight:600;text-transform:uppercase;margin-bottom:4px}
+.p-meas-val{font-size:16pt;font-weight:800;color:#1a1a1a;line-height:1}
+.p-meas-unit{font-size:9pt;color:#aaa;margin-top:2px}
+
+.p-risk-box{border-radius:8px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:14px;border:2px solid #ccc}
+.p-risk-icon{font-size:26pt;line-height:1}
+.p-risk-name{font-size:15pt;font-weight:800}
+.p-risk-desc{font-size:10pt;margin-top:2px;opacity:.85}
+
+.p-wt-table{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:10pt}
+.p-wt-table th{background:#C86B3A;color:#fff;padding:6px 10px;text-align:center;font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.p-wt-table th:first-child{text-align:left}
+.p-wt-table td{padding:6px 10px;border-bottom:1px solid #eee;text-align:center}
+.p-wt-table td:first-child{text-align:left;font-weight:600}
+.p-wt-table tr:last-child td{border-bottom:none}
+.p-wt-table .loss{color:#2D8A55;font-weight:700}
+.p-wt-table .gain{color:#C86B3A;font-weight:700}
+
+.p-note-box{border:1px solid #ddd;border-radius:6px;padding:10px 14px;min-height:44px;margin-bottom:14px;font-size:10pt;color:#333}
+
+.p-sign-row{display:flex;justify-content:space-between;margin-top:20px;padding-top:14px;border-top:1px solid #ccc}
+.p-sign-box{width:46%;text-align:center}
+.p-sign-name{min-height:38px;border-bottom:1px solid #999;margin-bottom:6px}
+.p-sign-label{font-size:9pt;color:#666}
+.p-sign-date{font-size:9pt;color:#999;margin-top:3px}
+
+.p-footer{margin-top:14px;text-align:center;font-size:8pt;color:#aaa;border-top:1px solid #eee;padding-top:8px}
 </style>
 </head>
 <body>
@@ -89,7 +170,7 @@
     <div class="topbar">
       <div><h1>คัดกรองสุขภาพ</h1><p id="topbarSub">เลือกผู้เข้าร่วมก่อนบันทึก</p></div>
       <div class="topbar-btns">
-        <button class="btn-outline" onclick="window.print()">🖨 พิมพ์ผล</button>
+        <button class="btn-outline" onclick="preparePrint()">🖨 พิมพ์ผล A4</button>
         <button class="btn-primary" id="saveBtn" onclick="saveScreening()">💾 บันทึก</button>
       </div>
     </div>
@@ -136,6 +217,8 @@
               </div></div>
             <div class="field"><label>น้ำตาลปลายนิ้ว (ถ้ามี)</label>
               <input type="number" id="glucose" placeholder="mg/dL" oninput="calcRisk()"></div>
+            <div class="field"><label>หมายเหตุ</label>
+              <input type="text" id="screenNote" placeholder="บันทึกเพิ่มเติม..."></div>
           </div>
 
           <div class="card">
@@ -204,13 +287,125 @@
           </div>
         </div>
       </div>
+
+      <!-- ── Weekly trend section (shown after participant is selected) ── -->
+      <div class="weekly-section card" id="weeklySection">
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+          <span>น้ำหนักรายสัปดาห์</span>
+          <span id="wtBaselineLabel" style="font-size:12px;font-weight:600;color:var(--stone)"></span>
+        </div>
+        <div id="weeklyBody"><div class="wt-loading">⏳ กำลังโหลด...</div></div>
+      </div>
+    </div><!-- /.body -->
+  </div><!-- /.main -->
+</div><!-- /.layout -->
+
+<!-- ── Hidden print area — shown only via @media print ── -->
+<div id="printArea">
+  <div class="p-wrap">
+    <div class="p-header">
+      <div class="p-header-left">
+        <div class="p-title">แบบบันทึกผลการคัดกรองสุขภาพ</div>
+        <div class="p-sub">โครงการประชาชนคนรักสุขภาพ 90 วัน — ป้องกัน NCDs ด้วย Lifestyle Medicine</div>
+      </div>
+      <div class="p-header-right">
+        <span>วันที่คัดกรอง</span>
+        <strong id="pDate">—</strong>
+      </div>
     </div>
+
+    <div class="p-section-title">ข้อมูลผู้รับการคัดกรอง</div>
+    <div class="p-info-grid">
+      <div class="p-info-item"><div class="p-info-label">ชื่อ-สกุล</div><div class="p-info-value" id="pName">—</div></div>
+      <div class="p-info-item"><div class="p-info-label">รหัสผู้เข้าร่วม</div><div class="p-info-value" id="pId">—</div></div>
+      <div class="p-info-item"><div class="p-info-label">ชุมชน / พื้นที่</div><div class="p-info-value" id="pComm">—</div></div>
+      <div class="p-info-item"><div class="p-info-label">อายุ</div><div class="p-info-value" id="pAge">—</div></div>
+    </div>
+
+    <div class="p-section-title">ผลการวัด</div>
+    <div class="p-meas-grid">
+      <div class="p-meas-box">
+        <div class="p-meas-label">BMI</div>
+        <div class="p-meas-val" id="pBmi">—</div>
+        <div class="p-meas-unit" id="pBmiCat"></div>
+      </div>
+      <div class="p-meas-box">
+        <div class="p-meas-label">ความดันโลหิต</div>
+        <div class="p-meas-val" id="pBP">—</div>
+        <div class="p-meas-unit">mmHg</div>
+      </div>
+      <div class="p-meas-box">
+        <div class="p-meas-label">รอบเอว</div>
+        <div class="p-meas-val" id="pWaist">—</div>
+        <div class="p-meas-unit">ซม.</div>
+      </div>
+      <div class="p-meas-box">
+        <div class="p-meas-label">น้ำหนัก</div>
+        <div class="p-meas-val" id="pWeight">—</div>
+        <div class="p-meas-unit">กก.</div>
+      </div>
+      <div class="p-meas-box">
+        <div class="p-meas-label">ส่วนสูง</div>
+        <div class="p-meas-val" id="pHeight">—</div>
+        <div class="p-meas-unit">ซม.</div>
+      </div>
+      <div class="p-meas-box">
+        <div class="p-meas-label">น้ำตาลปลายนิ้ว</div>
+        <div class="p-meas-val" id="pGlucose">—</div>
+        <div class="p-meas-unit">mg/dL</div>
+      </div>
+    </div>
+
+    <div class="p-section-title">ผลการประเมินกลุ่มเสี่ยง</div>
+    <div class="p-risk-box" id="pRiskBox">
+      <div class="p-risk-icon" id="pRiskIcon">⏳</div>
+      <div>
+        <div class="p-risk-name" id="pRiskName">—</div>
+        <div class="p-risk-desc" id="pRiskDesc">—</div>
+      </div>
+    </div>
+
+    <div id="pWeeklyWrap" style="display:none">
+      <div class="p-section-title">น้ำหนักรายสัปดาห์ (จากการบันทึก log)</div>
+      <table class="p-wt-table">
+        <thead>
+          <tr>
+            <th>สัปดาห์</th>
+            <th>น้ำหนัก (กก.)</th>
+            <th>เปลี่ยนแปลง</th>
+            <th>ออกกำลังกาย</th>
+            <th>คะแนน</th>
+          </tr>
+        </thead>
+        <tbody id="pWeeklyBody"></tbody>
+      </table>
+    </div>
+
+    <div class="p-section-title">หมายเหตุ</div>
+    <div class="p-note-box" id="pNote"></div>
+
+    <div class="p-sign-row">
+      <div class="p-sign-box">
+        <div class="p-sign-name"></div>
+        <div class="p-sign-label">ลายมือชื่อผู้คัดกรอง / เจ้าหน้าที่</div>
+        <div class="p-sign-date" id="pSignDate"></div>
+      </div>
+      <div class="p-sign-box">
+        <div class="p-sign-name"></div>
+        <div class="p-sign-label">ลายมือชื่อผู้รับการคัดกรอง</div>
+        <div class="p-sign-date">&nbsp;</div>
+      </div>
+    </div>
+    <div class="p-footer">พิมพ์จากระบบ โครงการประชาชนคนรักสุขภาพ 90 วัน · เจ้าหน้าที่</div>
   </div>
-</div>
+</div><!-- /#printArea -->
+
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyz7zegkAeUyTwu7AYvvMflFjWLVpF8mAmsvomyCfSnPFaFyFUEh-PbWjf7GPmzEGie/exec';
 let selectedParticipant = null;
-let searchTimer = null;
+let searchTimer  = null;
+let weeklyData   = null;
+let currentRisk  = '';
 
 window.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click', e => {
@@ -244,19 +439,111 @@ function searchParticipant() {
 
 function selectParticipant(p) {
   selectedParticipant = p;
+  weeklyData = null;
   document.getElementById('searchResults').style.display = 'none';
-  document.getElementById('ptSearch').style.display     = 'none';
-  document.getElementById('selectedChip').style.display = 'block';
-  document.getElementById('selectedName').textContent   = `${p.name} · ${p.participantId}`;
-  document.getElementById('topbarSub').textContent      = `${p.name} · ${p.participantId}`;
+  document.getElementById('ptSearch').style.display      = 'none';
+  document.getElementById('selectedChip').style.display  = 'block';
+  document.getElementById('selectedName').textContent    = `${p.name} · ${p.participantId}`;
+  document.getElementById('topbarSub').textContent       = `${p.name} · ${p.participantId}`;
+  loadParticipantHealth(p.lineUserId);
 }
 
 function clearSelected() {
   selectedParticipant = null;
-  document.getElementById('ptSearch').value    = '';
-  document.getElementById('ptSearch').style.display     = 'block';
-  document.getElementById('selectedChip').style.display = 'none';
-  document.getElementById('topbarSub').textContent      = 'เลือกผู้เข้าร่วมก่อนบันทึก';
+  weeklyData = null;
+  document.getElementById('ptSearch').value              = '';
+  document.getElementById('ptSearch').style.display      = 'block';
+  document.getElementById('selectedChip').style.display  = 'none';
+  document.getElementById('topbarSub').textContent       = 'เลือกผู้เข้าร่วมก่อนบันทึก';
+  document.getElementById('weeklySection').style.display = 'none';
+}
+
+// ── Load health & weekly data ─────────────────────────────────────────────────
+async function loadParticipantHealth(lineUserId) {
+  const sec  = document.getElementById('weeklySection');
+  const body = document.getElementById('weeklyBody');
+  sec.style.display = 'block';
+  body.innerHTML = '<div class="wt-loading">⏳ กำลังโหลดข้อมูลรายสัปดาห์...</div>';
+
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=health&lineUserId=${encodeURIComponent(lineUserId)}`);
+    const data = await res.json();
+    if (!data.ok) { body.innerHTML = '<div class="wt-empty">ยังไม่มีข้อมูลสุขภาพ</div>'; return; }
+
+    weeklyData = data;
+
+    // pre-fill screening form with last screening values if fields are still empty
+    if (data.screening) {
+      const s = data.screening;
+      if (s.weight && !document.getElementById('weight').value) document.getElementById('weight').value = s.weight;
+      if (s.height && !document.getElementById('height').value) document.getElementById('height').value = s.height;
+      if (s.waist  && !document.getElementById('waist').value)  document.getElementById('waist').value  = s.waist;
+      if (s.bpSys  && !document.getElementById('bpSys').value)  document.getElementById('bpSys').value  = s.bpSys;
+      if (s.bpDia  && !document.getElementById('bpDia').value)  document.getElementById('bpDia').value  = s.bpDia;
+      calcBMI();
+    }
+
+    renderWeeklyLogs(data.weeklyLogs, data.screening ? data.screening.weight : null);
+  } catch {
+    body.innerHTML = '<div class="wt-empty">ไม่สามารถโหลดข้อมูลได้</div>';
+  }
+}
+
+function renderWeeklyLogs(logs, baselineWeight) {
+  const body  = document.getElementById('weeklyBody');
+  const label = document.getElementById('wtBaselineLabel');
+
+  if (!logs || !logs.length) {
+    body.innerHTML = '<div class="wt-empty">ยังไม่มีการบันทึกรายสัปดาห์</div>';
+    label.textContent = '';
+    return;
+  }
+
+  label.textContent = baselineWeight ? `น้ำหนักตอนคัดกรอง: ${baselineWeight} กก.` : '';
+
+  const weights = logs.map(l => l.weight).filter(Boolean).map(Number);
+  const maxW = weights.length ? Math.max(...weights) : 100;
+  const minW = weights.length ? Math.min(...weights) : 0;
+  const range = (maxW - minW) || 1;
+
+  const rows = logs.map((l, idx) => {
+    const w    = l.weight ? parseFloat(l.weight) : null;
+    const prev = idx > 0 && logs[idx - 1].weight
+      ? parseFloat(logs[idx - 1].weight)
+      : (baselineWeight ? parseFloat(baselineWeight) : null);
+
+    let deltaHtml = '<span style="color:#ccc">—</span>';
+    if (w && prev) {
+      const d = (prev - w).toFixed(1);
+      if      (parseFloat(d) > 0) deltaHtml = `<span class="wt-delta-pos">▼ ${d} กก.</span>`;
+      else if (parseFloat(d) < 0) deltaHtml = `<span class="wt-delta-neg">▲ ${Math.abs(d)} กก.</span>`;
+      else                        deltaHtml = `<span style="color:#999">= ไม่เปลี่ยน</span>`;
+    }
+
+    const barPct  = w ? Math.round((w - minW) / range * 100) : 0;
+    const exLabel = l.exDays ? `${l.exDays} วัน / ${l.exMins} นาที` : '—';
+
+    return `<tr>
+      <td><span class="wt-week-badge">สัปดาห์ ${l.week}</span></td>
+      <td class="wt-bar-cell">
+        ${w
+          ? `<div style="font-size:13px;font-weight:700;color:var(--bark);margin-bottom:3px">${w} กก.</div>
+             <div class="wt-bar-wrap"><div class="wt-bar-fill" style="width:${barPct}%"></div></div>`
+          : '<span style="color:#ccc">—</span>'}
+      </td>
+      <td>${deltaHtml}</td>
+      <td style="font-size:12px;color:var(--stone)">${exLabel}</td>
+      <td style="font-size:12px;color:var(--terra);font-weight:700">${l.points || 0} pts</td>
+    </tr>`;
+  });
+
+  body.innerHTML = `
+    <table class="wt-table">
+      <thead><tr>
+        <th>สัปดาห์</th><th>น้ำหนัก</th><th>เปลี่ยนแปลง</th><th>ออกกำลังกาย</th><th>คะแนน</th>
+      </tr></thead>
+      <tbody>${rows.join('')}</tbody>
+    </table>`;
 }
 
 // ── BMI & Risk ────────────────────────────────────────────────────────────────
@@ -293,6 +580,7 @@ function calcRisk() {
   else if (bmi >= 23) risks.push({c:'yellow', t:`BMI เกินเกณฑ์ (${bmi.toFixed(1)})`});
   if (waist >= 90) risks.push({c:'orange', t:`รอบเอวเกิน (${waist} ซม.)`});
   const level = risks.some(r=>r.c==='red') ? 'red' : risks.some(r=>r.c==='orange') ? 'orange' : risks.some(r=>r.c==='yellow') ? 'yellow' : (risks.length===0 && bmi) ? 'green' : '';
+  currentRisk = level;
   const riskDefs = {
     red:   ['#B03030','#FDEAEA','กลุ่มแดง — ต้องส่งต่อ','ค่าผิดปกติชัดเจน ต้องพบบุคลากรสุขภาพทันที'],
     orange:['#C86B3A','#FEF0E4','กลุ่มส้ม — เสี่ยงสูง','ติดตามทุก 2 สัปดาห์ + แผนเฉพาะบุคคล'],
@@ -304,18 +592,95 @@ function calcRisk() {
     const card = document.getElementById('riskCard');
     card.style.background = bg; card.style.borderColor = c+'66'; card.style.color = c;
     card.innerHTML = `<div class="risk-result-icon">${level==='red'?'🔴':level==='orange'?'🟠':level==='yellow'?'🟡':'🟢'}</div><div><div class="risk-result-name" style="color:${c}">${name}</div><div class="risk-result-desc" style="color:${c}">${desc}</div></div>`;
-    const crit = document.getElementById('riskCriteria');
     const dotColors = {red:'#B03030',orange:'#C86B3A',yellow:'#C89B20'};
-    crit.innerHTML = risks.map(r => `<div class="crit-item"><div class="crit-dot" style="background:${dotColors[r.c]||'#ccc'}"></div><span style="color:var(--stone)">${r.t}</span></div>`).join('');
+    document.getElementById('riskCriteria').innerHTML = risks.map(r => `<div class="crit-item"><div class="crit-dot" style="background:${dotColors[r.c]||'#ccc'}"></div><span style="color:var(--stone)">${r.t}</span></div>`).join('');
   }
+}
+
+// ── Print ──────────────────────────────────────────────────────────────────────
+function preparePrint() {
+  if (!selectedParticipant) { alert('กรุณาเลือกผู้เข้าร่วมก่อนพิมพ์'); return; }
+  const p   = selectedParticipant;
+  const now = new Date();
+  const dateStr = `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()+543}`;
+
+  document.getElementById('pDate').textContent    = dateStr;
+  document.getElementById('pName').textContent    = p.name || '—';
+  document.getElementById('pId').textContent      = p.participantId || '—';
+  document.getElementById('pComm').textContent    = p.community || '—';
+  document.getElementById('pAge').textContent     = p.age ? `${p.age} ปี` : '—';
+  document.getElementById('pSignDate').textContent= `วันที่ ${dateStr}`;
+  document.getElementById('pNote').textContent    = document.getElementById('screenNote').value || '';
+
+  const w    = document.getElementById('weight').value;
+  const h    = document.getElementById('height').value;
+  const waist= document.getElementById('waist').value;
+  const sys  = document.getElementById('bpSys').value;
+  const dia  = document.getElementById('bpDia').value;
+  const gluc = document.getElementById('glucose').value;
+  const bmi  = (w && h) ? (parseFloat(w) / Math.pow(parseFloat(h)/100, 2)).toFixed(1) : '—';
+
+  document.getElementById('pWeight').textContent  = w    || '—';
+  document.getElementById('pHeight').textContent  = h    || '—';
+  document.getElementById('pWaist').textContent   = waist|| '—';
+  document.getElementById('pBP').textContent      = (sys && dia) ? `${sys}/${dia}` : '—';
+  document.getElementById('pBmi').textContent     = bmi;
+  document.getElementById('pGlucose').textContent = gluc || '—';
+
+  const bmiCats = [[18.5,'น้ำหนักน้อย'],[23,'ปกติ'],[25,'น้ำหนักเกิน'],[30,'อ้วน'],[999,'อ้วนมาก']];
+  document.getElementById('pBmiCat').textContent  = bmi !== '—' ? (bmiCats.find(([t]) => parseFloat(bmi) < t)||bmiCats[4])[1] : '';
+
+  const riskDefs = {
+    red:   ['#B03030','#FDEAEA','🔴','กลุ่มแดง — ต้องส่งต่อ','ค่าผิดปกติชัดเจน ต้องพบบุคลากรสุขภาพทันที'],
+    orange:['#C86B3A','#FEF0E4','🟠','กลุ่มส้ม — เสี่ยงสูง','ติดตามทุก 2 สัปดาห์ + แผนเฉพาะบุคคล'],
+    yellow:['#C89B20','#FEF6DC','🟡','กลุ่มเหลือง — เสี่ยงปานกลาง','โปรแกรมปรับพฤติกรรม 12 สัปดาห์'],
+    green: ['#2D8A55','#EBF6EE','🟢','กลุ่มเขียว — สุขภาพดี','รักษาพฤติกรรมดีไว้ เข้าร่วมกิจกรรมทั่วไป'],
+  };
+  const riskBox = document.getElementById('pRiskBox');
+  if (currentRisk && riskDefs[currentRisk]) {
+    const [c, bg, icon, name, desc] = riskDefs[currentRisk];
+    riskBox.style.background = bg;
+    riskBox.style.borderColor = c + '88';
+    document.getElementById('pRiskIcon').textContent  = icon;
+    document.getElementById('pRiskName').textContent  = name;
+    document.getElementById('pRiskName').style.color  = c;
+    document.getElementById('pRiskDesc').textContent  = desc;
+    document.getElementById('pRiskDesc').style.color  = c;
+  }
+
+  const wrap = document.getElementById('pWeeklyWrap');
+  if (weeklyData && weeklyData.weeklyLogs && weeklyData.weeklyLogs.length) {
+    wrap.style.display = 'block';
+    const baseline = weeklyData.screening ? parseFloat(weeklyData.screening.weight) : null;
+    document.getElementById('pWeeklyBody').innerHTML = weeklyData.weeklyLogs.map((l, idx) => {
+      const wt   = l.weight ? parseFloat(l.weight) : null;
+      const prev = idx > 0 && weeklyData.weeklyLogs[idx-1].weight
+        ? parseFloat(weeklyData.weeklyLogs[idx-1].weight) : baseline;
+      let deltaHtml = '—';
+      if (wt && prev) {
+        const d = (prev - wt).toFixed(1);
+        if      (parseFloat(d) > 0) deltaHtml = `<span class="loss">▼ ${d} กก.</span>`;
+        else if (parseFloat(d) < 0) deltaHtml = `<span class="gain">▲ ${Math.abs(d)} กก.</span>`;
+        else                        deltaHtml = 'ไม่เปลี่ยน';
+      }
+      return `<tr>
+        <td>สัปดาห์ ${l.week}</td>
+        <td>${wt || '—'}</td>
+        <td>${deltaHtml}</td>
+        <td>${l.exDays ? `${l.exDays} วัน / ${l.exMins} นาที` : '—'}</td>
+        <td>${l.points || 0} pts</td>
+      </tr>`;
+    }).join('');
+  } else {
+    wrap.style.display = 'none';
+  }
+
+  window.print();
 }
 
 // ── Save ──────────────────────────────────────────────────────────────────────
 async function saveScreening() {
-  if (!selectedParticipant) {
-    alert('กรุณาเลือกผู้เข้าร่วมก่อนบันทึก');
-    return;
-  }
+  if (!selectedParticipant) { alert('กรุณาเลือกผู้เข้าร่วมก่อนบันทึก'); return; }
   const weight = document.getElementById('weight').value;
   const height = document.getElementById('height').value;
   const bpSys  = document.getElementById('bpSys').value;
@@ -333,20 +698,22 @@ async function saveScreening() {
     waist      : document.getElementById('waist').value   || 0,
     bpSys, bpDia,
     bloodSugar : document.getElementById('glucose').value || '',
+    note       : document.getElementById('screenNote').value || '',
     screenedBy : 'เจ้าหน้าที่ (desktop)',
   });
   try {
     const res  = await fetch(`${SCRIPT_URL}?${params}`);
     const data = await res.json();
     if (data.ok) {
-      btn.textContent  = '✓ บันทึกแล้ว';
+      btn.textContent = '✓ บันทึกแล้ว';
       btn.style.background = 'var(--forest)';
       document.getElementById('topbarSub').textContent = `${selectedParticipant.name} · บันทึกแล้ว · กลุ่ม${data.riskGroup}`;
+      loadParticipantHealth(selectedParticipant.lineUserId);
     } else {
       alert('บันทึกไม่สำเร็จ: ' + (data.error || 'unknown'));
       btn.textContent = '💾 บันทึก'; btn.disabled = false;
     }
-  } catch (e) {
+  } catch {
     alert('ไม่สามารถเชื่อมต่อได้');
     btn.textContent = '💾 บันทึก'; btn.disabled = false;
   }
