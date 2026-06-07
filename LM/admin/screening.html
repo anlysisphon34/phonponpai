@@ -105,13 +105,13 @@
 @media print{
   @page{size:A4 portrait;margin:15mm 18mm 18mm}
   *{-webkit-print-color-adjust:exact!important;color-adjust:exact!important;print-color-adjust:exact!important}
-  #sidebar,.topbar,.search-banner,.topbar-btns,.weekly-section{display:none!important}
-  .main{margin:0!important;padding:0!important}
+  .sidebar,.topbar,.search-banner,.topbar-btns,.weekly-section{display:none!important}
+  .layout{display:block!important}
+  .main{width:100%!important;margin:0!important;padding:0!important;overflow:visible!important}
   .body{padding:0!important}
-  .form-grid,.weekly-section{display:none!important}
+  .form-grid{display:none!important}
   #printArea{display:block!important}
   body{background:#fff!important;color:#1a1a1a!important;font-family:'Sarabun',sans-serif;font-size:11pt}
-  .layout{display:block!important}
 }
 
 /* Print content styles */
@@ -374,6 +374,8 @@
             <th>น้ำหนัก (กก.)</th>
             <th>เปลี่ยนแปลง</th>
             <th>ออกกำลังกาย</th>
+            <th>นอนหลับ</th>
+            <th>ความเครียด</th>
             <th>คะแนน</th>
           </tr>
         </thead>
@@ -506,6 +508,8 @@ function renderWeeklyLogs(logs, baselineWeight) {
   const minW = weights.length ? Math.min(...weights) : 0;
   const range = (maxW - minW) || 1;
 
+  const stressLabel = s => s ? ['','😌 น้อย','🙂 พอดี','😐 ปานกลาง','😟 มาก','😰 มากมาย'][Math.min(s,5)] : '—';
+
   const rows = logs.map((l, idx) => {
     const w    = l.weight ? parseFloat(l.weight) : null;
     const prev = idx > 0 && logs[idx - 1].weight
@@ -522,6 +526,7 @@ function renderWeeklyLogs(logs, baselineWeight) {
 
     const barPct  = w ? Math.round((w - minW) / range * 100) : 0;
     const exLabel = l.exDays ? `${l.exDays} วัน / ${l.exMins} นาที` : '—';
+    const sleepLabel = l.sleepHrs ? `${l.sleepHrs} ชม.` : '—';
 
     return `<tr>
       <td><span class="wt-week-badge">สัปดาห์ ${l.week}</span></td>
@@ -533,6 +538,8 @@ function renderWeeklyLogs(logs, baselineWeight) {
       </td>
       <td>${deltaHtml}</td>
       <td style="font-size:12px;color:var(--stone)">${exLabel}</td>
+      <td style="font-size:12px;color:var(--stone)">${sleepLabel}</td>
+      <td style="font-size:12px;color:var(--stone)">${stressLabel(l.stress)}</td>
       <td style="font-size:12px;color:var(--terra);font-weight:700">${l.points || 0} pts</td>
     </tr>`;
   });
@@ -540,7 +547,7 @@ function renderWeeklyLogs(logs, baselineWeight) {
   body.innerHTML = `
     <table class="wt-table">
       <thead><tr>
-        <th>สัปดาห์</th><th>น้ำหนัก</th><th>เปลี่ยนแปลง</th><th>ออกกำลังกาย</th><th>คะแนน</th>
+        <th>สัปดาห์</th><th>น้ำหนัก</th><th>เปลี่ยนแปลง</th><th>ออกกำลังกาย</th><th>นอนหลับ</th><th>ความเครียด</th><th>คะแนน</th>
       </tr></thead>
       <tbody>${rows.join('')}</tbody>
     </table>`;
@@ -663,11 +670,14 @@ function preparePrint() {
         else if (parseFloat(d) < 0) deltaHtml = `<span class="gain">▲ ${Math.abs(d)} กก.</span>`;
         else                        deltaHtml = 'ไม่เปลี่ยน';
       }
+      const sl = ['','น้อย','พอดี','ปานกลาง','มาก','มากมาย'];
       return `<tr>
         <td>สัปดาห์ ${l.week}</td>
         <td>${wt || '—'}</td>
         <td>${deltaHtml}</td>
         <td>${l.exDays ? `${l.exDays} วัน / ${l.exMins} นาที` : '—'}</td>
+        <td>${l.sleepHrs ? `${l.sleepHrs} ชม.` : '—'}</td>
+        <td>${l.stress ? sl[Math.min(l.stress,5)] : '—'}</td>
         <td>${l.points || 0} pts</td>
       </tr>`;
     }).join('');
