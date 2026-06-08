@@ -346,9 +346,20 @@ async function viewParticipant(lineUserId) {
     pill.style.background = bg;
     pill.style.color = rc;
 
-    // Screening
+    // Screening: s = latest (BMI/ความดัน/รอบเอว), b = baseline (น้ำหนักเริ่มต้น)
     const s    = data.screening;
+    const b    = data.baseline;
     const logs = data.weeklyLogs || [];
+
+    const wBefore = b ? b.weight : (s ? s.weight : null);
+    const wNow    = (s && b && s.weight !== b.weight) ? s.weight : null;
+    const wtDelta = (wBefore && wNow) ? +(wNow - wBefore).toFixed(1) : null;
+
+    const wtBox = wNow
+      ? `<div class="stat-val" style="font-size:16px">${wBefore}<span style="color:var(--stone)"> → </span><span style="color:${wtDelta<0?'var(--forest)':'var(--terra)'}">${wNow}</span></div>
+         <div class="stat-lbl" style="color:${wtDelta<0?'var(--forest)':'var(--terra)'};font-weight:700">${wtDelta<0?'ลด '+(wtDelta*-1)+' กก.':'เพิ่ม +'+wtDelta+' กก.'}</div>`
+      : `<div class="stat-val">${wBefore ? wBefore+' กก.' : '—'}</div>
+         <div class="stat-lbl">น้ำหนักเริ่มต้น</div>`;
 
     document.getElementById('modalBody').innerHTML = `
       <div class="modal-sec">
@@ -362,10 +373,7 @@ async function viewParticipant(lineUserId) {
             <div class="stat-val">${s ? s.bpSys+'/'+s.bpDia : '—'}</div>
             <div class="stat-lbl">ความดัน (mmHg)</div>
           </div>
-          <div class="stat-box">
-            <div class="stat-val">${s ? s.weight+' กก.' : '—'}</div>
-            <div class="stat-lbl">น้ำหนักเริ่มต้น</div>
-          </div>
+          <div class="stat-box">${wtBox}</div>
         </div>
         ${s && s.waist ? `<div style="margin-top:10px;font-size:13px;color:var(--stone)">รอบเอว <strong style="color:var(--bark)">${s.waist} ซม.</strong></div>` : ''}
       </div>
