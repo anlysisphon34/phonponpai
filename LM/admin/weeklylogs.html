@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>บันทึกรายสัปดาห์ — โครงการ 90 วัน</title>
+<link rel="stylesheet" href="admin.css">
+<script src="sidebar.js"></script>
+<style>
+/* Filter bar */
+.filter-bar{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.search-wrap{position:relative;flex:1;min-width:200px}
+.search-wrap svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--mist)}
+.search-input{
+  width:100%;padding:10px 14px 10px 40px;border-radius:100px;
+  border:2px solid var(--border);background:var(--warm-white);
+  font-family:'Sarabun',sans-serif;font-size:14px;color:var(--bark);outline:none;
+}
+.search-input:focus{border-color:var(--terra)}
+.filter-select{
+  padding:10px 36px 10px 14px;border-radius:100px;
+  border:2px solid var(--border);background:var(--warm-white);
+  font-family:'Sarabun',sans-serif;font-size:14px;color:var(--stone);
+  outline:none;cursor:pointer;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23C8B9B0' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+}
+.filter-select:focus{border-color:var(--terra)}
+
+/* Summary cards */
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.sum-card{
+  background:var(--warm-white);border-radius:16px;padding:16px 18px;
+  box-shadow:0 2px 8px rgba(42,31,26,.06);
+}
+.sum-val{font-size:26px;font-weight:800;color:var(--bark);line-height:1}
+.sum-lbl{font-size:12px;color:var(--stone);margin-top:4px}
+.sum-sub{font-size:11px;margin-top:6px;padding:2px 8px;border-radius:100px;display:inline-block}
+.sum-sub.green{background:var(--forest-light);color:var(--forest)}
+.sum-sub.amber{background:var(--amber-light);color:#8a6000}
+.sum-sub.terra{background:var(--terra-light);color:var(--terra-dark)}
+
+/* Table */
+.table-card{background:var(--warm-white);border-radius:18px;box-shadow:0 2px 8px rgba(42,31,26,.06);overflow:hidden}
+.table-head{
+  display:grid;grid-template-columns:2fr 0.7fr 1.4fr 1.3fr 0.8fr 0.8fr 0.8fr 0.8fr;
+  padding:11px 20px;background:var(--cream);border-bottom:1px solid var(--border);gap:8px;
+}
+.th{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mist)}
+.table-body .row{
+  display:grid;grid-template-columns:2fr 0.7fr 1.4fr 1.3fr 0.8fr 0.8fr 0.8fr 0.8fr;
+  padding:13px 20px;border-bottom:1px solid var(--border);gap:8px;align-items:center;
+}
+.table-body .row:last-child{border-bottom:none}
+.table-body .row:hover{background:var(--cream)}
+.name-txt{font-size:14px;font-weight:600;color:var(--bark)}
+.comm-txt{font-size:12px;color:var(--stone)}
+.wk-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:28px;height:28px;border-radius:8px;
+  font-size:13px;font-weight:700;background:var(--cream);color:var(--stone);
+}
+.ex-val{font-size:13px;color:var(--bark);font-weight:600}
+.ex-sub{font-size:11px;color:var(--stone)}
+.ex-bar{height:4px;background:var(--border);border-radius:2px;margin-top:4px;overflow:hidden}
+.ex-fill{height:100%;border-radius:2px;transition:width .3s}
+.diet-icons{display:flex;gap:4px}
+.diet-icon{
+  width:22px;height:22px;border-radius:6px;display:flex;align-items:center;
+  justify-content:center;font-size:12px;
+}
+.diet-icon.on{background:var(--forest-light)}
+.diet-icon.off{background:var(--border);opacity:.5}
+.cell{font-size:13px;color:var(--bark)}
+.cell.muted{color:var(--stone)}
+.stress-bar{display:flex;gap:2px}
+.sdot{width:7px;height:7px;border-radius:2px}
+.loading-row{text-align:center;padding:40px;color:var(--stone);font-size:14px;grid-column:1/-1}
+
+/* Pagination */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 20px}
+.page-info{font-size:13px;color:var(--stone)}
+.page-btns{display:flex;gap:6px}
+.page-btn{
+  width:32px;height:32px;border-radius:8px;border:2px solid var(--border);
+  background:transparent;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:13px;
+  color:var(--stone);display:flex;align-items:center;justify-content:center;
+}
+.page-btn.active{background:var(--terra);border-color:var(--terra);color:#fff;font-weight:700}
+.page-btn:hover:not(.active){border-color:var(--terra);color:var(--terra)}
+</style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar"></div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h1>บันทึกรายสัปดาห์</h1>
+        <p id="topbarSub">โหลดข้อมูล...</p>
+      </div>
+    </div>
+
+    <div class="body">
+      <!-- Filter bar -->
+      <div class="filter-bar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input class="search-input" type="search" placeholder="ค้นหาชื่อหรือชุมชน..." id="searchInput" oninput="onFilter()">
+        </div>
+        <select class="filter-select" id="weekFilter" onchange="onFilter()">
+          <option value="0">ทุกสัปดาห์</option>
+        </select>
+      </div>
+
+      <!-- Summary cards -->
+      <div class="summary-grid" id="summaryGrid">
+        <div class="sum-card shimmer" style="height:80px"></div>
+        <div class="sum-card shimmer" style="height:80px"></div>
+        <div class="sum-card shimmer" style="height:80px"></div>
+        <div class="sum-card shimmer" style="height:80px"></div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-card">
+        <div class="table-head">
+          <div class="th">ชื่อ–ชุมชน</div>
+          <div class="th">สัปดาห์</div>
+          <div class="th">ออกกำลังกาย</div>
+          <div class="th">อาหาร</div>
+          <div class="th">นอน</div>
+          <div class="th">ความเครียด</div>
+          <div class="th">น้ำหนัก</div>
+          <div class="th">คะแนน</div>
+        </div>
+        <div class="table-body" id="tableBody">
+          <div class="loading-row">กำลังโหลดข้อมูล...</div>
+        </div>
+        <div class="pagination">
+          <span class="page-info" id="pageInfo">—</span>
+          <div class="page-btns" id="pageBtns"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyz7zegkAeUyTwu7AYvvMflFjWLVpF8mAmsvomyCfSnPFaFyFUEh-PbWjf7GPmzEGie/exec';
+const LIMIT = 30;
+let currentPage = 1, currentWeek = 0, currentQ = '';
+let debounceTimer = null;
+
+// Populate week dropdown
+const weekSel = document.getElementById('weekFilter');
+for (let w = 1; w <= 12; w++) {
+  const o = document.createElement('option');
+  o.value = w; o.textContent = `สัปดาห์ที่ ${w}`;
+  weekSel.appendChild(o);
+}
+
+window.addEventListener('DOMContentLoaded', loadData);
+
+function onFilter() {
+  currentQ    = document.getElementById('searchInput').value;
+  currentWeek = parseInt(document.getElementById('weekFilter').value) || 0;
+  currentPage = 1;
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(loadData, 400);
+}
+
+async function loadData() {
+  document.getElementById('tableBody').innerHTML = '<div class="loading-row">กำลังโหลดข้อมูล...</div>';
+  const params = new URLSearchParams({
+    action: 'getWeeklyLogs',
+    week: currentWeek, q: currentQ, page: currentPage, limit: LIMIT,
+  });
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?${params}`);
+    const data = await res.json();
+    if (!data.ok) {
+      document.getElementById('tableBody').innerHTML = '<div class="loading-row">เกิดข้อผิดพลาด</div>';
+      return;
+    }
+    renderSummary(data.summary, data.total);
+    renderTable(data.items);
+    renderPagination(data.total, data.page, data.limit);
+    const wLabel = currentWeek ? `สัปดาห์ที่ ${currentWeek}` : 'ทุกสัปดาห์';
+    document.getElementById('topbarSub').textContent = `${wLabel} · ${data.total} รายการ`;
+  } catch(e) {
+    document.getElementById('tableBody').innerHTML = '<div class="loading-row">ไม่สามารถเชื่อมต่อได้</div>';
+  }
+}
+
+function renderSummary(s, total) {
+  const subCls = (v, thr1, thr2) => v >= thr1 ? 'green' : v >= thr2 ? 'amber' : 'terra';
+  document.getElementById('summaryGrid').innerHTML = `
+    <div class="sum-card">
+      <div class="sum-val">${s.count}</div>
+      <div class="sum-lbl">รายการบันทึก</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-val">${s.avgMins} <span style="font-size:14px;font-weight:400;color:var(--stone)">นาที</span></div>
+      <div class="sum-lbl">ออกกำลังกายเฉลี่ย/คน</div>
+      <span class="sum-sub ${subCls(s.avgMins, 150, 75)}">เป้า WHO 150 นาที</span>
+    </div>
+    <div class="sum-card">
+      <div class="sum-val">${s.pct150}<span style="font-size:16px;font-weight:400;color:var(--stone)">%</span></div>
+      <div class="sum-lbl">ถึงเป้า 150 นาที/สัปดาห์</div>
+      <span class="sum-sub ${subCls(s.pct150, 50, 25)}">${s.pct150 >= 50 ? 'ดี' : s.pct150 >= 25 ? 'พอใช้' : 'ต้องส่งเสริม'}</span>
+    </div>
+    <div class="sum-card">
+      <div class="sum-val">${s.avgSleep} <span style="font-size:14px;font-weight:400;color:var(--stone)">ชม.</span></div>
+      <div class="sum-lbl">นอนเฉลี่ย/คืน</div>
+      <span class="sum-sub ${subCls(s.avgSleep, 7, 6)}">${s.avgSleep >= 7 ? 'เพียงพอ' : s.avgSleep >= 6 ? 'น้อยนิด' : 'นอนน้อย'}</span>
+    </div>`;
+}
+
+function renderTable(items) {
+  const body = document.getElementById('tableBody');
+  if (!items.length) {
+    body.innerHTML = '<div class="loading-row">ไม่พบข้อมูล</div>';
+    return;
+  }
+  body.innerHTML = items.map(d => {
+    // Exercise bar (% of 300 mins as max visual)
+    const exPct   = Math.min(Math.round(d.exMins / 300 * 100), 100);
+    const exColor = d.exMins >= 150 ? 'var(--forest)' : d.exMins >= 75 ? 'var(--amber)' : 'var(--terra)';
+
+    // Diet icons: ลดหวาน, ผัก, ลดเค็ม
+    const dietHtml = [
+      [d.noSugar, '🍬', 'ลดหวาน'],
+      [d.veggie,  '🥦', 'ผัก'],
+      [d.noSalt,  '🧂', 'ลดเค็ม'],
+    ].map(([on, em, tt]) =>
+      `<div class="diet-icon ${on?'on':'off'}" title="${tt}">${em}</div>`
+    ).join('');
+
+    // Sleep color
+    const sleepColor = d.sleepHrs >= 7 ? 'var(--forest)' : d.sleepHrs >= 6 ? 'var(--amber)' : 'var(--terra)';
+
+    // Stress dots (1=low, 5=high)
+    const stressDots = [1,2,3,4,5].map(i => {
+      const on = i <= d.stress;
+      const c  = d.stress <= 2 ? 'var(--forest)' : d.stress <= 3 ? 'var(--amber)' : 'var(--terra)';
+      return `<div class="sdot" style="background:${on ? c : 'var(--border)'}"></div>`;
+    }).join('');
+
+    return `
+      <div class="row">
+        <div>
+          <div class="name-txt">${d.name}</div>
+          <div class="comm-txt">${d.comm}</div>
+        </div>
+        <div><span class="wk-badge">${d.week}</span></div>
+        <div>
+          <div class="ex-val">${d.exMins} นาที <span class="ex-sub">(${d.exDays} วัน)</span></div>
+          <div class="ex-bar"><div class="ex-fill" style="width:${exPct}%;background:${exColor}"></div></div>
+        </div>
+        <div><div class="diet-icons">${dietHtml}</div></div>
+        <div class="cell" style="color:${sleepColor};font-weight:600">${d.sleepHrs} ชม.</div>
+        <div><div class="stress-bar">${stressDots}</div></div>
+        <div class="cell ${d.weight ? '' : 'muted'}">${d.weight ? d.weight+' กก.' : '—'}</div>
+        <div class="cell"><strong style="color:var(--terra)">${d.points}</strong> <span style="font-size:11px;color:var(--stone)">pts</span></div>
+      </div>`;
+  }).join('');
+}
+
+function renderPagination(total, page, limit) {
+  const totalPages = Math.ceil(total / limit) || 1;
+  const from = total ? (page - 1) * limit + 1 : 0;
+  const to   = Math.min(page * limit, total);
+  document.getElementById('pageInfo').textContent = total ? `แสดง ${from}–${to} จาก ${total} รายการ` : 'ไม่มีข้อมูล';
+  const btns = document.getElementById('pageBtns');
+  btns.innerHTML = '';
+  const addBtn = (label, pg, active) => {
+    const b = document.createElement('button');
+    b.className = 'page-btn' + (active ? ' active' : '');
+    b.textContent = label;
+    if (!active && pg >= 1 && pg <= totalPages) b.onclick = () => { currentPage = pg; loadData(); };
+    btns.appendChild(b);
+  };
+  addBtn('‹', page - 1);
+  const start = Math.max(1, page - 2);
+  const end   = Math.min(totalPages, start + 4);
+  for (let pg = start; pg <= end; pg++) addBtn(pg, pg, pg === page);
+  addBtn('›', page + 1);
+}
+</script>
+</body>
+</html>
